@@ -1,21 +1,21 @@
 import { AppDataSource } from '../data-source';
 import { History } from '../entity/History';
 import { HistoryItem } from '../entity/HistoryItem';
-import { HistoryContainer } from '../../../sharetypes';
+import { InfoBlock, saveHistoryContainer } from '../../../sharetypes';
 
 export class HistoryService {
   private historyRepository = AppDataSource.getRepository(History);
   private historyItemRepository = AppDataSource.getRepository(HistoryItem);
 
   /**
-   * 卓歴追加API
-   * HistoryContainer 型のデータを受け取り、データベースの histories 配列に追加する
+   * 記録追加API
+   * saveHistoryContainer 型のデータを受け取り、データベースの histories 配列に追加する
    * @param user_number - ユーザーの user_number
-   * @param newHistory - 追加する HistoryContainer 型のデータ
+   * @param newHistory - 追加する saveHistoryContainer 型のデータ
    */
   async addHistory(
     user_number: number,
-    newHistory: HistoryContainer
+    newHistory: saveHistoryContainer
   ): Promise<void> {
     // ユーザーの履歴データを取得
     const history = await this.historyRepository.findOne({
@@ -50,21 +50,20 @@ export class HistoryService {
         (a, b) => parseInt(a.historyid) - parseInt(b.historyid)
       );
 
-      console.log(history);
       // データベースを更新
       await this.historyRepository.save(history);
     }
   }
 
   /**
-   * 卓歴更新API
-   * データベースの histories 配列から、UserNumber と historyid が一致するデータを更新する
+   * 記録更新API
+   * データベースの UserNumber と historyid が一致するデータを更新する
    * @param user_number - ユーザーの user_number
    * @param updateHistoryContent - 更新する HistoryContainer 型のデータ
    */
   async updateHistory(
     user_number: number,
-    updateHistoryContent: HistoryContainer
+    updateHistoryContent: saveHistoryContainer
   ): Promise<void> {
     try {
       // user_number に対応する History エンティティを取得
@@ -101,8 +100,52 @@ export class HistoryService {
   }
 
   /**
+   * 記録プロフィールのみ更新API
+   * 記録更新API
+   * history_itemテーブルの childblock 配列のみ更新する。
+   * @param user_number - ユーザーの user_number
+   * @param historyId - 更新する HistoryItem の historyid
+   * @param updateChildblock - 更新する InfoBlock 型のデータ
+   */
+  async updateHistoryProfile(
+    user_number: number,
+    historyId: string,
+    updateChildblock: InfoBlock[]
+  ): Promise<void> {
+    try {
+      // user_number に対応する History エンティティを取得
+      const history = await this.historyRepository.findOne({
+        where: { user_number },
+        relations: ['histories'], // histories を含めて取得
+      });
+
+      if (!history) {
+        throw new Error('History not found');
+      }
+
+      // historyId に対応する HistoryItem を取得
+      const historyItem = history.histories.find(
+        (item) => item.historyid === historyId
+      );
+
+      if (!historyItem) {
+        throw new Error('HistoryItem not found');
+      }
+
+      // childblock を更新
+      historyItem.childblock = updateChildblock;
+
+      // 更新を保存
+      await this.historyItemRepository.save(historyItem);
+    } catch (error) {
+      console.error('Error updating history:', error);
+      throw new Error('Failed to update history');
+    }
+  }
+
+  /**
    * 卓歴削除API
-   * データベースの histories 配列から、UserNumber と historyid が一致するデータを削除する
+   * UserNumber と historyid が一致するデータを削除する
    * @param user_number - ユーザーの user_number
    * @param historyId - 削除する HistoryItem の historyid
    */
@@ -139,175 +182,5 @@ export class HistoryService {
       console.error('Error deleting history:', error);
       throw new Error('Failed to delete history');
     }
-  }
-
-  /**
-   * ヒストリ取得API
-   * @param user_number - ユーザー番号
-   * @param page - 取得するページ番号（1から始まる）
-   * @param limit - 1ページあたりの最大件数
-   * @param sortBy - 並び替え条件（例: 'historyid', 'date'）
-   * @param sortOrder - 昇順 ('ASC') または降順 ('DESC')
-   * @returns 履歴データと次のページの有無
-   */
-  async getHistories(
-    user_number: number,
-    page: number,
-    limit: number,
-    sortBy: 'id' | 'date', // id または date のみを許可
-    sortOrder: 'ASC' | 'DESC' // 昇順 or 降順
-  ): Promise<{ data: HistoryContainer[]; hasNext: boolean }> {
-    // user_number に合致する History エンティティを取得
-    const history = await this.historyRepository.findOne({
-      where: { user_number },
-      relations: ['histories'], // histories 配列を含める
-    });
-
-    if (!history) {
-      // 対応する履歴が存在しない場合
-      return {
-        data: [],
-        hasNext: false,
-      };
-    }
-
-    // histories 配列を取得
-    let histories = history.histories;
-
-    // 並び替え処理
-    histories.sort((a, b) => {
-      let valueA, valueB;
-
-      if (sortBy === 'id') {
-        // sortBy が 'id' の場合、historyid を使用
-        valueA = a.historyid;
-        valueB = b.historyid;
-      } else if (sortBy === 'date') {
-        // sortBy が 'date' の場合、keydate を使用（null は末尾に配置）
-        valueA = a.keydate || '9999-99-99'; // null の場合は最大値として扱う
-        valueB = b.keydate || '9999-99-99';
-      }
-
-      // 文字列型の場合のみ比較を行う
-      if (typeof valueA === 'string' && typeof valueB === 'string') {
-        // null 値を考慮した比較ロジック
-        const isNullA = a.keydate === null;
-        const isNullB = b.keydate === null;
-
-        if (isNullA && !isNullB) {
-          // a が null の場合、常に a > b とする（末尾に配置）
-          return 1;
-        }
-        if (!isNullA && isNullB) {
-          // b が null の場合、常に a < b とする（末尾に配置）
-          return -1;
-        }
-
-        // 通常の文字列比較
-        return sortOrder === 'ASC'
-          ? valueA.localeCompare(valueB)
-          : valueB.localeCompare(valueA);
-      }
-
-      // 比較不能な場合は 0 を返す
-      return 0;
-    });
-
-    // ページネーション
-    const skip = (page - 1) * limit;
-    const paginatedHistories = histories.slice(skip, skip + limit);
-
-    // 次のページがあるかどうかを判定
-    const hasNext = skip + limit < histories.length;
-
-    // HistoryItem[] を HistoryContainer[] に変換
-    const result = paginatedHistories.map((item) => ({
-      id: item.historyid,
-      date: item.date,
-      keydate: item.keydate,
-      title: item.title,
-      system: item.system,
-      report: item.report,
-      imgURL: item.imgURL,
-      private: item.private,
-      childblock: item.childblock,
-    }));
-
-    console.log(result);
-    return {
-      data: result,
-      hasNext,
-    };
-  }
-
-  /**
-   * ヒストリ【日時指定】取得API
-   * @param user_number - ユーザー番号
-   * @param page - 取得するページ番号（1から始まる）
-   * @param limit - 1ページあたりの最大件数
-   * @param point - 指定日時
-   * @param sortOrder - 昇順 ('ASC') または降順 ('DESC')
-   * @returns 履歴データと次のページの有無
-   */
-  async getpointHistories(
-    user_number: number,
-    page: number,
-    limit: number,
-    point: string, // 並び替え条件（例: '2023'）
-    sortOrder: 'ASC' | 'DESC' // 昇順 or 降順
-  ): Promise<{ data: HistoryContainer[]; hasNext: boolean }> {
-    // user_number に合致する History エンティティを取得
-    const history = await this.historyRepository.findOne({
-      where: { user_number },
-      relations: ['histories'], // histories 配列を含める
-    });
-
-    if (!history) {
-      // 対応する履歴が存在しない場合
-      return {
-        data: [],
-        hasNext: false,
-      };
-    }
-
-    // フィルタリング
-    let histories = history.histories.filter((item) =>
-      item.date?.some((date) => date.startsWith(point))
-    );
-
-    // 並び替え処理
-    histories.sort((a, b) => {
-      const firstDateA = a.date?.find((date) => date.startsWith(point)) || '';
-      const firstDateB = b.date?.find((date) => date.startsWith(point)) || '';
-
-      return sortOrder === 'ASC'
-        ? firstDateA.localeCompare(firstDateB)
-        : firstDateB.localeCompare(firstDateA);
-    });
-
-    // ページネーション
-    const skip = (page - 1) * limit;
-    const paginatedHistories = histories.slice(skip, skip + limit);
-
-    // 次のページがあるかどうかを判定
-    const hasNext = skip + limit < histories.length;
-
-    // HistoryItem[] を HistoryContainer[] に変換
-    const result = paginatedHistories.map((item) => ({
-      id: item.historyid,
-      date: item.date,
-      keydate: item.keydate,
-      title: item.title,
-      system: item.system,
-      report: item.report,
-      imgURL: item.imgURL,
-      private: item.private,
-      childblock: item.childblock,
-    }));
-
-    return {
-      data: result,
-      hasNext,
-    };
   }
 }

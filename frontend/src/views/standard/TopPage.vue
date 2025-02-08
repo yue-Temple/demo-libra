@@ -36,7 +36,7 @@ export default defineComponent({
 
     // トークンからユーザー情報を取得
     const checkLogin = () => {
-      if (userStore.isLoggedIn) {
+      if (userStore.token) {
         console.log('ログイン状態-->メインページへ');
         goToMainPage(router); // メインページに遷移
       } else {

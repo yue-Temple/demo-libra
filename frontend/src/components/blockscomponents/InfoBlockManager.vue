@@ -3,7 +3,6 @@
     <!-- ブロック追加ボタンとポップアップ -->
     <EditButton
       v-if="isOwner"
-      :allEditNow="allEditNow"
       :isEditing="isEditing"
       @open-popup="showPopup = true"
       @save-page="handleSavePage"
@@ -42,16 +41,15 @@
         :content="block.content"
         :styleType="block.styleType"
         :isEditing="isEditing"
-        :editNow="block.editNow"
+        :editNow="isEditNow(block.id)"
         @update:content="updateTextBlock(block.id, $event)"
-        @update:editNow="(newEditNow) => updateEditNow(block.id, newEditNow)"
+        @update:editNow="(newEditNow) => toggleEditNow(block.id)"
       />
       <ButtonBlock
         v-else-if="block.type === 'button'"
         :buttonType="block.buttonType"
         :buttons="block.buttons || []"
         :isEditing="isEditing"
-        :editNow="block.editNow"
         @sendfile="sendfile"
         @update:buttons="updateButtonBlock(block.id, $event)"
       />
@@ -61,17 +59,17 @@
         :styleType="block.styleType"
         :button="block.button"
         :isEditing="isEditing"
-        :editNow="block.editNow"
+        :editNow="isEditNow(block.id)"
         @update:content="updateTextButtonContent(block.id, $event)"
         @update:button="updateTextButtons(block.id, $event)"
-        @update:editNow="(newEditNow) => updateEditNow(block.id, newEditNow)"
+        @update:editNow="(newEditNow) => toggleEditNow(block.id)"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 // 型定義
@@ -111,23 +109,42 @@ const showPopup = ref(false);
 const activeMoreMenu = ref<number | null>(null);
 const isEditing = ref(false); // 編集モードフラグ
 const isOwner = userStore.checkOwner(route.params.userNumber);
-console.log();
-// 編集中のブロックがあるか監視
-const allEditNow = computed(() => {
-  if (!isOwner) return false; // 作成者でない場合は常に false
-  return props.infoBlocks.some((block) => block.editNow);
-});
+
+// editNow 状態を Map で管理
+const editNowMap = ref(new Map<string, boolean>());
+
+// editNow 状態を初期化関数
+const initializeEditNowMap = () => {
+  editNowMap.value = new Map(
+    props.infoBlocks.map((block) => [block.id, false])
+  );
+};
+// コンポーネントマウント時に初期化
+initializeEditNowMap();
+
+// infoBlocks が更新された場合にも再初期化
+watch(
+  () => props.infoBlocks,
+  () => initializeEditNowMap()
+);
+
+// editNow 状態を切り替える関数
+const toggleEditNow = (blockId: string) => {
+  const currentEditNow = editNowMap.value.get(blockId) || false;
+  editNowMap.value.set(blockId, !currentEditNow);
+};
+
+// editNow 状態を取得する関数
+const isEditNow = (blockId: string): boolean => {
+  return editNowMap.value.get(blockId) || false;
+};
 
 // 画面遷移時のガード
 onBeforeRouteLeave((to, from, next) => {
-  if (allEditNow.value || isEditing.value) {
+  if (isEditing.value) {
     const confirmMessage =
       '編集中の内容があります。ページを離れてもよろしいですか？';
     if (window.confirm(confirmMessage)) {
-      // すべての editNow を false に設定
-      props.infoBlocks.forEach((block) => {
-        block.editNow = false;
-      });
       isEditing.value = false; // 編集モードを終了
       next(); // ユーザーがOKを選択した場合、遷移を許可
     } else {
@@ -188,7 +205,6 @@ const handleAddBlock = (block: {
         type: 'text',
         content: '',
         styleType: block.styleType,
-        editNow: false,
       };
       break;
     case 'button':
@@ -218,7 +234,6 @@ const handleAddBlock = (block: {
         content: '',
         buttonType: block.buttonType,
         buttons,
-        editNow: false,
       };
       break;
     case 'textbutton':
@@ -234,7 +249,6 @@ const handleAddBlock = (block: {
           icon_url: null,
         },
         content: '',
-        editNow: false,
       };
       break;
     case 'img':
@@ -242,7 +256,6 @@ const handleAddBlock = (block: {
         id: Date.now().toString(),
         type: 'img',
         content: '',
-        editNow: false,
       };
       break;
     case 'CS':
@@ -250,7 +263,6 @@ const handleAddBlock = (block: {
         id: Date.now().toString(),
         type: 'CS',
         content: '',
-        editNow: false,
       };
       break;
     default:
@@ -290,15 +302,6 @@ const updateTextButtons = (blockId: string, button: Button) => {
   const block = props.infoBlocks.find((block) => block.id === blockId);
   if (block && block.type === 'textbutton') {
     block.button = button;
-    emit('update-info-blocks', [...props.infoBlocks]);
-  }
-};
-
-// ブロックごとの editNow を更新リッスン
-const updateEditNow = (blockId: string, newEditNow: boolean) => {
-  const block = props.infoBlocks.find((block) => block.id === blockId);
-  if (block) {
-    block.editNow = newEditNow;
     emit('update-info-blocks', [...props.infoBlocks]);
   }
 };

@@ -197,9 +197,7 @@ export class AuthGoogleService {
    * @param authCode - 認可コード
    * @returns { id_token, access_token, refresh_token } - 取得したトークン情報
    */
-  private async fetchGoogleTokens(
-    authCode: string
-  ): Promise<{
+  private async fetchGoogleTokens(authCode: string): Promise<{
     id_token: string;
     access_token: string;
     refresh_token?: string;

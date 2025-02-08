@@ -10,6 +10,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const useHistoryStore = defineStore('history', {
   state: () => ({
     histories: [] as HistoryContainer[], // 取得した記録データ
+    historyfetched: false, // ヒストリデータ取得済かのフラグ
     currentPage: 1, // 現在のページ番号
     isLoading: false, // データ取得中のローディング状態
     hasMore: true, // 次のページがあるかどうか
@@ -49,7 +50,78 @@ export const useHistoryStore = defineStore('history', {
     },
 
     /**
-     * API: 卓歴を取得 ※利用者以外も利用
+     * API:記録を更新
+     * @param updateHistoryContent
+     */
+    async updateHistory(updateHistoryContent: HistoryContainer): Promise<void> {
+      const userNumber = getuseUserNumber();
+
+      try {
+        // 画像データがFILEもしくはBase64形式の場合、CDNを通す処理
+        if (updateHistoryContent.imgURL != null) {
+          if (
+            updateHistoryContent.imgURL instanceof File ||
+            updateHistoryContent.imgURL.startsWith('data:image/')
+          ) {
+            //CDNURLを取得する処理
+            //updateHistory.imgURL = filetoURL(updateHistoryContent.imgURL);
+          }
+        }
+
+        const index = this.histories.findIndex(
+          (h) => h.id === updateHistoryContent.id
+        );
+        if (index !== -1) {
+          this.histories[index] = updateHistoryContent;
+        }
+
+        await axios.put(`${apiBaseUrl}/hist/histories/${userNumber}`, {
+          updateHistoryContent,
+        });
+      } catch (error) {
+        console.error('記録の更新に失敗しました', error);
+        throw error;
+      }
+    },
+
+    /**
+     * API:ヒストリプロフィールを更新
+     * @param historyId
+     * @param updateChildBlocks
+     * @returns
+     */
+    async savehistProfile(
+      historyId: string,
+      updateChildBlocks: InfoBlock[]
+    ): Promise<InfoBlock[]> {
+      const userNumber = getuseUserNumber();
+      console.log(historyId);
+      console.log(userNumber);
+      console.log(updateChildBlocks);
+
+      try {
+        // InfoBlock[] を処理(画像データをURLに変換)
+        const processedChildeBlocks =
+          await processInfoBlocks(updateChildBlocks);
+
+        // APIに送信
+        await axios.put(
+          `${apiBaseUrl}/hist/historyprofile/${userNumber}/${historyId}`,
+          {
+            blocks: processedChildeBlocks,
+          }
+        );
+
+        console.log('プロフィールの保存に成功しました');
+        return processedChildeBlocks;
+      } catch (error) {
+        console.error('プロフィールの保存に失敗しました', error);
+        throw error;
+      }
+    },
+
+    /**
+     * API: 記録を取得 ※利用者以外も利用
      * @param userNumber
      * @param sortBy 並び替え条件（例: 'id', 'date'）
      * @param sortOrder 並び替え順序（'ASC' または 'DESC'）
@@ -58,7 +130,7 @@ export const useHistoryStore = defineStore('history', {
     async fetchHistories(
       userNumber: number,
       sortBy: string = 'date', // デフォルトの並び替え条件
-      sortOrder: 'ASC' | 'DESC' = 'ASC' // デフォルトの並び替え順序
+      sortOrder: 'ASC' | 'DESC' = 'DESC' // デフォルトの並び替え順序
     ) {
       if (!this.hasMore || this.isLoading) return;
       this.isLoading = true;
@@ -77,11 +149,11 @@ export const useHistoryStore = defineStore('history', {
         });
 
         // ◆後で消す
-        console.log('API Response:', {
-          page: this.currentPage,
-          received: response.data.data.length,
-          hasNext: response.data.hasNext,
-        });
+        // console.log('API Response:', {
+        //   page: this.currentPage,
+        //   received: response.data.data.length,
+        //   hasNext: response.data.hasNext,
+        // });
 
         if (response.data.data.length > 0) {
           this.histories = [...this.histories, ...response.data.data];
@@ -89,82 +161,32 @@ export const useHistoryStore = defineStore('history', {
         }
         this.hasMore = response.data.hasNext;
       } catch (error) {
-        console.error('履歴の取得に失敗しました', error);
+        console.error('記録の取得に失敗しました', error);
       } finally {
         this.isLoading = false;
       }
     },
 
-    // ストアの状態リセット用メソッド
-    reset() {
-      this.histories = [];
-      this.currentPage = 1;
-      this.hasMore = true;
-      this.isLoading = false;
-    },
-
     /**
-     * API:記録を更新
-     * @param updateHistory
-     */
-    async updateHistory(updateHistory: HistoryContainer): Promise<void> {
-      const userNumber = getuseUserNumber();
-
-      try {
-        // 画像データがFILEもしくはBase64形式の場合、URL化処理
-        if (updateHistory.imgURL != null) {
-          if (
-            updateHistory.imgURL instanceof File ||
-            updateHistory.imgURL.startsWith('data:image/')
-          ) {
-            updateHistory.imgURL = filetoURL(updateHistory.imgURL);
-          }
-        }
-
-        const index = this.histories.findIndex(
-          (h) => h.id === updateHistory.id
-        );
-        if (index !== -1) {
-          this.histories[index] = updateHistory;
-        }
-
-        await axios.put(`${apiBaseUrl}/hist/histories/${userNumber}`, {
-          updateHistory,
-        });
-      } catch (error) {
-        console.error('卓歴の更新に失敗しました', error);
-        throw error;
-      }
-    },
-
-    /**
-     * API:ヒストリープロフィールブロックを保存
-     * @param blocks
+     * API: 再読み込み時利用、記録詳細一件取得 ※利用者以外も利用
+     * @param userNumber
      * @param historyId
+     * @returns
      */
-    async savehistProfile(
-      blocks: InfoBlock[],
+    async fetchHistoriesdetail(
+      userNumber: number,
       historyId: string
-    ): Promise<void> {
-      const userNumber = getuseUserNumber();
-
+    ): Promise<HistoryContainer | null> {
       try {
-        // InfoBlock[] を処理
-        const processedBlocks = await processInfoBlocks(blocks);
-
-        // APIに送信
-        await axios.post(`${apiBaseUrl}/hist/savehistprofile`, {
-          userNumber,
-          blocks: processedBlocks,
-        });
-
-        // 保存が成功したら、state.histories.childblockを更新
-        //this.histories.childblock = processedBlocks;
-
-        console.log('プロフィールの保存に成功しました');
+        const response = await axios.get<{ data: HistoryContainer }>(
+          `${apiBaseUrl}/hist/historydetail/${userNumber}/${historyId}`
+        );
+        return response.data.data;
       } catch (error) {
-        console.error('プロフィールの保存に失敗しました', error);
-        throw error;
+        console.error('記録詳細の取得に失敗しました', error);
+        return null;
+      } finally {
+        this.isLoading = false;
       }
     },
 
@@ -184,9 +206,17 @@ export const useHistoryStore = defineStore('history', {
           `${apiBaseUrl}/hist/histories/${userNumber}/${historyId}`
         );
       } catch (error) {
-        console.error('卓歴の削除に失敗しました', error);
+        console.error('記録の削除に失敗しました', error);
         throw error;
       }
+    },
+
+    // ストアの状態リセット用メソッド
+    reset() {
+      this.histories = [];
+      this.currentPage = 1;
+      this.hasMore = true;
+      this.isLoading = false;
     },
   },
   getters: {

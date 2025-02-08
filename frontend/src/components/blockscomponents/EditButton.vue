@@ -12,10 +12,10 @@ import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
   props: {
-    allEditNow: {
-      type: Boolean,
-      required: true,
-    },
+    // allEditNow: {
+    //   type: Boolean,
+    //   required: true,
+    // },
     isEditing: {
       type: Boolean,
       required: true,
@@ -35,11 +35,6 @@ export default defineComponent({
         emit('edit-page'); // 編集モードに切り替えるイベントを発行
       } else {
         // 保存ボタンを押したときの処理
-        if (props.allEditNow) {
-          // EditNow が true の場合、アラートを表示して処理を中断
-          alert('編集中のテキストがあります。');
-          return; // 保存処理を中断
-        }
         buttonText.value = '編集';
         showAddButton.value = false;
         emit('save-page'); // 保存モードに切り替えるイベントを発行

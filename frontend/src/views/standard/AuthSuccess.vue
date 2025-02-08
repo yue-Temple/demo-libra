@@ -1,5 +1,6 @@
 <template></template>
 <script setup lang="ts">
+import { goToMainPage } from '@/components/standard/gotomainpage';
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
 
@@ -10,11 +11,11 @@ const userStore = useUserStore();
 const urlParams = new URLSearchParams(window.location.search);
 const accessToken = urlParams.get('accessToken');
 const refreshToken = urlParams.get('refreshToken');
-
-console.log(urlParams);
+const isLoginFlow = urlParams.get('isLoginFlow') === 'true';
+userStore.isLoginFlow = isLoginFlow;
 
 if (accessToken && refreshToken) {
-  // アクセストークンをセッションストレージに保存※非採用
+  // アクセストークンをセッションストレージに保存 ※非採用
   //sessionStorage.setItem('accessToken', accessToken);
 
   // アクセストークンをローカルストレージに保存
@@ -22,17 +23,16 @@ if (accessToken && refreshToken) {
 
   // リフレッシュトークンをCookieに保存
   document.cookie = `refreshToken=${refreshToken}; path=/; Secure; SameSite=Strict`;
-  router.push('/user-config');
 
   // ユーザーストアにアクセストークンを保存
   userStore.setToken(accessToken);
 
-  // ユーザーIDを取得し、ユーザー設定ページに遷移
+  // 登録時：ユーザー設定ページ　ログイン時：メインページに遷移
   const userId = userStore.useuserId;
-  if (userId) {
-    router.push(`/${userId}/user-config`);
+  if (isLoginFlow) {
+    goToMainPage(router);
   } else {
-    throw new Error('ユーザー情報が見つかりません');
+    router.push(`/${userId}/user-config`);
   }
 }
 </script>

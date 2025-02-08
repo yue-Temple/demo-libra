@@ -89,11 +89,6 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-  editNow: {
-    type: Boolean,
-    required: true,
-    default: false,
-  },
   buttonType: {
     type: String,
     required: false,

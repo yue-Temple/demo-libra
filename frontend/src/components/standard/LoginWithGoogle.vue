@@ -26,6 +26,8 @@ const userStore = useUserStore();
 // Google認証開始関数
 const startGoogleAuth = async () => {
   userStore.isLoginFlow = props.isLoginFlow; // ストアにログインOR登録を記録
+  console.log(userStore.isLoginFlow);
+  console.log(props.isLoginFlow);
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const redirectUri = encodeURIComponent(

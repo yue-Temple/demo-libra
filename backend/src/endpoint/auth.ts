@@ -71,7 +71,7 @@ router.get('/google/register/callback', async (req: Request, res: Response) => {
 
     // フロントエンドにリダイレクト（トークン付与）
     res.redirect(
-      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`
+      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&isLoginFlow=${'false'}`
     );
   } catch (error) {
     console.error('認可コード処理エラー:', error);
@@ -128,7 +128,7 @@ router.get('/google/login/callback', async (req: Request, res: Response) => {
 
     // フロントエンドにリダイレクト（トークン付与）
     res.redirect(
-      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`
+      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&isLoginFlow=${'true'}`
     );
   } catch (error) {
     console.error('認可コード処理エラー:', error);
