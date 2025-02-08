@@ -190,9 +190,10 @@ router.post('/user-save', async (req, res) => {
  * @param refreshToken - リフレッシュトークン
  * @returns 新しいアクセストークンとリフレッシュトークン
  */
-router.post('/auth/refresh-token', async (req: Request, res: Response) => {
+router.post('/refresh-token', async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
+    console.log('Received refreshToken:', req.cookies.refreshToken);
 
     if (!refreshToken) {
       return res

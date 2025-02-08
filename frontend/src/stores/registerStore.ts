@@ -1,6 +1,6 @@
 // stores/registerStore.ts
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { apiClient } from './apiClient';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -24,7 +24,7 @@ export const useRegisterStore = defineStore('register', {
      */
     async registerWithEmail(email: string, password: string): Promise<void> {
       try {
-        const response = await axios.post<{ token: string }>(
+        const response = await apiClient.post<{ token: string }>(
           `${apiBaseUrl}/auth/register-with-email`,
           {
             email,

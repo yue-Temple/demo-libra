@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import { useUserStore } from './userStore';
 import { InfoBlock } from '@sharetypes';
 import { formatInfoBlock } from '@/rogics/infoblockformat';
 import { processInfoBlocks } from '@/rogics/fileupload';
+import { apiClient } from './apiClient';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -21,7 +21,7 @@ export const useProfileStore = defineStore('profile', {
       }
 
       try {
-        const response = await axios.get<InfoBlock[]>(
+        const response = await apiClient.get<InfoBlock[]>(
           `${apiBaseUrl}/prof/profiles/${userNumber}/blocks`
         );
 
@@ -45,7 +45,7 @@ export const useProfileStore = defineStore('profile', {
         const processedBlocks = await processInfoBlocks(blocks);
 
         // APIに送信
-        await axios.post(`${apiBaseUrl}/prof/saveprofile`, {
+        await apiClient.post(`${apiBaseUrl}/prof/saveprofile`, {
           userNumber,
           blocks: processedBlocks,
         });

@@ -22,7 +22,6 @@ export class AuthSaveService {
     if (!user) {
       throw new Error('ユーザーが見つかりません');
     }
-    console.log('koko', user_name);
 
     // 上書き保存
     user.user_name = user_name;

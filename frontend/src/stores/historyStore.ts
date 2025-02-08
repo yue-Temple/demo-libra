@@ -1,9 +1,9 @@
 // stores/HistoryStore.ts
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import { useUserStore } from './userStore';
 import { HistoryContainer, InfoBlock } from '@sharetypes';
 import { filetoURL, processInfoBlocks } from '@/rogics/fileupload';
+import { apiClient } from './apiClient';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,7 +36,7 @@ export const useHistoryStore = defineStore('history', {
         // ストア更新
         this.histories.push(newHistory);
 
-        await axios.post(`${apiBaseUrl}/hist/histories`, {
+        await apiClient.post(`${apiBaseUrl}/hist/histories`, {
           user_number: userNumber,
           newHistory,
         });
@@ -75,7 +75,7 @@ export const useHistoryStore = defineStore('history', {
           this.histories[index] = updateHistoryContent;
         }
 
-        await axios.put(`${apiBaseUrl}/hist/histories/${userNumber}`, {
+        await apiClient.put(`${apiBaseUrl}/hist/histories/${userNumber}`, {
           updateHistoryContent,
         });
       } catch (error) {
@@ -105,7 +105,7 @@ export const useHistoryStore = defineStore('history', {
           await processInfoBlocks(updateChildBlocks);
 
         // APIに送信
-        await axios.put(
+        await apiClient.put(
           `${apiBaseUrl}/hist/historyprofile/${userNumber}/${historyId}`,
           {
             blocks: processedChildeBlocks,
@@ -136,7 +136,7 @@ export const useHistoryStore = defineStore('history', {
       this.isLoading = true;
 
       try {
-        const response = await axios.get<{
+        const response = await apiClient.get<{
           data: HistoryContainer[];
           hasNext: boolean;
         }>(`${apiBaseUrl}/hist/histories/${userNumber}`, {
@@ -178,7 +178,7 @@ export const useHistoryStore = defineStore('history', {
       historyId: string
     ): Promise<HistoryContainer | null> {
       try {
-        const response = await axios.get<{ data: HistoryContainer }>(
+        const response = await apiClient.get<{ data: HistoryContainer }>(
           `${apiBaseUrl}/hist/historydetail/${userNumber}/${historyId}`
         );
         return response.data.data;
@@ -202,7 +202,7 @@ export const useHistoryStore = defineStore('history', {
           (history) => history.id !== historyId
         );
 
-        await axios.delete(
+        await apiClient.delete(
           `${apiBaseUrl}/hist/histories/${userNumber}/${historyId}`
         );
       } catch (error) {
