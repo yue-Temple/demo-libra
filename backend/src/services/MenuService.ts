@@ -1,7 +1,6 @@
 import { Menu } from '../entity/Menu';
 import { User } from '../entity/User';
 import { AppDataSource } from '../data-source';
-import { verifyToken } from './jwt';
 import { Features } from '../../../sharetypes';
 
 //
@@ -47,22 +46,16 @@ export async function getMenu(
 
 /**
  * メニュー保存API
- * @param token
+ * @param user_id
  * @param feature_value
  * @param changed_layout
  */
 export async function saveMenu(
-  token: string,
+  user_id: string,
   feature_value: Features[],
   changed_layout: string
 ): Promise<void> {
-  // トークン全体で照合⇒関連のユーザー列、メニュー列を所得
   try {
-    const user_id = verifyToken(token) as string;
-    if (!user_id) {
-      throw new Error('Invalid token: Token is expired or malformed');
-    }
-
     const menuRepository = AppDataSource.getRepository(Menu);
     const userRepository = AppDataSource.getRepository(User);
 
@@ -76,6 +69,7 @@ export async function saveMenu(
     let menu = await menuRepository.findOne({
       where: { user_number: user.user_number },
     });
+
     if (menu) {
       // 既存のメニューが存在する場合は更新
       menu.feature_value = feature_value;

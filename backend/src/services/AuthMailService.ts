@@ -9,7 +9,7 @@ import { Menu } from '../entity/Menu';
 // 型定義
 import { Role } from '../backtype';
 // 関数
-import { generateRandomUserId, generateverifyToken } from './alllogic';
+import { generateRandomUserId, generateverifyToken } from '../utils/uuid';
 
 export class AuthMailService {
   /**

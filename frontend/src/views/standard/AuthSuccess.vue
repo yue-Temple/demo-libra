@@ -22,7 +22,7 @@ if (accessToken && refreshToken) {
   localStorage.setItem('accessToken', accessToken);
 
   // リフレッシュトークンをCookieに保存
-  document.cookie = `refreshToken=${refreshToken}; path=/; Secure; SameSite=Strict`;
+  document.cookie = `refreshToken=${refreshToken}; path=/; Secure; SameSite=Strict; HttpOnly`;
 
   // ユーザーストアにアクセストークンを保存
   userStore.setToken(accessToken);

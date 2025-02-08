@@ -1,10 +1,10 @@
 // stores/UserStore.ts
 import { defineStore } from 'pinia';
 import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
 import { useLayoutStore } from './layoutStore';
 import { Features } from '@sharetypes';
 import { tokenandmess } from '@/fronttype';
+import { apiClient } from './apiClient';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -48,58 +48,58 @@ export const useUserStore = defineStore('user', {
       this.useuserEmail = null;
       this.useuserGoogle = null;
 
-      // セッションストレージとクッキーをクリア
+      // ストレージとクッキーをクリア
       localStorage.removeItem('accessToken');
       document.cookie =
         'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     },
 
-    /**
-     * アクセストークンを取得・更新
-     * @returns
-     */
-    async fetchAccessToken() {
-      if (this.token) {
-        // トークンが既に存在する場合、そのまま使用
-        return this.token;
-      }
+    // /**
+    //  * アクセストークンを取得・更新
+    //  * @returns
+    //  */
+    // async fetchAccessToken() {
+    //   if (this.token) {
+    //     // トークンが既に存在する場合、そのまま使用
+    //     return this.token;
+    //   }
 
-      try {
-        // リフレッシュトークンをクッキーから取得
-        const refreshToken = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith('refreshToken='))
-          ?.split('=')[1];
+    //   try {
+    //     // リフレッシュトークンをクッキーから取得
+    //     const refreshToken = document.cookie
+    //       .split('; ')
+    //       .find((row) => row.startsWith('refreshToken='))
+    //       ?.split('=')[1];
 
-        if (!refreshToken) {
-          throw new Error('リフレッシュトークンが見つかりません');
-        }
+    //     if (!refreshToken) {
+    //       throw new Error('リフレッシュトークンが見つかりません');
+    //     }
 
-        // バックエンドにリフレッシュトークンを送信して新しいアクセストークンを取得
-        const response = await axios.post<{
-          accessToken: string;
-          refreshToken: string;
-        }>(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`, {
-          refreshToken,
-        });
+    //     // バックエンドにリフレッシュトークンを送信して新しいアクセストークンを取得
+    //     const response = await apiClient.post<{
+    //       accessToken: string;
+    //       refreshToken: string;
+    //     }>(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`, {
+    //       refreshToken,
+    //     });
 
-        // 新しいアクセストークンをセッションストレージに保存
-        localStorage.setItem('accessToken', response.data.accessToken);
+    //     // 新しいアクセストークンをセッションストレージに保存
+    //     localStorage.setItem('accessToken', response.data.accessToken);
 
-        // 新しいリフレッシュトークンをクッキーに保存
-        document.cookie = `refreshToken=${response.data.refreshToken}; path=/; HttpOnly; Secure; SameSite=Strict`;
+    //     // 新しいリフレッシュトークンをクッキーに保存
+    //     document.cookie = `refreshToken=${response.data.refreshToken}; path=/; HttpOnly; Secure; SameSite=Strict`;
 
-        // トークンをセット
-        this.setToken(response.data.accessToken);
+    //     // トークンをセット
+    //     this.setToken(response.data.accessToken);
 
-        return response.data.accessToken;
-      } catch (error) {
-        console.error('アクセストークンの取得に失敗しました:', error);
-        this.clearToken();
-        alert('セッションが無効です。再度ログインしてください。');
-        window.location.href = '/login'; // ログイン画面にリダイレクト
-      }
-    },
+    //     return response.data.accessToken;
+    //   } catch (error) {
+    //     console.error('アクセストークンの取得に失敗しました:', error);
+    //     this.clearToken();
+    //     alert('セッションが無効です。再度ログインしてください。');
+    //     window.location.href = '/login'; // ログイン画面にリダイレクト
+    //   }
+    // },
 
     /**
      * ログアウト処理
@@ -109,7 +109,7 @@ export const useUserStore = defineStore('user', {
       this.menuFetched = false;
       localStorage.removeItem('token');
       try {
-        axios.post(`${apiBaseUrl}/auth/logout`);
+        apiClient.post(`${apiBaseUrl}/auth/logout`);
       } catch (error) {
         console.error('ログアウトに失敗しました:', error);
       }
@@ -122,7 +122,7 @@ export const useUserStore = defineStore('user', {
      */
     async loginWithEmail(email: string, password: string): Promise<void> {
       try {
-        const response = await axios.post<tokenandmess>(
+        const response = await apiClient.post<tokenandmess>(
           `${apiBaseUrl}/auth/login-with-email`,
           {
             email,
@@ -147,7 +147,7 @@ export const useUserStore = defineStore('user', {
     ): Promise<void> {
       console.log('送信データ:', { id, name, icon });
       try {
-        const response = await axios.post<tokenandmess>(
+        const response = await apiClient.post<tokenandmess>(
           `${apiBaseUrl}/Auth/user-save`,
           {
             user_id: id,
@@ -178,7 +178,7 @@ export const useUserStore = defineStore('user', {
         return;
       }
       try {
-        const response = await axios.get<{
+        const response = await apiClient.get<{
           features: Features[];
           layout: string;
         }>(`${apiBaseUrl}/menu/getmenu/${userNumber}`);
@@ -205,7 +205,7 @@ export const useUserStore = defineStore('user', {
       newLayout: string
     ): Promise<void> {
       try {
-        const response = await axios.post<{
+        const response = await apiClient.post<{
           newFeatures: Features[];
           newLayout: string;
         }>(

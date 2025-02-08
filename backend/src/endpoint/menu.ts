@@ -1,20 +1,15 @@
 import express, { Request, Response } from 'express';
 import { saveMenu, getMenu } from '../services/MenuService';
 import { Features } from '../../../sharetypes';
-
+import { authenticateToken } from '../middleware/authMiddleware';
 const router = express.Router();
 
 // メニュー保存APIエンドポイント
 router.post(
   '/savemenu',
+  authenticateToken, // トークン検証ミドルウェア
   async (req: Request<any, any, any>, res: Response<any>) => {
     try {
-      const token = req.headers.authorization?.split(' ')[1]; // "Bearer <token>" 形式で送信されることを想定
-      if (!token) {
-        return res.status(401).json({ message: 'Token is required' }); // 401 Unauthorized で返す
-      }
-
-      // リクエストボディから feature_value と chenged_layout を取得
       const { feature_value, changed_layout } = req.body as {
         feature_value: Features[];
         changed_layout: string;
@@ -33,12 +28,16 @@ router.post(
           .json({ message: 'Invalid feature_value format' });
       }
 
-      // MenuService.saveMenu を1回呼び出して、メニューを保存
-      await saveMenu(token, feature_value, changed_layout);
-      res.status(200).json({ message: 'Menu has been successfully saved' }); // 成功メッセージを統一
+      // ミドルウェアで検証済みのユーザー ID を使用
+      const user_id = req.body.user_id;
+
+      // MenuService.saveMenu を呼び出してメニューを保存
+      await saveMenu(user_id, feature_value, changed_layout);
+
+      res.status(200).json({ message: 'Menu has been successfully saved' });
     } catch (error) {
-      console.error(error); // エラーログを出力してデバッグしやすくする
-      res.status(500).json({ error: (error as Error).message }); // 内部サーバーエラーの場合は 500 を返す
+      console.error(error);
+      res.status(500).json({ error: (error as Error).message });
     }
   }
 );

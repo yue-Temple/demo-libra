@@ -1,89 +1,35 @@
 import axios from 'axios';
-import { useUserStore } from '@/stores/userStore';
-import router from '@/router/router';
+import { apiClient } from './apiClient';
 
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-});
+/**
+ * API:アクセストークンの更新
+ * リフレッシュトークンはクッキーで送信
+ * @returns 
+ */
+export const refreshAccessToken = async (): Promise<string> => {
+  try {
+    const response = await apiClient.post<{ accessToken: string }>(
+      `${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`,
+      {}, // ボディは空（リフレッシュトークンはクッキーで送信）
+      { withCredentials: true } // クッキーを送信するために必要
+    );
 
-// リフレッシュトークンを使用してアクセストークンを再発行する関数
-const refreshAccessToken = async (): Promise<string> => {
-  const refreshToken = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith('refreshToken='))
-    ?.split('=')[1];
+    // 新しいアクセストークンをローカルストレージに保存
+    localStorage.setItem('accessToken', response.data.accessToken);
 
-  if (!refreshToken) {
-    throw new Error('リフレッシュトークンが見つかりません');
-  }
-
-  const response = await axios.post<{
-    accessToken: string;
-    refreshToken: string;
-  }>(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`, {
-    refreshToken,
-  });
-
-  // 新しいアクセストークンをセッションストレージに保存
-  localStorage.setItem('accessToken', response.data.accessToken);
-
-  // 新しいリフレッシュトークンをHTTPクッキーに保存
-  document.cookie = `refreshToken=${response.data.refreshToken}; path=/; HttpOnly; Secure; SameSite=Strict`;
-
-  return response.data.accessToken;
-};
-
-let isRefreshing = false; // リフレッシュ中かどうかを管理
-let failedQueue: Array<() => void> = []; // 失敗したリクエストを一時的に保持
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // 401エラー（アクセストークンが無効）の場合
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // リフレッシュ中なら、完了を待って再試行
-        return new Promise((resolve, reject) => {
-          failedQueue.push(() => {
-            try {
-              resolve(apiClient(originalRequest));
-            } catch (err) {
-              reject(err);
-            }
-          });
-        });
+    return response.data.accessToken;
+  } catch (error) {
+    // AxiosErrorかどうかを確認
+    if (axios.isAxiosError(error)) {
+      // 401エラーの場合
+      if (error.response?.status === 401) {
+        throw new Error('無効なリフレッシュトークンです');
       }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        // 新しいアクセストークンを取得
-        const newAccessToken = await refreshAccessToken();
-
-        // 元のリクエストに新しいアクセストークンを設定
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-        // 保留中のリクエストを再試行
-        failedQueue.forEach((callback) => callback());
-        failedQueue = [];
-
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // リフレッシュに失敗した場合、ログアウト処理
-        const userStore = useUserStore();
-        userStore.clearToken();
-        router.push('/login'); // ログイン画面にリダイレクト
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+      // その他のAxiosエラーの場合
+      throw new Error('アクセストークンの再発行に失敗しました');
     }
 
-    return Promise.reject(error);
+    // AxiosError以外のエラーの場合
+    throw new Error('予期せぬエラーが発生しました');
   }
-);
-
-export default apiClient;
+};

@@ -9,7 +9,7 @@ import { RefreshToken } from '../entity/RefreshToken';
 // 型定義
 import { Role } from '../backtype';
 // 関数
-import { generateRandomUserId } from './alllogic';
+import { generateRandomUserId } from '../utils/uuid';
 
 export class AuthGoogleService {
   /**
