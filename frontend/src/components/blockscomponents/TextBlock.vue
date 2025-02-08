@@ -38,90 +38,76 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted, computed, nextTick } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { StyleType } from '@sharetypes';
 import { formatContent4 } from '@/rogics/textformat';
 
-export default defineComponent({
-  props: {
-    isEditing: {
-      type: Boolean,
-      default: true,
-    },
-    editNow: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    styleType: {
-      type: String as () => StyleType,
-      default: 'none',
-    },
-    content: {
-      type: String,
-      required: true,
-    },
+const props = defineProps({
+  isEditing: {
+    type: Boolean,
+    default: true,
   },
-  emits: ['update:editNow', 'update:content'],
-  setup(props, { emit }) {
-    const editedContent = ref(props.content);
-    const textareaRef = ref<HTMLTextAreaElement | null>(null);
-
-    // 編集開始
-    const startEditing = () => {
-      if (!props.editNow) {
-        emit('update:editNow', true); // 親に通知
-      }
-      nextTick(() => {
-        adjustTextareaHeight();
-      });
-    };
-    // 編集終了
-    const stopEditing = () => {
-      if (props.editNow) {
-        emit('update:content', editedContent.value); // 親に通知
-        emit('update:editNow', false); // 親に通知
-      }
-    };
-    // 編集中断
-    const cancelEditing = () => {
-      if (props.editNow) {
-        editedContent.value = props.content; // 編集内容をリセット
-        emit('update:editNow', false); // 親に通知
-      }
-    };
-
-    // コンテンツが空かどうかを判定
-    const isEmptyContent = computed(() => {
-      return !props.content || props.content.trim() === '';
-    });
-
-    // テキストエリアの高さを自動調整する関数
-    const adjustTextareaHeight = () => {
-      const textarea = textareaRef.value;
-      if (textarea) {
-        textarea.style.height = 'auto'; // 一旦高さをリセット
-        textarea.style.height = `${textarea.scrollHeight}px`; // スクロール高さに合わせて調整
-      }
-    };
-
-    // コンポーネントマウント時に初期高さを調整
-    onMounted(() => {
-      adjustTextareaHeight();
-    });
-
-    return {
-      editedContent,
-      textareaRef,
-      isEmptyContent,
-      startEditing,
-      stopEditing,
-      cancelEditing,
-      adjustTextareaHeight,
-      formatContent4,
-    };
+  editNow: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
+  styleType: {
+    type: String as () => StyleType,
+    default: 'none',
+  },
+  content: {
+    type: String,
+    required: true,
+  },
+});
+const emit = defineEmits(['update:editNow', 'update:content']);
+
+const editedContent = ref(props.content);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+// 編集開始
+const startEditing = () => {
+  if (!props.editNow) {
+    emit('update:editNow', true); // 親に通知
+  }
+  nextTick(() => {
+    adjustTextareaHeight();
+  });
+};
+// 編集終了
+const stopEditing = () => {
+  if (props.editNow) {
+    emit('update:content', editedContent.value); // 親に通知
+    emit('update:editNow', false); // 親に通知
+  }
+};
+// 編集中断
+const cancelEditing = () => {
+  if (props.editNow) {
+    editedContent.value = props.content; // 編集内容をリセット
+    emit('update:editNow', false); // 親に通知
+  }
+};
+
+// コンテンツが空かどうかを判定
+const isEmptyContent = computed(() => {
+  return !props.content || props.content.trim() === '';
+});
+
+// テキストエリアの高さを自動調整する関数
+const adjustTextareaHeight = () => {
+  const textarea = textareaRef.value;
+  if (textarea) {
+    textarea.style.height = 'auto'; // 一旦高さをリセット
+    textarea.style.height = `${textarea.scrollHeight}px`; // スクロール高さに合わせて調整
+  }
+};
+
+// コンポーネントマウント時に初期高さを調整
+onMounted(() => {
+  adjustTextareaHeight();
 });
 </script>
 

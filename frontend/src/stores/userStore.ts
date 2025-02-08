@@ -21,7 +21,6 @@ export const useUserStore = defineStore('user', {
 
     features: [] as Features[], // メニュー機能
     userIcon: '',
-    layouttype: '' as string, // レイアウト情報
     menuFetched: false, // キャッシュ用フラグ
   }),
   actions: {
@@ -100,14 +99,6 @@ export const useUserStore = defineStore('user', {
         alert('セッションが無効です。再度ログインしてください。');
         window.location.href = '/login'; // ログイン画面にリダイレクト
       }
-    },
-
-    /**
-     * レイアウトを設定
-     * @param newLayout
-     */
-    setLayout(newLayout: string) {
-      this.layouttype = newLayout;
     },
 
     /**
@@ -194,11 +185,9 @@ export const useUserStore = defineStore('user', {
 
         // ストアにセット
         this.features = response.data.features;
-        this.layouttype = response.data.layout;
-        this.menuFetched = true;
-
         const layoutStore = useLayoutStore();
-        layoutStore.setLayout(this.layouttype);
+        layoutStore.setLayout(response.data.layout);
+        this.menuFetched = true;
       } catch (error) {
         console.error('データベースからの取得に失敗しました', error);
         throw error;
@@ -236,11 +225,9 @@ export const useUserStore = defineStore('user', {
 
         // ストアにセット
         this.features = response.data.newFeatures;
-        this.layouttype = response.data.newLayout;
-        this.menuFetched = true;
-
         const layoutStore = useLayoutStore();
-        layoutStore.setLayout(this.layouttype);
+        layoutStore.setLayout(response.data.newLayout);
+        this.menuFetched = true;
       } catch (error) {
         console.error('データベースからの取得に失敗しました', error);
         throw error;

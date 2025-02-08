@@ -1,12 +1,12 @@
 // src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router';
 // 基本ページ
-import TopPage from '../views/TopPage.vue';
-import SignIn from '../views/SignIn.vue';
-import SignUp from '../views/SignUp.vue';
-import UserConfig from '../views/UserConfig.vue';
-import AuthSuccess from '@/views/AuthSuccess.vue';
-import ErrorPage from '@/views/ErrorPage.vue';
+import TopPage from '../views/standard/TopPage.vue';
+import SignIn from '../views/standard/SignIn.vue';
+import SignUp from '../views/standard/SignUp.vue';
+import UserConfig from '../views/standard/UserConfig.vue';
+import AuthSuccess from '@/views/standard/AuthSuccess.vue';
+import ErrorPage from '@/views/standard/ErrorPage.vue';
 
 // サブフォルダに格納したコンポーネントをインポート
 import Profile from '../views/category/Profile.vue';

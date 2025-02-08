@@ -60,14 +60,13 @@ export default defineComponent({
           JSON.stringify(oldInfoBlock.value) === JSON.stringify(InfoBlock.value)
         ) {
           console.log('変更がないため、保存をスキップします。');
-          toast.success('保存されました');
+          toast.success('保存しました');
           return;
         }
 
         // 変更がある場合、保存処理を実行
         await profileStore.saveProfile(InfoBlock.value);
-        toast.success('保存されました');
-
+        toast.success('保存しました');
         // 保存後にoldInfoBlockを更新
         oldInfoBlock.value = JSON.parse(JSON.stringify(InfoBlock.value));
       } catch (error) {

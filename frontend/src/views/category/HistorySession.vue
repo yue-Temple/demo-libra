@@ -8,7 +8,7 @@
       :is-visible="isPopupVisible"
       :update-history="updateHistory"
       :container="selectedContainer || undefined"
-      :sortOrder="sort"
+      :sortOrder="sort || 'date-new'"
       @close="closePopup"
       @submit="addHistoryContainer"
       @delete="handleDelete"
@@ -108,12 +108,13 @@ const loader = ref<HTMLElement | null>(null);
 //
 const selectedContainer = ref<HistoryContainer | null>(null);
 const selectedImageSrc = ref('');
-const sort = ref('date-new');
+const sort = ref(); //id or date
+const sortBy = ref(); // 'ASC' | 'DESC'
 const sortedHistories = ref<HistoryContainer[]>([]); // 表示用の並び替え結果を保持する
 
 // 初期データ取得
 onMounted(async () => {
-  await historyStore.fetchHistories(routeuserNumber, 'date', 'DESC'); // 初期表示は日付順（新しい順）
+  //await historyStore.fetchHistories(routeuserNumber, 'date', 'DESC'); // 初期表示は日付順（新しい順）
   sortedHistories.value = [...historyStore.getHistories];
 });
 
@@ -130,7 +131,7 @@ watch(
 onMounted(() => {
   const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting && historyStore.hasMore) {
-      historyStore.fetchHistories(routeuserNumber, sort.value);
+      historyStore.fetchHistories(routeuserNumber, sort.value, sortBy.value);
     }
   });
 
@@ -139,7 +140,7 @@ onMounted(() => {
   }
 });
 
-// ヒストリーブロック追加
+// ヒストリーブロック追加/更新
 const addHistoryContainer = async (newBlock: HistoryContainer) => {
   try {
     closePopup(); // ポップアップを閉じる
@@ -176,12 +177,10 @@ const openPopup = () => {
   isPopupVisible.value = true; // ポップアップを開く
   updateHistory.value = false;
 };
-
 const closePopup = () => {
   isPopupVisible.value = false;
   updateHistory.value = false;
 };
-
 const openEditPopup = (container: HistoryContainer) => {
   const rawContainer = historyStore.getHistories.find(
     (c) => c.id === container.id
@@ -218,31 +217,28 @@ const handleVisibilityChange = (newVisibility: string) => {
 // 並び替え処理
 const handleSortChange = async (sortOrder: string) => {
   historyStore.reset();
-  sort.value = sortOrder;
-  let sortBy = '';
-  let order: 'ASC' | 'DESC' = 'DESC'; // 型を明示的に指定
 
   switch (sortOrder) {
     case 'date-new':
-      sortBy = 'date';
-      order = 'DESC';
+      sort.value = 'date';
+      sortBy.value = 'DESC';
       break;
     case 'date-old':
-      sortBy = 'date';
-      order = 'ASC';
+      sort.value = 'date';
+      sortBy.value = 'ASC';
       break;
     case 'id-new':
-      sortBy = 'id';
-      order = 'DESC';
+      sort.value = 'id';
+      sortBy.value = 'DESC';
       break;
     case 'id-old':
-      sortBy = 'id';
-      order = 'ASC';
+      sort.value = 'id';
+      sortBy.value = 'ASC';
       break;
   }
 
-  // API呼び出し
-  await historyStore.fetchHistories(routeuserNumber, sortBy, order);
+  // API再呼び出し
+  await historyStore.fetchHistories(routeuserNumber, sort.value, sortBy.value);
   sortedHistories.value = [...historyStore.getHistories];
 };
 

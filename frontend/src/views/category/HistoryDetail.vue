@@ -43,8 +43,7 @@
     </div>
     <!-- EditButton コンポーネントに EditNow を渡す -->
     <InfoBlockManager
-      :isOwner="isOwner"
-      :infoBlocks="childInfoBlock || []"
+      :infoBlocks="childInfoBlock"
       @save-page="savehprofile"
       @update-text-block-content="updateTextBlockContent"
       @update-button-block-buttons="updateButtonBlockButtons"
@@ -78,6 +77,7 @@ const historyId = String(route.params.id); // ルートパラメータから id 
 // リアクティブ変数
 const history = ref<HistoryContainer | null>(null); // 表示する履歴データを格納
 const childInfoBlock = ref<InfoBlock[]>([]);
+const oldchildInfoBlock = ref<InfoBlock[]>([]);
 
 // データを表示用に加工する関数
 const formatReport = (report: string | null): string => {
@@ -93,21 +93,30 @@ const formatDate = (dateArray: string[] | null): string => {
 };
 
 onMounted(async () => {
-  // ストアに値がなければ fetchHistories を呼び出してデータを取得
-  if (!historyStore.historiesFetched) {
-    await historyStore.fetchHistories(routeuserNumber);
-  }
-
-  // histories から id が合致するデータを探す
-  const foundHistory = historyStore.getHistories.find(
-    (h) => h.id === historyId
-  );
-
-  if (foundHistory) {
-    history.value = foundHistory; // historyに値を代入
-    childInfoBlock.value = foundHistory.childblock; // 合致するデータをセット
+  // 既にデータ取得済みの場合
+  if (historyStore.historyfetched) {
+    // histories から id が合致するデータを探す
+    const foundHistory = historyStore.getHistories.find(
+      (h) => h.id === historyId
+    );
+    if (foundHistory) {
+      history.value = foundHistory; // historyに値を代入
+      childInfoBlock.value = foundHistory.childblock; // 合致するデータをセット
+    } else {
+      console.error('見つかりませんでした');
+    }
   } else {
-    console.error('見つかりませんでした');
+    console.log('リロード/リダイレクト');
+    // 再読みでレイアウト情報が無い時、メニュー情報とヒストリ詳細データを取得しに行く
+    userStore.fetchFeatures(Number(route.params.userNumber));
+    const response = await historyStore.fetchHistoriesdetail(
+      routeuserNumber,
+      historyId
+    );
+    if (response) {
+      history.value = response;
+      childInfoBlock.value = response.childblock;
+    }
   }
   // ページのスクロール位置をトップに戻す
   window.scrollTo(0, 0);
@@ -116,10 +125,27 @@ onMounted(async () => {
 // 保存
 const savehprofile = async () => {
   try {
-    await historyStore.savehistProfile(childInfoBlock.value, historyId);
-    toast.success('保存されました。');
+    // 変更がない場合の判定（深い比較）
+    if (
+      JSON.stringify(oldchildInfoBlock.value) ===
+      JSON.stringify(childInfoBlock.value)
+    ) {
+      console.log('変更がないため、保存をスキップします。');
+      toast.success('保存されました');
+      return;
+    }
+
+    // 変更がある場合、保存処理を実行
+    const response = await historyStore.savehistProfile(
+      historyId,
+      childInfoBlock.value
+    );
+    console.log(response);
+    toast.success('保存しました');
+    // 保存後にoldInfoBlockを更新
+    oldchildInfoBlock.value = JSON.parse(JSON.stringify(childInfoBlock.value));
   } catch (error) {
-    toast.error('保存に失敗しました。');
+    toast.error('保存に失敗しました');
   }
 };
 

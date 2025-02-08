@@ -6,8 +6,8 @@
       <select id="sort-order" v-model="sortOrder" @change="handleSortChange">
         <option value="date-new">日付順/新⇀旧</option>
         <option value="date-old">日付順/旧⇀新</option>
-        <option value="created-new">作成順/新⇀旧</option>
-        <option value="created-old">作成順/旧⇀新</option>
+        <option value="id-new">作成順/新⇀旧</option>
+        <option value="id-old">作成順/旧⇀新</option>
       </select>
     </div>
 

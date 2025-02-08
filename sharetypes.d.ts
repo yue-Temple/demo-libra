@@ -44,13 +44,13 @@ export interface BaseInfoBlock {
   id: string;
   type: string;
   content: string;
-  editNow: boolean;
 }
 
 // ブロックタイプ別ディスクリミネイテッドユニオン
 interface TextBlock extends BaseInfoBlock {
   type: 'text';
   styleType?: StyleType;
+
 }
 interface ButtonBlock extends BaseInfoBlock {
   type: 'button';
@@ -61,6 +61,7 @@ interface TextButton extends BaseInfoBlock {
   type: 'textbutton';
   styleType?: StyleType;
   button: Button;
+
 }
 interface ImageBlock extends BaseInfoBlock {
   type: 'img';
@@ -106,6 +107,19 @@ export enum ButtonType {
 // ------------------------------------------------------------------------------
 // セッションヒストリー
 export interface HistoryContainer {
+  id: string;
+  date:string[] | null;
+  keydate:string | null;
+  title:string | null;
+  system:string | null;
+  report:string | null;
+  imgURL:string | File | null;
+  private:boolean;
+  childblock:InfoBlock[] | [];
+}
+
+// 保存用セッションヒストリー
+export interface saveHistoryContainer {
   id: string;
   date:string[] | null;
   keydate:string | null;

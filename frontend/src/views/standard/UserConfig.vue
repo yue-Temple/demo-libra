@@ -66,7 +66,7 @@ const iconType = ref('file');
 const oldName = ref(userStore.useuserName);
 const oldIcon = ref(userStore.userIcon);
 const oldFeatures = ref<Features[]>();
-const oldLayout = ref(userStore.layouttype);
+const oldLayout = ref(layoutStore.currentLayout);
 
 onMounted(async () => {
   // メニューデータ取得
@@ -93,7 +93,6 @@ const handleMenuChange = (newfeatures: Features[]) => {
 const handleLayoutChange = (newLayout: string) => {
   layout.value = newLayout;
   layoutStore.setLayout(newLayout);
-  userStore.setLayout(newLayout);
 };
 
 // 変更があるかどうかをチェック
@@ -129,7 +128,8 @@ const saveSettings = async () => {
 
   // 変更がない場合は保存処理をスキップ
   if (!hasAnyChanges) {
-    toast.success('変更がありません');
+    toast.success('保存しました');
+    console.log('変更がないため、保存をスキップします');
     return;
   }
 
@@ -192,7 +192,6 @@ const resetSettings = () => {
   userStore.features = [...featuresFromDB.value];
 
   layoutStore.setLayout(oldLayout.value);
-  userStore.setLayout(oldLayout.value);
 };
 
 // ページ遷移警告
