@@ -10,7 +10,6 @@
       :container="selectedContainer || undefined"
       :sortOrder="sort || 'date-new'"
       @close="closePopup"
-      @submit="addHistoryContainer"
       @delete="handleDelete"
     />
     <!-- サムネ画像拡大表示 -->
@@ -58,8 +57,8 @@
           <div class="imgbox" v-if="container.imgURL">
             <img
               v-if="container.imgURL"
-              :src="container.imgURL"
-              @click="openImagePopup(container.imgURL)"
+              :src="getImageSrc(container.imgURL)"
+              @click="openImagePopup(getImageSrc(container.imgURL))"
             />
           </div>
           <div
@@ -140,19 +139,10 @@ onMounted(() => {
   }
 });
 
-// ヒストリーブロック追加/更新
-const addHistoryContainer = async (newBlock: HistoryContainer) => {
-  try {
-    closePopup(); // ポップアップを閉じる
-  } catch (error) {
-    console.error('追加に失敗しました', error);
-  }
-};
-
 // ヒストリーブロック削除
-const handleDelete = async (historyId: string) => {
+const handleDelete = async (historyId: string, image_object_key: string) => {
   try {
-    await historyStore.deleteHistory(historyId); // ストアの histories を更新
+    await historyStore.deleteHistory(historyId, image_object_key); // ストアの histories を更新
     sortedHistories.value = sortedHistories.value.filter(
       (history) => history.id !== historyId
     ); // 表示用のデータも更新
@@ -161,7 +151,7 @@ const handleDelete = async (historyId: string) => {
   }
 };
 
-// 追加更新ポップアップ制御
+// 追加モードポップアップ
 const openPopup = () => {
   selectedContainer.value = {
     id: '', // 新しいIDは後で生成
@@ -171,16 +161,14 @@ const openPopup = () => {
     system: '',
     report: '',
     imgURL: '',
+    image_object_key: '',
     private: false,
     childblock: [],
   };
   isPopupVisible.value = true; // ポップアップを開く
   updateHistory.value = false;
 };
-const closePopup = () => {
-  isPopupVisible.value = false;
-  updateHistory.value = false;
-};
+// 編集モードポップアップ
 const openEditPopup = (container: HistoryContainer) => {
   const rawContainer = historyStore.getHistories.find(
     (c) => c.id === container.id
@@ -193,6 +181,11 @@ const openEditPopup = (container: HistoryContainer) => {
     console.error('該当するコンテナが見つかりませんでした');
     // 必要に応じてエラーハンドリングを行う
   }
+};
+// ポップアップを閉じる
+const closePopup = () => {
+  isPopupVisible.value = false;
+  updateHistory.value = false;
 };
 
 // HistoryDetailページに遷移
@@ -265,6 +258,16 @@ const formatSystemDisplay = (system: string | null) => {
 const formatTitleDisplay = (title: string | null) => {
   if (title == '') return 'New History';
   return `${title}`;
+};
+
+// 起こりえないが、container.imgURLのFile可能性を消すための処理
+const getImageSrc = (imageUrl: string | File) :string  => {
+  if (typeof imageUrl === 'string') {
+    return imageUrl;
+  } else if (imageUrl instanceof File) {
+    return URL.createObjectURL(imageUrl); // File型の場合はBlob URLを生成
+  }
+  return '';
 };
 </script>
 

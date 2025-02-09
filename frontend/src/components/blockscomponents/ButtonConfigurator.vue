@@ -168,8 +168,6 @@ const saveConfig = async () => {
   try {
     // アップロード：親にファイルを渡す
     emit('update:cover', uploadcoverFile.value);
-
-    // 他の設定値も更新
     emit('update:icon', selectedIcon.value);
     emit('update:titlecolor', selectedTitleColor.value);
     emit('close');

@@ -50,7 +50,6 @@
         :buttonType="block.buttonType"
         :buttons="block.buttons || []"
         :isEditing="isEditing"
-        @sendfile="sendfile"
         @update:buttons="updateButtonBlock(block.id, $event)"
       />
       <TextButton
@@ -74,7 +73,6 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 // 型定義
 import { InfoBlock, Button, StyleType, ButtonType } from '@sharetypes';
-import { UploadFile } from '@/fronttype';
 // 子コンポーネント
 import AddBlockPopup from './AddBlockPopup.vue';
 import EditButton from './EditButton.vue';
@@ -92,16 +90,7 @@ const props = defineProps({
 });
 
 // Emits
-const emit = defineEmits([
-  'add-block',
-  'save-page',
-  'remove-block',
-  'update-info-blocks',
-  'update-edit-now',
-  'update-text-block-content',
-  'update-button-block-buttons',
-  'sendfile',
-]);
+const emit = defineEmits(['save-page', 'update-info-blocks']);
 
 const userStore = useUserStore();
 const route = useRoute();
@@ -224,6 +213,7 @@ const handleAddBlock = (block: {
               title_color: null,
               link_url: null,
               image_url: null,
+              image_object_key: null,
               icon_url: null,
             })
           )
@@ -246,6 +236,7 @@ const handleAddBlock = (block: {
           title_color: null,
           link_url: null,
           image_url: null,
+          image_object_key: null,
           icon_url: null,
         },
         content: '',
@@ -270,45 +261,52 @@ const handleAddBlock = (block: {
   }
 
   const newBlocks = [...props.infoBlocks, newBlock];
-  emit('update-info-blocks', newBlocks);
+  // ブロックリストと追加したものを親コンポーネントに送信
+  emit('update-info-blocks', newBlocks, newBlock, null);
 };
 
 // ブロック削除リッスン
 const handleRemoveBlock = (blockId: string) => {
+  // 削除対象のブロックを取得
+  const deleteBlock = props.infoBlocks.find((block) => block.id === blockId);
+
   // 現在のブロックリストから削除対象のブロックを除外
   const newBlocks = props.infoBlocks.filter((block) => block.id !== blockId);
 
-  // 削除後の新しいブロックリストを親コンポーネントに送信
-  emit('update-info-blocks', newBlocks);
+  // ブロックリストと削除したものを親コンポーネントに送信
+  emit('update-info-blocks', newBlocks, null, deleteBlock);
 };
 
 // ブロック更新リッスン
+// TextBlock の content を更新するメソッド
 const updateTextBlock = (blockId: string, content: string) => {
-  emit('update-text-block-content', blockId, content);
+  const block = props.infoBlocks.find((block) => block.id === blockId);
+  if (block) {
+    block.content = content; // block が存在する場合のみ更新
+  } else {
+    console.error(`ブロックが見つかりませんでした`);
+  }
 };
+// ButtonBlock の button を更新するメソッド
 const updateButtonBlock = (blockId: string, buttons: Button[]) => {
-  emit('update-button-block-buttons', blockId, buttons);
+  const block = props.infoBlocks.find((block) => block.id === blockId);
+  if (block && block.type === 'button') {
+    block.buttons = buttons;
+  }
 };
-// TextButton の content を更新するメソッド
+// TextButtonBlock の content を更新するメソッド
 const updateTextButtonContent = (blockId: string, content: string) => {
   const block = props.infoBlocks.find((block) => block.id === blockId);
   if (block && block.type === 'textbutton') {
     block.content = content;
-    emit('update-info-blocks', [...props.infoBlocks]);
   }
 };
-// TextButton の button を更新するメソッド
+// TextButtonBlock の button を更新するメソッド
 const updateTextButtons = (blockId: string, button: Button) => {
   const block = props.infoBlocks.find((block) => block.id === blockId);
   if (block && block.type === 'textbutton') {
     block.button = button;
-    emit('update-info-blocks', [...props.infoBlocks]);
   }
-};
-
-// 画像：ファイルアップロードの場合 S3にアップロードするURL+ファイルを受け取る
-const sendfile = async (file: UploadFile) => {
-  emit('sendfile', file);
 };
 </script>
 

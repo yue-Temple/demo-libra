@@ -132,7 +132,6 @@ const props = defineProps({
     required: false,
   },
   container: {
-    // キャメルケースで受け取る
     type: Object,
     required: false,
     default: () => ({}), // デフォルト値を空のオブジェクトに設定
@@ -143,7 +142,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['close', 'submit', 'delete']);
+const emit = defineEmits(['close', 'delete']);
 const historyStore = useHistoryStore();
 const toast = useToast();
 // 入力
@@ -159,7 +158,7 @@ const pictureOption = ref('upload'); // アップロードOR貼り付け
 const isCropping = ref(false); // トリミング中かどうかのフラグ
 const originalImage = ref(''); // オリジナルの画像を保持（再トリミング用）
 const previewImage = ref(''); //トリミング後、プレビューURL
-const uploadFile = ref<File | null>(null); //トリミング後、画像データ
+const uploadFile = ref<File | null>(null); //トリミング後、最終的にR2にアップロードするデータ
 
 // container のデータをフォームの初期値に設定
 watchEffect(() => {
@@ -206,6 +205,7 @@ const channelCropping = () => {
 // トリミング終了リッスン
 const handleCroppedImage = (previewUrl: string, file: File) => {
   previewImage.value = previewUrl;
+  imgURL.value = previewUrl;
   uploadFile.value = file;
   isCropping.value = false;
 };
@@ -232,6 +232,7 @@ const oldHistory =
         system: props.container.system || '',
         report: props.container.report || '',
         imgURL: props.container.imgURL || '',
+        image_object_key: props.container.imgURL || '',
         private: props.container.private || false,
         childblock: props.container.childblock || [],
       }
@@ -246,7 +247,8 @@ const submitForm = async () => {
     title: title.value,
     system: system.value,
     report: report.value,
-    imgURL: imgURL.value,
+    imgURL: imgURL.value, // 画像を変更した場合ここが変わる
+    image_object_key: props.container.imgURL,
     private: isPrivate.value,
     childblock: props.container?.childblock || [], // 既存のchildblockを使用または空の配列を設定
   };
@@ -268,8 +270,7 @@ const submitForm = async () => {
       // 変更があった場合
     } else {
       try {
-        await historyStore.updateHistory(newHistory); // 更新APIを呼び出す
-        emit('submit', newHistory);
+        await historyStore.updateHistory(newHistory, uploadFile.value); // 更新APIを呼び出す
         emit('close');
       } catch (error) {
         console.error('更新に失敗しました', error);
@@ -280,7 +281,7 @@ const submitForm = async () => {
   } else {
     try {
       console.log(props.sortOrder);
-      await historyStore.addHistory(newHistory); // 追加APIを呼び出す
+      await historyStore.addHistory(newHistory, uploadFile.value); // 追加APIを呼び出す
       emit('close');
     } catch (error) {
       console.error('新規追加に失敗しました', error);
@@ -300,7 +301,7 @@ const deletehistory = async () => {
   const isConfirmed = confirm('記録を削除します。本当によろしいですか？');
   if (isConfirmed) {
     try {
-      emit('delete', props.container.id); // 親コンポーネントに削除を通知
+      emit('delete', props.container.id, props.container.image_object_key); // 親コンポーネントに削除を通知
       emit('close'); // ポップアップを閉じる
     } catch (error) {
       console.error('削除に失敗しました', error);

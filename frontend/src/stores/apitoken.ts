@@ -4,7 +4,7 @@ import { apiClient } from './apiClient';
 /**
  * API:アクセストークンの更新
  * リフレッシュトークンはクッキーで送信
- * @returns 
+ * @returns
  */
 export const refreshAccessToken = async (): Promise<string> => {
   try {

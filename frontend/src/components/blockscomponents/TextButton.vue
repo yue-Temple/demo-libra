@@ -168,7 +168,7 @@ const updateButtonProperty = <K extends keyof Button>(
 };
 
 // 利用
-const updateCover = (newImageUrl: string | File) => {
+const updateCover = (newImageUrl: File) => {
   updateButtonProperty('image_url', newImageUrl);
 };
 const updateIcon = (newIcon: string) => {
