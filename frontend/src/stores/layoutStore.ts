@@ -4,7 +4,7 @@ import { themes } from './layouts'; // カラーパレットの定義
 
 export const useLayoutStore = defineStore('layout', {
   state: () => ({
-    currentLayout: '' as string, // デフォルトのレイアウト
+    currentLayout: 'layout1' as string, // デフォルトのレイアウト
   }),
   actions: {
     // レイアウトを変更するアクション

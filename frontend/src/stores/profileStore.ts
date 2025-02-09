@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { useUserStore } from './userStore';
 import { InfoBlock } from '@sharetypes';
 import { formatInfoBlock } from '@/rogics/infoblockformat';
-import { processInfoBlocks } from '@/rogics/fileupload';
+import { processInfoBlocks } from '@/rogics/imageOfBlock';
 import { apiClient } from './apiClient';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -36,13 +36,22 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    // API:プロフィールブロックを保存
-    async saveProfile(blocks: InfoBlock[]): Promise<void> {
+    /**
+     * API:プロフィールブロックを保存
+     * @param blocks 
+     * @param addblocks 
+     * @param deleteBlocks 
+     */
+    async saveProfile(blocks: InfoBlock[], addblocks: InfoBlock[], deleteBlocks: InfoBlock[]): Promise<void> {
       const userNumber = getuseUserNumber();
-
       try {
-        // InfoBlock[] を処理(画像データをURLに変換)
-        const processedBlocks = await processInfoBlocks(blocks);
+        // addblocks配列を検証、画像をURLに差し替える処理を加える
+        // deleteBlocks配列を検証、URLをR2から削除する処理を加える
+
+        // InfoBlock[] を処理(画像データをURLに変換+オブジェクトキーセット)
+        //const processedBlocks: InfoBlock[] = await processInfoBlocks(blocks);
+        // ▼仮
+        const processedBlocks = blocks;
 
         // APIに送信
         await apiClient.post(`${apiBaseUrl}/prof/saveprofile`, {

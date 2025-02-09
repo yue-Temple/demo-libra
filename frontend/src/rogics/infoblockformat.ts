@@ -8,7 +8,11 @@ import {
   TextButton,
 } from '@sharetypes';
 
-// 共通の整形関数
+/**
+ * 共通の整形関数
+ * @param block : BaseInfoBlock
+ * @returns {} as InfoBlock
+ */
 export function formatInfoBlock(block: BaseInfoBlock): InfoBlock {
   switch (block.type) {
     case 'text':
@@ -34,7 +38,6 @@ function formatTextBlock(block: BaseInfoBlock): TextBlock {
     type: 'text',
     content: block.content,
     styleType: (block as TextBlock).styleType || undefined,
-    editNow: false,
   };
 }
 
@@ -45,7 +48,6 @@ function formatButtonBlock(block: BaseInfoBlock): ButtonBlock {
     content: block.content,
     buttonType: (block as ButtonBlock).buttonType || undefined,
     buttons: (block as ButtonBlock).buttons || [],
-    editNow: false,
   };
 }
 
@@ -56,7 +58,6 @@ function formatTextButtonBlock(block: BaseInfoBlock): TextButton {
     content: block.content,
     styleType: (block as TextButton).styleType || undefined,
     button: (block as TextButton).button || { label: '', action: '' },
-    editNow: false,
   };
 }
 
@@ -66,7 +67,6 @@ function formatImageBlock(block: BaseInfoBlock): ImageBlock {
     type: 'img',
     content: block.content,
     imageUrl: (block as ImageBlock).imageUrl || '',
-    editNow: false,
   };
 }
 
@@ -76,6 +76,5 @@ function formatCSBlock(block: BaseInfoBlock): CSBlock {
     type: 'CS',
     content: block.content,
     csType: (block as CSBlock).csType || '',
-    editNow: false,
   };
 }

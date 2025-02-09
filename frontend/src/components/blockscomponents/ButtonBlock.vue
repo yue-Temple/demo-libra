@@ -99,7 +99,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:buttons', 'sendfile']);
+const emit = defineEmits(['update:buttons']);
 
 const activeInputIndex = ref<number>(0);
 const activeDropdown = ref<number>(-1); // ドロップダウンの表示状態
@@ -151,7 +151,7 @@ const updateTitleColor = (newTitleColor: TitleColor) => {
 // ボタン詳細設定を開く
 const openButtonConfigurator = (index: number) => {
   activeDropdown.value = index;
-  showConfigurator.value = true; // ButtonConfigurator を表示
+  showConfigurator.value = true;
 };
 // ボタン詳細設定を閉じる
 const closeButtonConfigurator = () => {

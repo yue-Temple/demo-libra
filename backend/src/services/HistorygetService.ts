@@ -1,7 +1,7 @@
 import { AppDataSource } from '../data-source';
 import { History } from '../entity/History';
 import { HistoryItem } from '../entity/HistoryItem';
-import { saveHistoryContainer } from '../../../sharetypes';
+import { HistoryContainer } from '../../../sharetypes';
 
 export class HistorygetService {
   private historyRepository = AppDataSource.getRepository(History);
@@ -22,7 +22,7 @@ export class HistorygetService {
     limit: number,
     sortBy: 'id' | 'date', // id または date のみを許可
     sortOrder: 'ASC' | 'DESC' // 昇順 or 降順
-  ): Promise<{ data: saveHistoryContainer[]; hasNext: boolean }> {
+  ): Promise<{ data: HistoryContainer[]; hasNext: boolean }> {
     // user_number に合致する History エンティティを取得
     const history = await this.historyRepository.findOne({
       where: { user_number },
@@ -95,6 +95,7 @@ export class HistorygetService {
       system: item.system,
       report: item.report,
       imgURL: item.imgURL,
+      image_object_key: item.image_object_key,
       private: item.private,
       childblock: item.childblock,
     }));
@@ -120,7 +121,7 @@ export class HistorygetService {
     limit: number,
     point: string, // 並び替え条件（例: '2023'）
     sortOrder: 'ASC' | 'DESC' // 昇順 or 降順
-  ): Promise<{ data: saveHistoryContainer[]; hasNext: boolean }> {
+  ): Promise<{ data: HistoryContainer[]; hasNext: boolean }> {
     // user_number に合致する History エンティティを取得
     const history = await this.historyRepository.findOne({
       where: { user_number },
@@ -166,6 +167,7 @@ export class HistorygetService {
       system: item.system,
       report: item.report,
       imgURL: item.imgURL,
+      image_object_key: item.image_object_key,
       private: item.private,
       childblock: item.childblock,
     }));
@@ -185,7 +187,7 @@ export class HistorygetService {
   async getHistoryDetail(
     userNumber: number,
     historyId: string
-  ): Promise<{ data: saveHistoryContainer | null }> {
+  ): Promise<{ data: HistoryContainer | null }> {
     // userNumber に合致する History エンティティを取得
     const history = await this.historyRepository.findOne({
       where: { user_number: userNumber },
@@ -207,8 +209,8 @@ export class HistorygetService {
       return { data: null };
     }
 
-    // HistoryItem を saveHistoryContainer に変換
-    const result: saveHistoryContainer = {
+    // HistoryItem を HistoryContainer に変換
+    const result: HistoryContainer = {
       id: historyItem.historyid,
       date: historyItem.date,
       keydate: historyItem.keydate,
@@ -216,6 +218,7 @@ export class HistorygetService {
       system: historyItem.system,
       report: historyItem.report,
       imgURL: historyItem.imgURL,
+      image_object_key: historyItem.image_object_key,
       private: historyItem.private,
       childblock: historyItem.childblock,
     };

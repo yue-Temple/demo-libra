@@ -2,8 +2,9 @@
 import { defineStore } from 'pinia';
 import { useUserStore } from './userStore';
 import { HistoryContainer, InfoBlock } from '@sharetypes';
-import { filetoURL, processInfoBlocks } from '@/rogics/fileupload';
+import { processInfoBlocks } from '@/rogics/imageOfBlock';
 import { apiClient } from './apiClient';
+import { convertToURL, deleteFromR2 } from '@/rogics/imageProcess';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -17,20 +18,18 @@ export const useHistoryStore = defineStore('history', {
   }),
   actions: {
     /**
-     * API:記録を追加
+     *  API:記録を新規追加
      * @param newHistory
+     * @param uploadFile
      */
-    async addHistory(newHistory: HistoryContainer) {
+    async addHistory(newHistory: HistoryContainer, uploadFile: File | null) {
       const userNumber = getuseUserNumber();
       try {
-        // 画像データがFILEもしくはBase64形式の場合、URL化処理
-        if (newHistory.imgURL != null) {
-          if (
-            newHistory.imgURL instanceof File ||
-            newHistory.imgURL.startsWith('data:image/')
-          ) {
-            newHistory.imgURL = filetoURL(newHistory.imgURL);
-          }
+        // 画像データが存在すれば、URL化処理
+        if (uploadFile != null) {
+          const result = await convertToURL(uploadFile, userNumber, 'history');
+          newHistory.image_object_key = result.objectKey;
+          newHistory.imgURL = result.cdnUrl;
         }
 
         // ストア更新
@@ -53,19 +52,18 @@ export const useHistoryStore = defineStore('history', {
      * API:記録を更新
      * @param updateHistoryContent
      */
-    async updateHistory(updateHistoryContent: HistoryContainer): Promise<void> {
+    async updateHistory(
+      updateHistoryContent: HistoryContainer,
+      uploadFile: File | null
+    ): Promise<void> {
       const userNumber = getuseUserNumber();
 
       try {
-        // 画像データがFILEもしくはBase64形式の場合、CDNを通す処理
-        if (updateHistoryContent.imgURL != null) {
-          if (
-            updateHistoryContent.imgURL instanceof File ||
-            updateHistoryContent.imgURL.startsWith('data:image/')
-          ) {
-            //CDNURLを取得する処理
-            //updateHistory.imgURL = filetoURL(updateHistoryContent.imgURL);
-          }
+        // 画像データが存在すれば、URL化処理
+        if (uploadFile != null) {
+          const result = await convertToURL(uploadFile, userNumber, 'history');
+          updateHistoryContent.image_object_key = result.objectKey;
+          updateHistoryContent.imgURL = result.cdnUrl;
         }
 
         const index = this.histories.findIndex(
@@ -95,9 +93,6 @@ export const useHistoryStore = defineStore('history', {
       updateChildBlocks: InfoBlock[]
     ): Promise<InfoBlock[]> {
       const userNumber = getuseUserNumber();
-      console.log(historyId);
-      console.log(userNumber);
-      console.log(updateChildBlocks);
 
       try {
         // InfoBlock[] を処理(画像データをURLに変換)
@@ -194,17 +189,21 @@ export const useHistoryStore = defineStore('history', {
      * API:記録を削除
      * @param historyId
      */
-    async deleteHistory(historyId: string) {
+    async deleteHistory(historyId: string, image_object_key: string) {
       const userNumber = getuseUserNumber();
-
       try {
+        // フロントエンドの状態から記録を削除
         this.histories = this.histories.filter(
           (history) => history.id !== historyId
         );
 
+        // DBからデータを削除
         await apiClient.delete(
           `${apiBaseUrl}/hist/histories/${userNumber}/${historyId}`
         );
+
+        // DBの削除が成功したら、R2から画像を削除
+        await deleteFromR2(image_object_key);
       } catch (error) {
         console.error('記録の削除に失敗しました', error);
         throw error;
@@ -224,7 +223,10 @@ export const useHistoryStore = defineStore('history', {
   },
 });
 
-// userNumber を取得するヘルパー関数
+/**
+ * userNumber を取得するヘルパー関数
+ * @returns
+ */
 function getuseUserNumber(): number {
   const userStore = useUserStore();
   const userNumber = userStore.useuserNumber;
