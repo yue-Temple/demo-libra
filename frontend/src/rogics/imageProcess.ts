@@ -1,26 +1,8 @@
 import imageCompression from 'browser-image-compression';
-import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} from '@aws-sdk/client-s3';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // 環境変数を読み込む
-const R2_ACCESS_KEY_ID = import.meta.env.VITE_R2_ACCESS_KEY_ID;
-const R2_SECRET_ACCESS_KEY = import.meta.env.VITE_R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = import.meta.env.VITE_R2_BUCKET_NAME;
-const R2_ACCOUNT_ID = import.meta.env.VITE_R2_ACCOUNT_ID;
 const CDN_DOMAIN = import.meta.env.VITE_CDN_DOMAIN;
-
-if (
-  !R2_ACCESS_KEY_ID ||
-  !R2_SECRET_ACCESS_KEY ||
-  !R2_BUCKET_NAME ||
-  !R2_ACCOUNT_ID ||
-  !CDN_DOMAIN
-) {
-  throw new Error('必要な環境変数が設定されていません');
-}
 
 /**
  * 画像をWebP形式に変換し、必要に応じて圧縮し、URLとして返却する関数
@@ -43,15 +25,39 @@ export const convertToURL = async (
     const originalFileName = file.name.replace(/\.[^/.]+$/, ''); // 拡張子を除いた元のファイル名
     const fileName = `${userNumber}/${kind}/${timestamp}_${originalFileName}.webp`;
 
-    // Step 3: R2にアップロード
-    const uploadedFileName = await uploadToR2(webpFile, fileName);
+    // Step 3: バックエンドから署名付きURLを取得
+    const response = await fetch(
+      `${apiBaseUrl}/r2/get-r2signed-url?fileName=${encodeURIComponent(fileName)}`,
+      {
+        method: 'GET',
+      }
+    );
 
-    // Step 4: CDNのURLを生成
-    const cdnUrl = generateCDNUrl(uploadedFileName);
+    if (!response.ok) {
+      throw new Error('Failed to get signed URL');
+    }
+
+    const { signedUrl } = await response.json();
+
+    // Step 4: 署名付きURLを使用してR2に直接アップロード
+    const uploadResponse = await fetch(signedUrl, {
+      method: 'PUT',
+      body: webpFile,
+      headers: {
+        'Content-Type': 'image/webp',
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload file');
+    }
+
+    // Step 5: CDNのURLを生成
+    const cdnUrl = generateCDNUrl(fileName);
 
     // オブジェクトキーとCDNのURLを返す
     return {
-      objectKey: uploadedFileName, // R2のオブジェクトキー
+      objectKey: fileName, // R2のオブジェクトキー
       cdnUrl: cdnUrl, // CDN経由のURL
     };
   } catch (error) {
@@ -105,64 +111,7 @@ const convertToWebP = async (
   }
 };
 
-//変換後のファイルをR2にアップロード
-const uploadToR2 = async (file: Blob, fileName: string): Promise<string> => {
-  const client = new S3Client({
-    region: 'auto',
-    endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: R2_ACCESS_KEY_ID,
-      secretAccessKey: R2_SECRET_ACCESS_KEY,
-    },
-  });
-
-  const fileBuffer = await file.arrayBuffer();
-  const command = new PutObjectCommand({
-    Bucket: R2_BUCKET_NAME,
-    Key: fileName,
-    Body: new Uint8Array(fileBuffer),
-    ContentType: 'image/webp',
-  });
-
-  try {
-    await client.send(command);
-    console.log(`Uploaded ${fileName} to R2`);
-    return fileName; // アップロードされたファイル名を返す
-  } catch (error) {
-    console.error('Error uploading to R2:', error);
-    throw error;
-  }
-};
-
 //R2にアップロードされたファイルのCDN経由のURLを生成
 const generateCDNUrl = (fileName: string): string => {
   return `${CDN_DOMAIN}/${fileName}`;
-};
-
-/**
- * R2から指定されたファイルを削除する関数
- * @param fileName - 削除するファイルのファイル名（オブジェクトキー）
- */
-export const deleteFromR2 = async (fileName: string): Promise<void> => {
-  const client = new S3Client({
-    region: 'auto',
-    endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: R2_ACCESS_KEY_ID,
-      secretAccessKey: R2_SECRET_ACCESS_KEY,
-    },
-  });
-
-  const command = new DeleteObjectCommand({
-    Bucket: R2_BUCKET_NAME, // R2のバケット名
-    Key: fileName, // 削除対象のファイル名（オブジェクトキー）
-  });
-
-  try {
-    await client.send(command);
-    console.log(`Deleted ${fileName} from R2`);
-  } catch (error) {
-    console.error('Error deleting from R2:', error);
-    throw error;
-  }
 };

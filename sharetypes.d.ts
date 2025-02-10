@@ -61,7 +61,6 @@ interface TextButton extends BaseInfoBlock {
   type: 'textbutton';
   styleType?: StyleType;
   button: Button;
-
 }
 interface ImageBlock extends BaseInfoBlock {
   type: 'img';

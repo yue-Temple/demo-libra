@@ -41,7 +41,7 @@
             <img
               :src="previewImage"
               class="preview-coverimage"
-              @click="startCropping"
+              @click.stop="startCropping"
             />
           </div>
           <label v-if="previewImage" class="file-reset" @click.stop="fileReset">
@@ -108,7 +108,6 @@ const emit = defineEmits([
   'update:titlecolor',
   'update:cover',
   'update:icon',
-  'sendfile',
   'close',
 ]);
 
@@ -135,6 +134,9 @@ if (props.cover instanceof File) {
   originalImage.value = URL.createObjectURL(props.cover);
   previewImage.value = URL.createObjectURL(props.cover);
   uploadcoverFile.value = props.cover;
+} else if (typeof props.cover === 'string') {
+  originalImage.value = props.cover;
+  previewImage.value = props.cover;
 }
 
 // アイコンリスト

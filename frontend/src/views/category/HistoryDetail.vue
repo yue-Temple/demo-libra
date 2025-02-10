@@ -1,9 +1,8 @@
 <template>
+  <TopBar />
+  <div class="horizontal-divider"></div>
+  <!-- <MenuBar /> -->
   <div class="home">
-    <TopBar />
-    <div class="horizontal-divider"></div>
-    <!-- <MenuBar /> -->
-
     <div class="field">
       <!-- データがない場合 -->
       <div v-if="!history" class="back">↩一覧へ</div>
@@ -31,7 +30,7 @@
         <!-- 画像を表示 -->
         <div class="image-container" v-if="history.imgURL">
           <img
-            :src="history.imgURL"
+            :src="getImageSrc(history.imgURL)"
             alt="History Image"
             v-if="history.imgURL"
             class="history-image"
@@ -41,15 +40,14 @@
         <div class="report" v-html="formatReport(history.report)"></div>
       </div>
     </div>
-    <!-- EditButton コンポーネントに EditNow を渡す -->
-    <InfoBlockManager
-      :infoBlocks="childInfoBlock"
-      @save-page="savehprofile"
-      @update-text-block-content="updateTextBlockContent"
-      @update-button-block-buttons="updateButtonBlockButtons"
-      @update-textbutton-button="updateTextButtonButton"
-      @update-info-blocks="updateInfoBlocks"
-    />
+    <div class="prof-field">
+      <!-- EditButton コンポーネントに EditNow を渡す -->
+      <InfoBlockManager
+        :infoBlocks="childInfoBlock"
+        @save-page="savehprofile"
+        @update-info-blocks="updateInfoBlocks"
+      />
+    </div>
   </div>
 </template>
 
@@ -60,17 +58,16 @@ import { useToast } from 'vue-toastification';
 import { useUserStore } from '@/stores/userStore';
 import { useHistoryStore } from '@/stores/historyStore';
 // 型定義
-import { InfoBlock, Button, HistoryContainer } from '@sharetypes';
+import { InfoBlock, HistoryContainer } from '@sharetypes';
 // 子コンポーネント
 import TopBar from '@/components/standard/topbar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
+import { getOldObjectKeys } from '@/rogics/getOldObjectKey';
 
 const toast = useToast();
 const userStore = useUserStore();
 const historyStore = useHistoryStore();
 const route = useRoute();
-// オーナーフラッグ
-const isOwner = userStore.checkOwner(route.params.userNumber);
 // ルート
 const routeuserNumber = Number(route.params.userNumber); // ルートパラメータから userNumber を取得
 const historyId = String(route.params.id); // ルートパラメータから id を取得
@@ -78,23 +75,12 @@ const historyId = String(route.params.id); // ルートパラメータから id 
 const history = ref<HistoryContainer | null>(null); // 表示する履歴データを格納
 const childInfoBlock = ref<InfoBlock[]>([]);
 const oldchildInfoBlock = ref<InfoBlock[]>([]);
-
-// データを表示用に加工する関数
-const formatReport = (report: string | null): string => {
-  if (!report) return ''; // reportがnullまたはundefinedの場合、空文字列を返す
-  return report.replace(/\n/g, '<br>'); // 改行を<br>に置換
-};
-
-// 日付をフォーマットする関数
-const formatDate = (dateArray: string[] | null): string => {
-  if (!dateArray || dateArray.length === 0) return '';
-  if (dateArray.length === 1) return dateArray[0];
-  return `${dateArray[0]} ～ ${dateArray[dateArray.length - 1]}`;
-};
+const addBlocks = ref<InfoBlock[]>([]);
+const deleteBlocks = ref<InfoBlock[]>([]);
 
 onMounted(async () => {
   // 既にデータ取得済みの場合
-  if (historyStore.historyfetched) {
+  if (historyStore.histories.length > 0) {
     // histories から id が合致するデータを探す
     const foundHistory = historyStore.getHistories.find(
       (h) => h.id === historyId
@@ -131,47 +117,87 @@ const savehprofile = async () => {
       JSON.stringify(childInfoBlock.value)
     ) {
       console.log('変更がないため、保存をスキップします。');
-      toast.success('保存されました');
+      toast.success('保存しました');
       return;
     }
 
-    // 変更がある場合、保存処理を実行
-    const response = await historyStore.savehistProfile(
-      historyId,
-      childInfoBlock.value
+    // old_object_key 配列を作成
+    const old_object_keys = getOldObjectKeys(
+      childInfoBlock.value,
+      oldchildInfoBlock.value
     );
-    console.log(response);
+
+    // 変更がある場合、保存処理を実行
+    await historyStore.savehistProfile(
+      historyId,
+      childInfoBlock.value,
+      deleteBlocks.value,
+      old_object_keys
+    );
     toast.success('保存しました');
     // 保存後にoldInfoBlockを更新
     oldchildInfoBlock.value = JSON.parse(JSON.stringify(childInfoBlock.value));
+    // フラグ配列を初期化
+    addBlocks.value = [];
+    deleteBlocks.value = [];
   } catch (error) {
     toast.error('保存に失敗しました');
+    // フラグ配列を初期化
+    addBlocks.value = [];
+    deleteBlocks.value = [];
   }
 };
 
-// 内容更新
-const updateTextBlockContent = (blockId: string, content: string) => {
-  const block = childInfoBlock.value.find((b) => b.id === blockId);
-  if (block && block.type === 'text') {
-    block.content = content;
-  }
-};
-const updateButtonBlockButtons = (blockId: string, buttons: Button[]) => {
-  const block = childInfoBlock.value.find((b) => b.id === blockId);
-  if (block && block.type === 'button') {
-    block.buttons = buttons;
-  }
-};
-const updateTextButtonButton = (blockId: string, button: Button) => {
-  const block = childInfoBlock.value.find((b) => b.id === blockId);
-  if (block && block.type === 'textbutton') {
-    block.button = button;
-  }
-};
-
-// 全部更新
-const updateInfoBlocks = (newBlocks: InfoBlock[]) => {
+// 全部更新メソッド
+const updateInfoBlocks = (
+  newBlocks: InfoBlock[],
+  addblock: InfoBlock,
+  deleteblock: InfoBlock
+) => {
+  // 1. 新しいブロックリストをセット
   childInfoBlock.value = newBlocks;
+
+  // 2. 追加されたブロックを addBlocks に追加
+  if (addblock) {
+    addBlocks.value.push(addblock);
+  }
+
+  // 3. 削除されたブロックを deleteBlocks に追加
+  if (deleteblock) {
+    // addBlocks 配列に deleteblock と同じブロックがあるかどうかを確認
+    const index = addBlocks.value.findIndex(
+      (block) => block.id === deleteblock.id
+    );
+
+    if (index !== -1) {
+      addBlocks.value.splice(index, 1); // addBlocks 配列に同じブロックがある場合、そのブロックを削除
+    } else {
+      deleteBlocks.value.push(deleteblock); // addBlocks 配列に同じブロックがない場合、deleteBlocks 配列に追加
+    }
+  }
+};
+
+// 起こりえないが、history.imgURLのFile可能性を消すための処理
+const getImageSrc = (imageUrl: string | File): string => {
+  if (typeof imageUrl === 'string') {
+    return imageUrl;
+  } else if (imageUrl instanceof File) {
+    return URL.createObjectURL(imageUrl); // File型の場合はBlob URLを生成
+  }
+  return '';
+};
+
+// データを表示用に加工する関数
+const formatReport = (report: string | null): string => {
+  if (!report) return ''; // reportがnullまたはundefinedの場合、空文字列を返す
+  return report.replace(/\n/g, '<br>'); // 改行を<br>に置換
+};
+
+// 日付をフォーマットする関数
+const formatDate = (dateArray: string[] | null): string => {
+  if (!dateArray || dateArray.length === 0) return '';
+  if (dateArray.length === 1) return dateArray[0];
+  return `${dateArray[0]} ～ ${dateArray[dateArray.length - 1]}`;
 };
 </script>
 
@@ -179,7 +205,9 @@ const updateInfoBlocks = (newBlocks: InfoBlock[]) => {
 @import url('https://fonts.googleapis.com/css?family=Oswald|Roboto:400,700');
 
 .home {
-  position: relative;
+  display: flex;
+  flex-direction: column; /* 縦並び */
+  align-items: center; /* 水平方向の中央揃え */
   padding-bottom: 80px;
 }
 .horizontal-divider {
@@ -203,20 +231,29 @@ const updateInfoBlocks = (newBlocks: InfoBlock[]) => {
   z-index: -1;
 }
 .field {
+  display: flex;
+  flex-direction: column; /* 縦並び */
+  align-items: center; /* 水平方向の中央揃え */
   padding-top: 45px;
-  width: 60dvw; /* 画面領域 */
-  margin: 0 auto;
+  width: 100%;
+}
+/* 基本情報全体 */
+.main-history {
+  width: 100%;
+  max-width: 700px; /* コンテンツの最大幅を設定 */
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.prof-field {
+  padding-top: 45px;
+  width: 100%;
+  max-width: 1000px;
 }
 /* モバイル表示 */
 @media (max-width: 600px) {
   .field {
-    width: 100%;
+    width: 97dvw;
   }
-}
-/* 基本情報全体 */
-.main-history {
-  max-width: 100%; /* コンテンツの最大幅を設定 */
-  padding: 10px auto; /* 中央揃え */
 }
 
 .topinfo {
@@ -260,6 +297,7 @@ const updateInfoBlocks = (newBlocks: InfoBlock[]) => {
 }
 .date span {
   margin-left: auto;
+  margin-right: .5rem;
 }
 
 .image-container {
@@ -272,9 +310,9 @@ const updateInfoBlocks = (newBlocks: InfoBlock[]) => {
 
 .history-image {
   min-width: 30dvw;
-  max-width: 85dvw;
+  max-width: 95dvw;
   min-height: 30dvw;
-  max-height: 80dvw;
+  max-height: 60dvw;
   object-fit: contain;
 }
 
@@ -294,6 +332,8 @@ const updateInfoBlocks = (newBlocks: InfoBlock[]) => {
   line-height: 1.6; /* 行間を広くする */
   padding-top: 1rem;
   padding-bottom: 1rem; /* 子ブロックとの間隔 */
+  padding-left: 1rem;
+  padding-right: 1rem;
   border-top: solid 1px var(--page-text);
 }
 

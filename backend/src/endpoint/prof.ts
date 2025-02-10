@@ -4,22 +4,32 @@ import {
   getProfileBlocks,
   removeBlock,
 } from '../services/ProfileService';
+import {
+  deleteBlocksImages,
+  oldFilesDeleteFromR2,
+} from '../services/R2Service';
 
 const router = express.Router();
 
 // プロフィールの保存エンドポイント
 router.post('/saveprofile', async (req, res) => {
-  console.log('Request Body:', JSON.stringify(req.body, null, 2)); // リクエストボディを確認◆
-
-  const { userNumber, blocks } = req.body;
+  const { userNumber, newblocks, deleteblocks, old_object_keys } = req.body;
 
   // 入力データのバリデーション
-  if (!userNumber || !blocks || !Array.isArray(blocks)) {
+  if (!userNumber || !newblocks || !Array.isArray(newblocks)) {
     return res.status(400).json({ error: 'Invalid userNumber or blocks data' });
   }
 
   try {
-    const result = await saveProfile(userNumber, blocks);
+    // ストレージサービスから画像削除の処理
+    if (deleteblocks) {
+      deleteBlocksImages(deleteblocks);
+    }
+    if (old_object_keys) {
+      oldFilesDeleteFromR2(old_object_keys);
+    }
+    // 他、保存
+    const result = await saveProfile(userNumber, newblocks);
     if (result.success) {
       return res.status(200).json(result);
     } else {

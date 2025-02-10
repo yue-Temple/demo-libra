@@ -20,6 +20,7 @@ import TopBar from '@/components/standard/topbar.vue';
 import MenuBar from '@/components/standard/menubar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
 import { InfoBlock } from '@sharetypes';
+import { getOldObjectKeys } from '@/rogics/getOldObjectKey';
 
 const route = useRoute();
 const toast = useToast();
@@ -56,13 +57,29 @@ const saveprofile = async () => {
       return;
     }
 
+    // old_object_key 配列を作成
+    const old_object_keys = getOldObjectKeys(
+      InfoBlock.value,
+      oldInfoBlock.value
+    );
+
     // 変更がある場合、保存処理を実行
-    await profileStore.saveProfile(InfoBlock.value, addBlocks.value, deleteBlocks.value);
+    await profileStore.saveProfile(
+      InfoBlock.value,
+      deleteBlocks.value,
+      old_object_keys
+    );
     toast.success('保存しました');
     // 保存後にoldInfoBlockを更新
     oldInfoBlock.value = JSON.parse(JSON.stringify(InfoBlock.value));
+    // フラグ配列を初期化
+    addBlocks.value = [];
+    deleteBlocks.value = [];
   } catch (error) {
     toast.error('保存に失敗しました');
+    // フラグ配列を初期化
+    addBlocks.value = [];
+    deleteBlocks.value = [];
   }
 };
 
@@ -82,9 +99,16 @@ const updateInfoBlocks = (
 
   // 3. 削除されたブロックを deleteBlocks に追加
   if (deleteblock) {
-    // addblocks配列に、受け取ったdeleteBlockと同じブロックがあればaddblock配列から該当のブロックを除外
-    // 受け取ったdeleteBlockはdeleteBlocks配列に加えない
-    deleteBlocks.value.push(deleteblock);
+    // addBlocks 配列に deleteblock と同じブロックがあるかどうかを確認
+    const index = addBlocks.value.findIndex(
+      (block) => block.id === deleteblock.id
+    );
+    // addBlocks 配列に同じブロックがある場合そのブロックを削除、ない場合、deleteBlocks 配列に追加
+    if (index !== -1) {
+      addBlocks.value.splice(index, 1);
+    } else {
+      deleteBlocks.value.push(deleteblock);
+    }
   }
 };
 </script>

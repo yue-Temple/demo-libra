@@ -232,7 +232,7 @@ const oldHistory =
         system: props.container.system || '',
         report: props.container.report || '',
         imgURL: props.container.imgURL || '',
-        image_object_key: props.container.imgURL || '',
+        image_object_key: props.container.image_object_key || '',
         private: props.container.private || false,
         childblock: props.container.childblock || [],
       }
@@ -248,7 +248,7 @@ const submitForm = async () => {
     system: system.value,
     report: report.value,
     imgURL: imgURL.value, // 画像を変更した場合ここが変わる
-    image_object_key: props.container.imgURL,
+    image_object_key: props.container.image_object_key,
     private: isPrivate.value,
     childblock: props.container?.childblock || [], // 既存のchildblockを使用または空の配列を設定
   };
@@ -270,7 +270,11 @@ const submitForm = async () => {
       // 変更があった場合
     } else {
       try {
-        await historyStore.updateHistory(newHistory, uploadFile.value); // 更新APIを呼び出す
+        await historyStore.updateHistory(
+          newHistory,
+          uploadFile.value,
+          props.container.image_object_key
+        ); // 更新APIを呼び出す
         emit('close');
       } catch (error) {
         console.error('更新に失敗しました', error);

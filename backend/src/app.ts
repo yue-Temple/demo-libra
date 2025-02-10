@@ -9,6 +9,7 @@ import authRouter from './endpoint/auth';
 import menuRouter from './endpoint/menu';
 import profRouter from './endpoint/prof';
 import histRouter from './endpoint/hist';
+import r2Router from './endpoint/r2';
 
 const app = express();
 
@@ -77,6 +78,7 @@ app.use('/auth', authRouter);
 app.use('/menu', menuRouter);
 app.use('/prof', profRouter);
 app.use('/hist', histRouter);
+app.use('/r2', r2Router);
 
 // サーバー起動
 const PORT = process.env.PORT || 3000;

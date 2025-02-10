@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { useUserStore } from './userStore';
 import { InfoBlock } from '@sharetypes';
 import { formatInfoBlock } from '@/rogics/infoblockformat';
-import { processInfoBlocks } from '@/rogics/imageOfBlock';
+import { convertFileToUrl } from '@/rogics/imageOfBlock';
 import { apiClient } from './apiClient';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -38,29 +38,35 @@ export const useProfileStore = defineStore('profile', {
 
     /**
      * API:プロフィールブロックを保存
-     * @param blocks 
-     * @param addblocks 
-     * @param deleteBlocks 
+     * @param blocks
+     * @param addblocks
+     * @param deleteblocks
      */
-    async saveProfile(blocks: InfoBlock[], addblocks: InfoBlock[], deleteBlocks: InfoBlock[]): Promise<void> {
+    async saveProfile(
+      newblocks: InfoBlock[],
+      deleteblocks: InfoBlock[],
+      old_object_keys: string[]
+    ): Promise<void> {
       const userNumber = getuseUserNumber();
+      const kind = 'profile';
       try {
-        // addblocks配列を検証、画像をURLに差し替える処理を加える
-        // deleteBlocks配列を検証、URLをR2から削除する処理を加える
-
-        // InfoBlock[] を処理(画像データをURLに変換+オブジェクトキーセット)
-        //const processedBlocks: InfoBlock[] = await processInfoBlocks(blocks);
-        // ▼仮
-        const processedBlocks = blocks;
+        // newblocks配列を検証、画像をURLに差し替える処理を加える
+        const processedAddBlocks = await convertFileToUrl(
+          newblocks,
+          userNumber,
+          kind
+        );
 
         // APIに送信
         await apiClient.post(`${apiBaseUrl}/prof/saveprofile`, {
           userNumber,
-          blocks: processedBlocks,
+          newblocks: processedAddBlocks,
+          deleteblocks: deleteblocks,
+          old_object_keys: old_object_keys,
         });
 
         // 保存が成功したら、state.profileBlocksを更新
-        this.profileBlocks = processedBlocks;
+        this.profileBlocks = processedAddBlocks;
 
         console.log('プロフィールの保存に成功しました');
       } catch (error) {
