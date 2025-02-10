@@ -87,7 +87,16 @@ const onCropperReady = () => {
   if (cropper.value && cropper.value.cropper) {
     const trimElement = document.querySelector('.trim');
     if (trimElement) {
+      // クロスオリジン設定
+      const image = cropper.value.cropper.image;
+      if (image) {
+        image.crossOrigin = 'anonymous'; // クロスオリジン設定
+      }
+
+      // アスペクト比の設定
       cropper.value.cropper.setAspectRatio(currentAspectRatio.value);
+
+      // トリミングボックスのサイズ設定
       cropper.value.cropper.setCropBoxData({
         width: trimElement.clientWidth,
         height: trimElement.clientHeight,

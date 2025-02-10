@@ -261,7 +261,7 @@ const formatTitleDisplay = (title: string | null) => {
 };
 
 // 起こりえないが、container.imgURLのFile可能性を消すための処理
-const getImageSrc = (imageUrl: string | File) :string  => {
+const getImageSrc = (imageUrl: string | File): string => {
   if (typeof imageUrl === 'string') {
     return imageUrl;
   } else if (imageUrl instanceof File) {
