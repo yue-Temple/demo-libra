@@ -7,7 +7,9 @@
     <!-- UserSection コンポーネント -->
     <UserSection
       v-model:userName="userName"
-      :userIcon="userStore.userIcon"
+      :userEmail="userStore.useuserEmail || ''"
+      :userGoogle="userStore.useuserGoogle || ''"
+      :userIcon="userStore.useuseruserIcon || ''"
       @update:usericon="uploadUserIcon"
     />
 
@@ -55,16 +57,16 @@ const useuserNumber = Number(userStore.useuserNumber);
 
 // 描写データ
 const userName = ref(userStore.useuserName);
-const userIcon = ref(userStore.userIcon);
+const userIcon = ref(userStore.useuseruserIcon);
 const featuresFromDB = ref<Features[]>([...userStore.features]);
 const layout = ref(layoutStore.currentLayout);
 const isEditing = ref(true);
 const error = ref('');
-const iconType = ref('file');
+const uploadfile = ref<File | null>(null);
 
 // 変更前の値を保持
 const oldName = ref(userStore.useuserName);
-const oldIcon = ref(userStore.userIcon);
+const oldIcon = ref(userStore.useuseruserIcon);
 const oldFeatures = ref<Features[]>();
 const oldLayout = ref(layoutStore.currentLayout);
 
@@ -80,7 +82,7 @@ onMounted(async () => {
 
 // アイコンアップロードをリッスン
 const uploadUserIcon = (file: File) => {
-  console.log('User icon uploaded:', file.name);
+  uploadfile.value = file
   userIcon.value = URL.createObjectURL(file); // アイコンを一時的に表示
 };
 
@@ -162,7 +164,8 @@ const saveSettings = async () => {
       await userStore.saveUserData(
         userStore.useuserId,
         userName.value,
-        userIcon.value
+        userIcon.value,
+        uploadfile.value,
       );
       // 変更前の値を更新
       oldName.value = userName.value;

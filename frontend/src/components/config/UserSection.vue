@@ -13,12 +13,11 @@
       <span>❏ユーザーアイコン</span>
       <div>
         <!-- プレビュー画像 -->
-        <div v-if="previewImage" class="preview-container">
+        <div v-if="previewImage != ''" class="preview-container">
           <img
             :src="previewImage"
             alt="プレビュー画像"
             class="preview-image"
-            @click="startCropping"
           />
         </div>
 
@@ -60,7 +59,6 @@
 </template>
 
 <script setup lang="ts">
-import { useUserStore } from '@/stores/userStore';
 import { ref, computed } from 'vue';
 import 'cropperjs/dist/cropper.css';
 import ImageCropper from '../hcomponents/ImageCropper.vue';
@@ -76,21 +74,25 @@ const props = defineProps({
   userName: {
     required: true,
   },
+  userEmail: {
+    type: String,
+    required: true,
+  },
+  userGoogle: {
+    type: String,
+    required: true,
+  },
   userIcon: {
     type: String,
     required: true,
   },
 });
 
-const userStore = useUserStore();
-const userEmail = userStore.useuserEmail;
-
 // トリミング,画像処理
 const pictureOption = ref('upload'); // アップロードOR貼り付け
 const isCropping = ref(false); // トリミング中かどうかのフラグ
 const originalImage = ref(''); // オリジナルの画像を保持（再トリミング用）
 const previewImage = ref<string>(props.userIcon); //トリミング後、プレビューURL
-const uploadFile = ref<File | null>(null); //トリミング後、画像データ
 
 // ユーザー名入力時の処理
 const onInput = (event: Event) => {
@@ -100,12 +102,12 @@ const onInput = (event: Event) => {
 
 // メールアドレスをマスクする computed プロパティ
 const maskedEmail = computed(() => {
-  return userEmail ? `${userEmail.slice(0, 2)}***@***` : '未登録';
+  return props.userEmail ? `${props.userEmail.slice(0, 2)}***@***` : '未登録';
 });
 
 // googleアカウント連携確認
 let googleLinked = false;
-if (userStore.useuserGoogle) {
+if (props.userGoogle != '') {
   googleLinked = true;
 }
 
@@ -132,8 +134,8 @@ const channelCropping = () => {
 // トリミング完了リッスン
 const handleCroppedImage = (previewUrl: string, file: File) => {
   previewImage.value = previewUrl;
-  uploadFile.value = file;
   isCropping.value = false;
+  emit('update:usericon', file);
 };
 </script>
 
@@ -159,6 +161,5 @@ h2 {
   height: 150px;
   border-radius: 50%;
   border: 1px solid #ccc;
-  cursor: pointer;
 }
 </style>

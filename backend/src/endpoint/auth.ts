@@ -7,7 +7,8 @@ import {
 } from '../services/AuthMailService';
 import { AuthGoogleService } from '../services/AuthGoogleService';
 import { AuthTokenService } from '../services/AuthTokenService';
-import { AuthSaveService } from '../services/AuthSaveService';
+import { deleteFromR2 } from '../services/R2Service';
+import { saveUser } from '../services/UserService';
 
 const router = express.Router();
 
@@ -15,7 +16,6 @@ const mailService = new AuthMailService();
 const logoutService = new AuthLogoutService();
 const googleService = new AuthGoogleService();
 const authTokenService = new AuthTokenService();
-const saveService = new AuthSaveService();
 
 // 環境変数の存在確認
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -35,10 +35,10 @@ if (
 // メールアドレス＋パスワード登録APIエンドポイント
 router.post('/register-with-email', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceId} = req.body;
 
     // authService.registerWithEmail を1回呼び出して、token を取得
-    const token = await mailService.registerWithEmail(email, password);
+    const token = await mailService.registerWithEmail(email, password,deviceId);
 
     // token をフロントエンドに返す
     res.status(201).json({ token });
@@ -164,12 +164,19 @@ router.post('/logout', async (req, res) => {
 // ユーザーデータ保存APIエンドポイント
 router.post('/user-save', async (req, res) => {
   try {
-    const { user_id, user_name, user_icon } = req.body;
-
-    console.log('受信データ:', { user_id, user_name, user_icon });
+    const { user_id, user_name, user_icon, delete_iconurl } = req.body;
 
     // saveUser メソッドを呼び出してユーザーデータを保存
-    const token = await saveService.saveUser(user_id, user_name, user_icon);
+    const token = await saveUser(user_id, user_name, user_icon);
+
+    // 旧R2データを削除
+    if (delete_iconurl) {
+      const old_object_Key = delete_iconurl.replace(
+        `${process.env.CDN_DOMAIN}`,
+        ''
+      );
+      deleteFromR2(old_object_Key);
+    }
 
     // 成功レスポンスを返す
     res.status(200).json({

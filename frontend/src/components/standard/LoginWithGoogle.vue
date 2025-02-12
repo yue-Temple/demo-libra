@@ -41,8 +41,8 @@ const startGoogleAuth = async () => {
   const deviceId = getDeviceId();
   const combinedState = `${state}:${deviceId}`; // stateとdeviceIdを結合
 
-  // stateとdeviceIdをセッションストレージに保存
-  //sessionStorage.setItem('oauth_state', state);
+  // deviceIdをセッションストレージに保存
+  localStorage.setItem('deviceId', deviceId);
 
   // 遷移
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${combinedState}&access_type=offline`;

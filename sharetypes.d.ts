@@ -11,14 +11,15 @@ interface JwtPayload {
 }
 
 
-// // ユーザー（取得用） ※未使用
-// export interface getuserData{
-//   user_id: string;
-//   user_name: number;
-//   user_email: string;
-//   user_google: string;
-//   user_icon: string | File; 
-// };
+// ユーザー（取得用） ※未使用
+export interface userData{
+  user_name: string | null;
+  user_number: number;
+  user_role: string | null;
+  user_email: string | null;
+  user_google: string | null;
+  user_icon: string; 
+};
 
 // メニュー|利用機能の設定データ型
 export interface Features {

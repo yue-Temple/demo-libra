@@ -4,18 +4,17 @@ import { Features } from '../../../sharetypes';
 
 @Entity()
 export class Menu {
-  @PrimaryColumn({ type: 'integer' }) 
+  @PrimaryColumn({ type: 'integer' })
   user_number: number; // ユーザー番号を主キーとして設定
 
   @OneToOne(() => User, (user) => user.menu, {
     onDelete: 'CASCADE', // 外部キー制約を明示的に指定
   })
-
   @JoinColumn({ name: 'user_number', referencedColumnName: 'user_number' })
-  user!: User; 
+  user!: User;
 
   @Column({ type: 'jsonb' }) // 'json' → 'jsonb' (PostgreSQL推奨)
-  feature_value: Features[]; 
+  feature_value: Features[];
 
   @Column({ type: 'varchar', length: 255 })
   layout: string;

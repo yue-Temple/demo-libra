@@ -4,6 +4,11 @@ import jwt from 'jsonwebtoken';
 import { RefreshToken } from '../entity/RefreshToken';
 import { Repository } from 'typeorm';
 
+const tokenExpiry = '3h'; // アクセストークンの期限
+const refreshExpiry = '180d'; // リフレッシュトークンの期限
+const secretKey = process.env.JWT_SECRET_KEY!;
+const refreshSecretKey = process.env.JWT_REFRESH_SECRET!;
+
 export class AuthTokenService {
   /**
    * API: アクセストークンの再発行
@@ -13,9 +18,6 @@ export class AuthTokenService {
   async refreshAccessToken(
     refreshToken: string
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const secretKey = process.env.JWT_SECRET_KEY!;
-    const tokenExpiry = '3h'; // アクセストークンの期限
-
     try {
       // リフレッシュトークンを検証
       const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
@@ -52,6 +54,7 @@ export class AuthTokenService {
           user_id: existingToken.user.user_id,
           user_name: existingToken.user.user_name,
           user_number: existingToken.user.user_number,
+          user_icon: existingToken.user.user_icon,
           user_role: existingToken.user.user_role,
           user_email: existingToken.user.user_email,
           user_googleid: existingToken.user.google_user_id,
@@ -84,7 +87,7 @@ export class AuthTokenService {
     // 新しいリフレッシュトークンを生成
     const newRefreshToken = jwt.sign(
       { user_id: existingToken.user.user_id },
-      process.env.JWT_REFRESH_SECRET!,
+      refreshSecretKey,
       { expiresIn: '180d' }
     );
 
@@ -97,4 +100,42 @@ export class AuthTokenService {
 
     return newRefreshToken;
   }
+}
+
+/**
+ * アクセストークンを生成する関数
+ * @param user ユーザー情報
+ * @returns 生成されたアクセストークン
+ */
+export function generateAccessToken(user: {
+  user_id: string;
+  user_number: number;
+  user_name: string | null;
+  user_icon: string;
+  user_role: string | null;
+  user_email: string | null;
+  google_user_id: string | null;
+}): string {
+  return jwt.sign(
+    {
+      user_id: user.user_id,
+      user_number: user.user_number,
+      user_name: user.user_name,
+      user_icon: user.user_icon,
+      user_role: user.user_role,
+      user_email: user.user_email,
+      user_googleid: user.google_user_id,
+    },
+    secretKey,
+    { expiresIn: tokenExpiry }
+  );
+}
+
+/**
+ * リフレッシュトークンを生成する関数
+ * @param user_id ユーザーID
+ * @returns 生成されたリフレッシュトークン
+ */
+export function generateRefreshToken(user_id: string): string {
+  return jwt.sign({ user_id }, refreshSecretKey, { expiresIn: refreshExpiry });
 }

@@ -1,5 +1,6 @@
 // src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router';
+import { checkUserExists } from './checkUser';
 // 基本ページ
 import TopPage from '../views/standard/TopPage.vue';
 import SignIn from '../views/standard/SignIn.vue';
@@ -89,6 +90,26 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL || '/'),
   routes,
+});
+
+// ナビゲーションガードの設定
+router.beforeEach(async (to, from, next) => {
+  // ユーザー番号が必要なルートかどうかを確認
+  if (to.params.userNumber) {
+    const userNumber = to.params.userNumber as string;
+    const userExists = await checkUserExists(userNumber);
+
+    if (!userExists) {
+      // ユーザーが存在しない場合はエラーページにリダイレクト
+      next({ name: 'ErrorPage' });
+    } else {
+      // ユーザーが存在する場合は通常通り進む
+      next();
+    }
+  } else {
+    // ユーザー番号が不要なルートはそのまま進む
+    next();
+  }
 });
 
 export default router;
