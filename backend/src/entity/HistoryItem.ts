@@ -7,7 +7,7 @@ export class HistoryItem {
   @PrimaryColumn({ type: 'varchar', length: 17 }) // YYYYMMDDHHmmssSSS 形式の主キー
   historyid: string;
 
-  @Column({ type: 'json', nullable: true }) // JSON 型として保存
+  @Column({ type: 'jsonb', nullable: true }) // 'json' → 'jsonb' (PostgreSQL推奨)
   date: string[] | null;
 
   @Index()
@@ -32,10 +32,12 @@ export class HistoryItem {
   @Column({ default: false })
   private: boolean;
 
-  @Column({ type: 'json', nullable: true }) // InfoBlock[] を JSON 形式で保存
+  @Column({ type: 'jsonb', nullable: true }) // 'json' → 'jsonb' (PostgreSQL推奨)
   childblock: InfoBlock[] | [];
 
-  @ManyToOne(() => History, (history) => history.histories)
+  @ManyToOne(() => History, (history) => history.histories, {
+    onDelete: 'CASCADE', // 外部キー制約を明示的に指定
+  })
   history!: History;
 
   constructor(

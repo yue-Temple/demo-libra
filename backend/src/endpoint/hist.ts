@@ -41,7 +41,7 @@ router.post(
 /**
  * ヒストリ更新APIのエンドポイント
  * PUT /histories/:userNumber
- * Request Body: { updateHistoryContent: HistoryContainer }
+ * Request Body: { updateHistoryContent: HistoryContainer, old_image_object_key: string }
  */
 router.put(
   '/updatehistories/:user_number',
@@ -50,7 +50,8 @@ router.put(
       const user_number = parseInt(req.params.user_number, 10);
       const { updateHistoryContent, old_object_key } = req.body;
 
-      if (isNaN(user_number) || !updateHistoryContent) {
+      if (!user_number || !updateHistoryContent) {
+        console.log('koko');
         return res
           .status(400)
           .json({ message: 'Invalid user_number or updateHistoryContent' });
@@ -58,7 +59,7 @@ router.put(
 
       await historyService.updateHistory(user_number, updateHistoryContent);
       // 旧R2データを削除
-      deleteFromR2(old_object_key);
+      if (old_object_key) deleteFromR2(old_object_key);
 
       res.status(200).json({ message: 'History updated successfully' });
     } catch (error) {
@@ -88,13 +89,8 @@ router.put(
       }
 
       // 削除画像の処理
-      if (deleteblocks) {
-        deleteBlocksImages(deleteblocks);
-      }
-
-      if (old_object_keys) {
-        oldFilesDeleteFromR2(old_object_keys);
-      }
+      if (deleteblocks) deleteBlocksImages(deleteblocks);
+      if (old_object_keys) oldFilesDeleteFromR2(old_object_keys);
 
       await historyService.updateHistoryProfile(
         userNumber,
@@ -130,7 +126,7 @@ router.delete(
       }
 
       // ストレージサービスから画像削除の処理
-      deleteFromR2(delete_image_object_key);
+      if (delete_image_object_key) deleteFromR2(delete_image_object_key);
 
       await historyService.deleteHistory(userNumber, historyId);
       res.status(200).json({ message: 'History deleted successfully' });

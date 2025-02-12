@@ -54,53 +54,6 @@ export const useUserStore = defineStore('user', {
         'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     },
 
-    // /**
-    //  * アクセストークンを取得・更新
-    //  * @returns
-    //  */
-    // async fetchAccessToken() {
-    //   if (this.token) {
-    //     // トークンが既に存在する場合、そのまま使用
-    //     return this.token;
-    //   }
-
-    //   try {
-    //     // リフレッシュトークンをクッキーから取得
-    //     const refreshToken = document.cookie
-    //       .split('; ')
-    //       .find((row) => row.startsWith('refreshToken='))
-    //       ?.split('=')[1];
-
-    //     if (!refreshToken) {
-    //       throw new Error('リフレッシュトークンが見つかりません');
-    //     }
-
-    //     // バックエンドにリフレッシュトークンを送信して新しいアクセストークンを取得
-    //     const response = await apiClient.post<{
-    //       accessToken: string;
-    //       refreshToken: string;
-    //     }>(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`, {
-    //       refreshToken,
-    //     });
-
-    //     // 新しいアクセストークンをセッションストレージに保存
-    //     localStorage.setItem('accessToken', response.data.accessToken);
-
-    //     // 新しいリフレッシュトークンをクッキーに保存
-    //     document.cookie = `refreshToken=${response.data.refreshToken}; path=/; HttpOnly; Secure; SameSite=Strict`;
-
-    //     // トークンをセット
-    //     this.setToken(response.data.accessToken);
-
-    //     return response.data.accessToken;
-    //   } catch (error) {
-    //     console.error('アクセストークンの取得に失敗しました:', error);
-    //     this.clearToken();
-    //     alert('セッションが無効です。再度ログインしてください。');
-    //     window.location.href = '/login'; // ログイン画面にリダイレクト
-    //   }
-    // },
-
     /**
      * ログアウト処理
      */

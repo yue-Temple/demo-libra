@@ -32,12 +32,12 @@ export const useHistoryStore = defineStore('history', {
           newHistory.imgURL = result.cdnUrl;
         }
 
-        // ストア更新
-        this.histories.push(newHistory);
-
-        await apiClient.post(`${apiBaseUrl}/hist/addhistories//${userNumber}`, {
+        await apiClient.post(`${apiBaseUrl}/hist/addhistories/${userNumber}`, {
           newHistory,
         });
+
+        // ストア更新
+        this.histories.push(newHistory);
       } catch (error) {
         console.error('卓歴の追加に失敗しました', error);
         this.histories = this.histories.filter(
@@ -78,8 +78,8 @@ export const useHistoryStore = defineStore('history', {
         await apiClient.put(
           `${apiBaseUrl}/hist/updatehistories/${userNumber}`,
           {
-            updateHistoryContent,
-            old_object_key,
+            updateHistoryContent: updateHistoryContent,
+            old_object_key: old_object_key,
           }
         );
       } catch (error) {

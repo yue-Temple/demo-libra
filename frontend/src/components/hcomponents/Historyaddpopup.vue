@@ -156,8 +156,8 @@ const isPrivate = ref(false);
 // トリミング,画像処理
 const pictureOption = ref('upload'); // アップロードOR貼り付け
 const isCropping = ref(false); // トリミング中かどうかのフラグ
-const originalImage = ref(''); // オリジナルの画像を保持（再トリミング用）
-const previewImage = ref(''); //トリミング後、プレビューURL
+const originalImage = ref(props.container.imgURL); // オリジナルの画像を保持（再トリミング用）
+const previewImage = ref(props.container.imgURL); //トリミング後、プレビューURL
 const uploadFile = ref<File | null>(null); //トリミング後、最終的にR2にアップロードするデータ
 
 // container のデータをフォームの初期値に設定
@@ -197,8 +197,8 @@ const startCropping = () => {
 
 // トリミングキャンセルリッスン
 const channelCropping = () => {
-  previewImage.value = '';
-  originalImage.value = '';
+  // previewImage.value = '';
+  // originalImage.value = '';
   isCropping.value = false;
 };
 
@@ -232,7 +232,7 @@ const oldHistory =
         system: props.container.system || '',
         report: props.container.report || '',
         imgURL: props.container.imgURL || '',
-        image_object_key: props.container.image_object_key || '',
+        image_object_key: props.container.image_object_key || null,
         private: props.container.private || false,
         childblock: props.container.childblock || [],
       }
@@ -284,7 +284,6 @@ const submitForm = async () => {
     // ！新規モードの場合
   } else {
     try {
-      console.log(props.sortOrder);
       await historyStore.addHistory(newHistory, uploadFile.value); // 追加APIを呼び出す
       emit('close');
     } catch (error) {

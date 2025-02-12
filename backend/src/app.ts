@@ -68,10 +68,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(configureSecurityHeaders);
 
-// MySQLとの接続
+// DataBaseとの接続
 AppDataSource.initialize()
-  .then(() => console.log('MySQL connected'))
-  .catch((error) => console.log('Error during MySQL connection:', error));
+  .then(() => console.log('DataBase connected'))
+  .catch((error) => console.log('Error during DataBase connection:', error));
 
 // ルーティングの設定
 app.use('/auth', authRouter);

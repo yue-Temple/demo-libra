@@ -71,12 +71,19 @@ const generateRandomString = (length: number) => {
 
 <style scoped>
 #google-signin-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background-color: #4285f4;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  width: 250px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  color: #fff;
+  font-family: 'Exo', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  padding: 4px;
+  margin-bottom: 10px;
+  margin-top: 1rem;
+  margin-right: auto;
 }
+
 </style>

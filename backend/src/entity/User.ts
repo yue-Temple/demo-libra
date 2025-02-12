@@ -5,18 +5,20 @@ import {
   OneToOne,
   CreateDateColumn,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Profile } from './Profile';
 import { History } from './History';
 import { Role } from '../backtype';
-import { RefreshToken } from './RefreshToken'; // 追加
+import { RefreshToken } from './RefreshToken';
+import { Menu } from './Menu'; // 追加: Menu エンティティをインポート
 
 @Entity()
 export class User {
   @PrimaryColumn({ type: 'varchar', length: 12, unique: true })
   user_id: string;
 
-  @Column({ type: 'int', unique: true, generated: 'increment' })
+  @Column({ type: 'integer', unique: true, generated: 'increment' })
   user_number: number;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
@@ -37,7 +39,7 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true })
   google_user_id: string | null;
 
-  @CreateDateColumn({ type: 'datetime' }) // DATETIME に変更
+  @CreateDateColumn({ type: 'timestamp' }) // 'datetime' → 'timestamp'
   created_at: Date = new Date(); // アカウント作成日時
 
   @Column({ type: 'timestamp', nullable: true }) // TIMESTAMP に変更
@@ -59,13 +61,22 @@ export class User {
   password_reset_token_expires: Date | null; // トークン有効期限
 
   // リレーション
-  @OneToOne(() => Profile, (profile) => profile.user)
+  @OneToOne(() => Profile, (profile) => profile.user, {
+    onDelete: 'CASCADE', 
+  })
   profile!: Profile; // ユーザーは1つのプロフィールを持つ
 
-  @OneToOne(() => History, (history) => history.user)
+  @OneToOne(() => History, (history) => history.user, {
+    onDelete: 'CASCADE', 
+  })
   history!: History; // ユーザーは1つのヒストリーを持つ
 
-  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  @JoinColumn({ name: 'user_number', referencedColumnName: 'user_number' }) // Menu の user_number を参照
+  menu!: Menu; // ユーザーは1つのメニューを持つ
+
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user, {
+    onDelete: 'CASCADE', 
+  })
   refreshTokens!: RefreshToken[]; // リフレッシュトークンとのリレーション
 
   constructor(
