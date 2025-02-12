@@ -43,7 +43,8 @@ export class AuthGoogleService {
       }
 
       // 認可コードを使用してGoogleからトークンを取得
-      const { id_token } = await this.fetchGoogleTokens(authCode);
+      const isLogin = false;
+      const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
 
       // IDトークンを検証
       const googlePayload = await this.verifyGoogleToken(id_token);
@@ -140,7 +141,8 @@ export class AuthGoogleService {
       }
 
       // 認可コードを使用してGoogleからトークンを取得
-      const { id_token } = await this.fetchGoogleTokens(authCode);
+      const isLogin = true;
+      const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
 
       // IDトークンを検証
       const googlePayload = await this.verifyGoogleToken(id_token);
@@ -195,33 +197,61 @@ export class AuthGoogleService {
   /**
    * Google OAuth 2.0 エンドポイントからトークンを取得
    * @param authCode - 認可コード
+   * @param isLogin
    * @returns { id_token, access_token, refresh_token } - 取得したトークン情報
    */
-  private async fetchGoogleTokens(authCode: string): Promise<{
+  private async fetchGoogleTokens(
+    authCode: string,
+    isLogin: boolean
+  ): Promise<{
     id_token: string;
     access_token: string;
     refresh_token?: string;
   }> {
-    // 必要な環境変数の検証
-    const requiredEnvVars = [
-      'GOOGLE_CLIENT_ID',
-      'GOOGLE_CLIENT_SECRET',
-      'LOGIN_REDIRECT_URI',
-    ];
-    for (const envVar of requiredEnvVars) {
-      if (!process.env[envVar]) {
-        throw new Error(`環境変数 ${envVar} が設定されていません`);
+    let params;
+    
+    if (isLogin) {
+      // ログインの場合
+      const requiredEnvVars = [
+        'GOOGLE_CLIENT_ID',
+        'GOOGLE_CLIENT_SECRET',
+        'LOGIN_REDIRECT_URI', // ログイン
+      ];
+      for (const envVar of requiredEnvVars) {
+        if (!process.env[envVar]) {
+          throw new Error(`環境変数 ${envVar} が設定されていません`);
+        }
       }
+      // リクエストパラメータの構築
+      params = new URLSearchParams({
+        code: authCode,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: process.env.LOGIN_REDIRECT_URI!,
+        grant_type: 'authorization_code',
+      });
+      
+    } else {
+      // 登録の場合
+      const requiredEnvVars = [
+        'GOOGLE_CLIENT_ID',
+        'GOOGLE_CLIENT_SECRET',
+        'REGISTER_REDIRECT_URI', // 登録
+      ];
+      for (const envVar of requiredEnvVars) {
+        if (!process.env[envVar]) {
+          throw new Error(`環境変数 ${envVar} が設定されていません`);
+        }
+      }
+      // リクエストパラメータの構築
+      params = new URLSearchParams({
+        code: authCode,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: process.env.REGISTER_REDIRECT_URI!,
+        grant_type: 'authorization_code',
+      });
     }
-
-    // リクエストパラメータの構築
-    const params = new URLSearchParams({
-      code: authCode,
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirect_uri: process.env.LOGIN_REDIRECT_URI!,
-      grant_type: 'authorization_code',
-    });
 
     try {
       // Google OAuth 2.0 エンドポイントにPOSTリクエストを送信

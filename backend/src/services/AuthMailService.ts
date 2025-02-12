@@ -31,6 +31,7 @@ export class AuthMailService {
     // ユーザーIDとパスワードを生成
     const userid = generateRandomUserId();
     const hashedPassword = await bcrypt.hash(password, 10);
+    
     // 新しいユーザーを作成
     const newUser = new User();
     newUser.user_id = userid;

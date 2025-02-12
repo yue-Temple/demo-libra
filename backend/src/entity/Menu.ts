@@ -4,15 +4,18 @@ import { Features } from '../../../sharetypes';
 
 @Entity()
 export class Menu {
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryColumn({ type: 'integer' }) 
   user_number: number; // ユーザー番号を主キーとして設定
 
-  @OneToOne(() => User)
-  @JoinColumn({ name: 'user_number', referencedColumnName: 'user_number' })
-  user?: User; // ユーザー情報を参照（optional）
+  @OneToOne(() => User, (user) => user.menu, {
+    onDelete: 'CASCADE', // 外部キー制約を明示的に指定
+  })
 
-  @Column({ type: 'json' })
-  feature_value: Features[]; // Featureオブジェクト配列として設定
+  @JoinColumn({ name: 'user_number', referencedColumnName: 'user_number' })
+  user!: User; 
+
+  @Column({ type: 'jsonb' }) // 'json' → 'jsonb' (PostgreSQL推奨)
+  feature_value: Features[]; 
 
   @Column({ type: 'varchar', length: 255 })
   layout: string;
@@ -20,7 +23,7 @@ export class Menu {
   // メニュー発行時の初期値を設定
   constructor(
     user_number: number = 0,
-    feature_value: { name: string; value: number; title: string }[] = [
+    feature_value: Features[] = [
       { name: 'profile', value: 1, title: 'Profile' },
       { name: 'history', value: 2, title: 'History' },
       { name: 'chara', value: 0, title: 'Chara' },

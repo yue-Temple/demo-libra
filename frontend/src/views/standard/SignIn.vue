@@ -75,24 +75,6 @@ const handleloginWithEmail = async () => {
     errorMessage.value = 'メールアドレスもしくはパスワードが間違っています';
   }
 };
-
-// Google認証でログイン
-const handleloginWithGoogle = async () => {
-  try {
-    // Google認証のロジックを実装
-    // 例: Google認証プロセスを開始し、ユーザーIDを取得
-    const google_user_id = 'dummy_google_user_id'; // 仮のユーザーID
-    console.log('Googleログイン成功');
-
-    // トークンをローカルストレージに保存
-
-    // goToMainPage を呼び出してメインページに遷移
-    //goToMainPage(router); // router を渡して関数を呼び出す
-  } catch (error) {
-    console.error('Googleログインエラー:', error);
-    errorMessage.value = 'Google認証に失敗しました';
-  }
-};
 </script>
 
 <style>

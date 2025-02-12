@@ -1,7 +1,7 @@
 <template>
+  <!-- <MenuBar /> -->
   <TopBar />
   <div class="horizontal-divider"></div>
-  <!-- <MenuBar /> -->
   <div class="home">
     <div class="field">
       <!-- データがない場合 -->
@@ -41,7 +41,6 @@
       </div>
     </div>
     <div class="prof-field">
-      <!-- EditButton コンポーネントに EditNow を渡す -->
       <InfoBlockManager
         :infoBlocks="childInfoBlock"
         @save-page="savehprofile"
@@ -63,6 +62,12 @@ import { InfoBlock, HistoryContainer } from '@sharetypes';
 import TopBar from '@/components/standard/topbar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
 import { getOldObjectKeys } from '@/rogics/getOldObjectKey';
+
+// 遷移URLパラメーター
+defineProps({
+  userNumber: String,
+  id: String,
+});
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -205,10 +210,12 @@ const formatDate = (dateArray: string[] | null): string => {
 @import url('https://fonts.googleapis.com/css?family=Oswald|Roboto:400,700');
 
 .home {
-  display: flex;
-  flex-direction: column; /* 縦並び */
-  align-items: center; /* 水平方向の中央揃え */
+  position: relative;
   padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 子要素を水平方向の中央に */
+  justify-content: center; /* 子要素を垂直方向の中央に */
 }
 .horizontal-divider {
   margin-top: 32px;
@@ -236,18 +243,18 @@ const formatDate = (dateArray: string[] | null): string => {
   align-items: center; /* 水平方向の中央揃え */
   padding-top: 45px;
   width: 100%;
+  padding: 0 auto; /*左右中央揃え*/
 }
 /* 基本情報全体 */
 .main-history {
   width: 100%;
   max-width: 700px; /* コンテンツの最大幅を設定 */
-  padding-left: 1rem;
-  padding-right: 1rem;
+  
 }
 .prof-field {
   padding-top: 45px;
   width: 100%;
-  max-width: 1000px;
+  padding: 0 auto;
 }
 /* モバイル表示 */
 @media (max-width: 600px) {

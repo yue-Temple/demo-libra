@@ -21,8 +21,12 @@ if (accessToken && refreshToken) {
   // アクセストークンをローカルストレージに保存
   localStorage.setItem('accessToken', accessToken);
 
-  // リフレッシュトークンをCookieに保存
-  document.cookie = `refreshToken=${refreshToken}; path=/; Secure; SameSite=Strict; HttpOnly`;
+  // リフレッシュトークンをCookieに保存 クロスサイトでもOK＝SameSite=None
+  if (import.meta.env.NODE_ENV === 'development') {
+    document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=None; HttpOnly`; //開発用
+  }else{
+    document.cookie = `refreshToken=${refreshToken}; path=/; Secure; SameSite=Strict; HttpOnly`; //本番用
+  }
 
   // ユーザーストアにアクセストークンを保存
   userStore.setToken(accessToken);

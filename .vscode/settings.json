@@ -1,17 +1,13 @@
 {
     "sqltools.connections": [
         {
-            "mysqlOptions": {
-                "authProtocol": "default",
-                "enableSsl": "Disabled"
-            },
             "previewLimit": 50,
             "server": "localhost",
-            "port": 3306,
-            "driver": "MySQL",
-            "name": "tkpro",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "tkpr_demo",
             "database": "tkpro_database",
-            "username": "tk_owner"
+            "username": "postgres"
         }
     ]
 }

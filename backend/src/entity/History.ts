@@ -11,15 +11,18 @@ import { HistoryItem } from './HistoryItem';
 // History エンティティ
 @Entity()
 export class History {
-  @PrimaryColumn({ type: 'int' }) // user_number を主キーとして設定
+  @PrimaryColumn({ type: 'integer' }) 
   user_number: number;
 
-  @OneToOne(() => User, (user) => user.history) // User エンティティとの One-to-One リレーション
+  @OneToOne(() => User, (user) => user.history, {
+    onDelete: 'CASCADE', // 外部キー制約を明示的に指定
+  })
   @JoinColumn({ name: 'user_number', referencedColumnName: 'user_number' }) // User の user_number を参照
   user!: User;
 
   @OneToMany(() => HistoryItem, (historyItem) => historyItem.history, {
     cascade: true,
+    onDelete: 'CASCADE', // 親レコード削除時に子レコードも削除
   }) // HistoryItem との One-to-Many リレーション
   histories!: HistoryItem[];
 

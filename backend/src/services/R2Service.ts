@@ -104,7 +104,7 @@ async function textbuttonImagedelete(block: TextButton): Promise<void> {
 }
 
 /**
- * R2から指定されたファイルを削除する関数
+ * R2から指定されたファイル(1件)を削除する関数
  * @param fileName - 削除するファイルのファイル名（オブジェクトキー）
  */
 export const deleteFromR2 = async (fileName: string): Promise<void> => {
@@ -123,7 +123,8 @@ export const deleteFromR2 = async (fileName: string): Promise<void> => {
 };
 
 /**
- * 更新で不要になった画像データをR2から削除
+ * 更新で不要になった画像データ（複数件）をR2から削除
+ * @param keys
  */
 export const oldFilesDeleteFromR2 = async (keys: string[]): Promise<void> => {
   try {
