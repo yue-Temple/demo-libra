@@ -62,6 +62,9 @@ validateEnvVariables();
 export const secretKey: string = process.env.JWT_SECRET_KEY!;
 export const tokenExpiry: string = process.env.JWT_EXPIRY!;
 
+// ここでcronを読み込む（DB接続の前）
+import './utils/cron'; // 追加
+
 // ミドルウェアの設定
 app.use(configureCors());
 app.use(express.json());

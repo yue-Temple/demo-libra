@@ -89,7 +89,6 @@ const onCropperReady = () => {
     if (trimElement) {
       // クロスオリジン設定
       const image = cropper.value.cropper.image;
-      console.log(image)
       if (image) {
         image.crossOrigin = 'anonymous'; // クロスオリジン設定
       }

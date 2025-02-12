@@ -62,12 +62,12 @@ export class User {
 
   // リレーション
   @OneToOne(() => Profile, (profile) => profile.user, {
-    onDelete: 'CASCADE', 
+    onDelete: 'CASCADE',
   })
   profile!: Profile; // ユーザーは1つのプロフィールを持つ
 
   @OneToOne(() => History, (history) => history.user, {
-    onDelete: 'CASCADE', 
+    onDelete: 'CASCADE',
   })
   history!: History; // ユーザーは1つのヒストリーを持つ
 
@@ -75,7 +75,7 @@ export class User {
   menu!: Menu; // ユーザーは1つのメニューを持つ
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user, {
-    onDelete: 'CASCADE', 
+    onDelete: 'CASCADE',
   })
   refreshTokens!: RefreshToken[]; // リフレッシュトークンとのリレーション
 

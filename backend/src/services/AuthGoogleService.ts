@@ -10,6 +10,10 @@ import { RefreshToken } from '../entity/RefreshToken';
 import { Role } from '../backtype';
 // 関数
 import { generateRandomUserId } from '../utils/uuid';
+import { generateAccessToken, generateRefreshToken } from './AuthTokenService';
+import { AuthTokenService } from './AuthTokenService';
+
+const tokenService = new AuthTokenService();
 
 export class AuthGoogleService {
   /**
@@ -22,11 +26,6 @@ export class AuthGoogleService {
     authCode: string,
     deviceId: string
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const secretKey = process.env.JWT_SECRET_KEY!;
-    const refreshSecretKey = process.env.JWT_REFRESH_SECRET!;
-    const tokenExpiry = '1h'; // アクセストークンの期限
-    const refreshExpiry = '180d'; // リフレッシュトークンの期限
-
     try {
       // 環境変数の検証
       const requiredEnvVars = [
@@ -59,8 +58,8 @@ export class AuthGoogleService {
         throw new Error('この Google アカウントは既に登録されています');
       }
 
-      // 新しいユーザーを作成
       const userId = generateRandomUserId();
+      // 新しいユーザーを作成
       const newUser = new User();
       newUser.user_id = userId;
       newUser.user_role = Role.NormalUser;
@@ -74,25 +73,10 @@ export class AuthGoogleService {
       await menuRepository.save(newMenu);
 
       // JWT トークンを生成
-      const accessToken = jwt.sign(
-        {
-          user_id: newUser.user_id,
-          user_name: newUser.user_name,
-          user_number: newUser.user_number,
-          user_role: newUser.user_role,
-          user_email: newUser.user_email,
-          user_googleid: newUser.google_user_id,
-        },
-        secretKey,
-        { expiresIn: tokenExpiry }
-      );
+      const accessToken = generateAccessToken(newUser);
 
       // リフレッシュトークンを生成
-      const refreshToken = jwt.sign(
-        { user_id: newUser.user_id },
-        refreshSecretKey,
-        { expiresIn: refreshExpiry }
-      );
+      const refreshToken = generateRefreshToken(newUser.user_id);
 
       // リフレッシュトークンをデータベースに保存（デバイスIDを含む）
       const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
@@ -110,89 +94,87 @@ export class AuthGoogleService {
     }
   }
 
-  /**
-   * API: Google アカウントでのログイン
-   * @param authCode - 認可コード
-   * @param deviceId - デバイスID
-   * @returns { accessToken, refreshToken }
-   */
-  async loginWithGoogle(
-    authCode: string,
-    deviceId: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const secretKey = process.env.JWT_SECRET_KEY!;
-    const refreshSecretKey = process.env.JWT_REFRESH_SECRET!;
-    const tokenExpiry = '1h'; // アクセストークンの期限
-    const refreshExpiry = '180d'; // リフレッシュトークンの期限
-
-    try {
-      // 環境変数の検証
-      const requiredEnvVars = [
-        'GOOGLE_CLIENT_ID',
-        'GOOGLE_CLIENT_SECRET',
-        'LOGIN_REDIRECT_URI',
-        'JWT_SECRET_KEY',
-        'JWT_REFRESH_SECRET',
-      ];
-      for (const envVar of requiredEnvVars) {
-        if (!process.env[envVar]) {
-          throw new Error(`環境変数 ${envVar} が設定されていません`);
-        }
+/**
+ * API: Google アカウントでのログイン
+ * @param authCode - 認可コード
+ * @param deviceId - デバイスID
+ * @returns { accessToken, refreshToken }
+ */
+async loginWithGoogle(
+  authCode: string,
+  deviceId: string
+): Promise<{ accessToken: string; refreshToken: string }> {
+  try {
+    // 環境変数の検証
+    const requiredEnvVars = [
+      'GOOGLE_CLIENT_ID',
+      'GOOGLE_CLIENT_SECRET',
+      'LOGIN_REDIRECT_URI',
+      'JWT_SECRET_KEY',
+      'JWT_REFRESH_SECRET',
+    ];
+    for (const envVar of requiredEnvVars) {
+      if (!process.env[envVar]) {
+        throw new Error(`環境変数 ${envVar} が設定されていません`);
       }
+    }
 
-      // 認可コードを使用してGoogleからトークンを取得
-      const isLogin = true;
-      const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
+    // 認可コードを使用してGoogleからトークンを取得
+    const isLogin = true;
+    const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
 
-      // IDトークンを検証
-      const googlePayload = await this.verifyGoogleToken(id_token);
-      const googleUserId = googlePayload.sub;
+    // IDトークンを検証
+    const googlePayload = await this.verifyGoogleToken(id_token);
+    const googleUserId = googlePayload.sub;
 
-      // ユーザーを検索
-      const userRepository = AppDataSource.getRepository(User);
-      const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
-      const existingUser = await userRepository.findOne({
-        where: { google_user_id: googleUserId },
-      });
-      if (!existingUser) {
-        throw new Error('この Google アカウントは登録されていません');
-      }
+    // ユーザーを検索
+    const userRepository = AppDataSource.getRepository(User);
+    const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+    const existingUser = await userRepository.findOne({
+      where: { google_user_id: googleUserId },
+    });
+    if (!existingUser) {
+      throw new Error('この Google アカウントは登録されていません');
+    }
 
-      // JWT トークンを生成
-      const accessToken = jwt.sign(
-        {
-          user_id: existingUser.user_id,
-          user_name: existingUser.user_name,
-          user_number: existingUser.user_number,
-          user_role: existingUser.user_role,
-          user_email: existingUser.user_email,
-          user_googleid: existingUser.google_user_id,
-        },
-        secretKey,
-        { expiresIn: tokenExpiry }
-      );
+    // 既存のリフレッシュトークンを確認
+    const existingToken = await refreshTokenRepository.findOne({
+      where: { user: { user_id: existingUser.user_id }, device_id: deviceId },
+    });
 
-      // リフレッシュトークンを生成
-      const refreshToken = jwt.sign(
-        { user_id: existingUser.user_id },
-        refreshSecretKey,
-        { expiresIn: refreshExpiry }
-      );
+    // リフレッシュトークンがない場合
+    if (!existingToken) {
+      console.log('リフレッシュトークンを作成');
+      const accessToken = generateAccessToken(existingUser); // アクセストークンを生成
+      const refreshToken = generateRefreshToken(existingUser.user_id); // リフレッシュトークンを生成
 
-      // リフレッシュトークンをデータベースに保存
-      await refreshTokenRepository.save({
+      // 新しいリフレッシュトークンをデータベースに保存
+      const newRefreshToken = refreshTokenRepository.create({
         token: refreshToken,
         expires_at: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 180日後
-        user: existingUser, // リレーションを設定
-        device_id: deviceId, // デバイスIDを保存
+        user: existingUser,
+        device_id: deviceId,
       });
+      await refreshTokenRepository.save(newRefreshToken);
 
       return { accessToken, refreshToken };
-    } catch (error) {
-      console.error('Google ログインに失敗しました:', error);
-      throw error;
     }
+
+    // リフレッシュトークンがある場合
+    if (existingToken) {
+      // リフレッシュトークンを渡してアクセストークンを再発行
+      const { accessToken, refreshToken } =
+        await tokenService.refreshAccessToken(existingToken.token);
+      return { accessToken, refreshToken };
+    }
+
+    // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
+    throw new Error('予期せぬエラーが発生しました');
+  } catch (error) {
+    console.error('Google ログインに失敗しました:', error);
+    throw error;
   }
+}
 
   /**
    * Google OAuth 2.0 エンドポイントからトークンを取得
@@ -209,7 +191,7 @@ export class AuthGoogleService {
     refresh_token?: string;
   }> {
     let params;
-    
+
     if (isLogin) {
       // ログインの場合
       const requiredEnvVars = [
@@ -230,7 +212,6 @@ export class AuthGoogleService {
         redirect_uri: process.env.LOGIN_REDIRECT_URI!,
         grant_type: 'authorization_code',
       });
-      
     } else {
       // 登録の場合
       const requiredEnvVars = [

@@ -5,6 +5,8 @@ import { useLayoutStore } from './layoutStore';
 import { Features } from '@sharetypes';
 import { tokenandmess } from '@/fronttype';
 import { apiClient } from './apiClient';
+import { convertToURL } from '@/rogics/imageProcess';
+import { getDeviceId } from '@/rogics/uuid';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -13,18 +15,19 @@ export const useUserStore = defineStore('user', {
     isLoginFlow: false, // ログインかOR登録か
     token: null as string | null,
     useuserId: '' as string,
-    useuserName: null as string | null,
     useuserNumber: '' as string,
+    useuserName: null as string | null,
+    useuseruserIcon: null as string | null,
     useuserRole: null as string | null,
     useuserEmail: null as string | null,
     useuserGoogle: null as string | null,
 
     features: [] as Features[], // メニュー機能
-    userIcon: '',
+    
     menuFetched: false, // キャッシュ用フラグ
   }),
   actions: {
-    // トークンをセット
+    // トークンをセット ※アプリマウント時に実行
     setToken(token: string) {
       this.token = token;
       // JWTのペイロードをデコード
@@ -32,8 +35,9 @@ export const useUserStore = defineStore('user', {
 
       // 必要なデータを状態に保存
       this.useuserId = payload.user_id;
-      this.useuserName = payload.user_name || null;
       this.useuserNumber = payload.user_number || '';
+      this.useuserName = payload.user_name || null;
+      this.useuseruserIcon = payload.user_icon || null;
       this.useuserRole = payload.user_role;
       this.useuserEmail = payload.user_email || null;
       this.useuserGoogle = payload.user_googleid || null;
@@ -45,6 +49,8 @@ export const useUserStore = defineStore('user', {
       this.useuserId = '';
       this.useuserNumber = '';
       this.useuserName = null;
+      this.useuseruserIcon = null;
+      this.useuserRole = '';
       this.useuserEmail = null;
       this.useuserGoogle = null;
 
@@ -74,12 +80,14 @@ export const useUserStore = defineStore('user', {
      * @param password
      */
     async loginWithEmail(email: string, password: string): Promise<void> {
+      const deviceId = getDeviceId();
       try {
         const response = await apiClient.post<tokenandmess>(
           `${apiBaseUrl}/auth/login-with-email`,
           {
             email,
             password,
+            deviceId,
           }
         );
         this.setToken(response.data.token); // トークンを保存
@@ -89,23 +97,40 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+  
     /**
-     * API: ユーザーデータを保存
-     * @param newuserData
+     * API: ユーザーデータを保存 ※トークンが更新される
+     * @param id 
+     * @param name 
+     * @param iconurl 
+     * @param uploadFile 
      */
     async saveUserData(
       id: string,
       name: string | null,
-      icon: string | null
+      iconurl: string | null,
+      uploadFile: File | null,
     ): Promise<void> {
-      console.log('送信データ:', { id, name, icon });
+      let deleteiconurl:string | null = null; //更新の場合削除するべき画像URL
+      let newiconurl:string | null = iconurl;
+
+      // 画像更新があった場合
+      if(uploadFile != null){
+        deleteiconurl = this.useuseruserIcon;
+        const userNumber = Number(this.useuserNumber);
+        const result = await convertToURL(uploadFile, userNumber, 'user');
+        const icon_object_key = result.objectKey;
+        newiconurl = result.cdnUrl; // 新しい画像をセット
+      }
+
       try {
         const response = await apiClient.post<tokenandmess>(
           `${apiBaseUrl}/Auth/user-save`,
           {
             user_id: id,
             user_name: name,
-            user_icon: icon,
+            user_icon: newiconurl,
+            delete_iconurl: deleteiconurl,
           },
           {
             headers: {
@@ -114,6 +139,11 @@ export const useUserStore = defineStore('user', {
             },
           }
         );
+
+        // トークンを更新
+        this.token = response.data.token;
+        localStorage.setItem('accessToken',response.data.token);
+        this.setToken(response.data.token)
 
         console.log('設定が保存されました', response.data);
       } catch (error) {
@@ -145,6 +175,7 @@ export const useUserStore = defineStore('user', {
         console.error('データベースからの取得に失敗しました', error);
         throw error;
       }
+      console.log(this.useuserName);
     },
 
     /**

@@ -6,11 +6,11 @@ import { Features } from '../../../sharetypes';
 //
 /**
  * メニュー取得API
- * @param userNumber
+ * @param user_number
  * @returns
  */
 export async function getMenu(
-  userNumber: number
+  user_number: number
 ): Promise<{ features: Features[]; layout: string } | null> {
   try {
     const menuRepository = AppDataSource.getRepository(Menu);
@@ -18,7 +18,7 @@ export async function getMenu(
 
     // ユーザーが存在するか確認
     const user = await userRepository.findOne({
-      where: { user_number: userNumber },
+      where: { user_number },
     });
     if (!user) {
       throw new Error('User not found');

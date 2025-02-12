@@ -11,7 +11,7 @@ import { HistoryItem } from './HistoryItem';
 // History エンティティ
 @Entity()
 export class History {
-  @PrimaryColumn({ type: 'integer' }) 
+  @PrimaryColumn({ type: 'integer' })
   user_number: number;
 
   @OneToOne(() => User, (user) => user.history, {
