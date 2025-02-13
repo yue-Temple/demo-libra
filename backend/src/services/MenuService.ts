@@ -3,7 +3,6 @@ import { User } from '../entity/User';
 import { AppDataSource } from '../data-source';
 import { Features } from '../../../sharetypes';
 
-//
 /**
  * メニュー取得API
  * @param user_number
@@ -21,7 +20,7 @@ export async function getMenu(
       where: { user_number },
     });
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('404');
     }
 
     // ユーザーのメニューを取得

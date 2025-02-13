@@ -78,27 +78,13 @@
             </button>
           </li>
           <li>
-            <button
-              @click="
-                addBlock('button', undefined, ButtonType.SmallThreeButton)
-              "
-            >
-              ギャラリーブロック
-            </button>
+            <button @click="">未実装：ギャラリーブロック</button>
           </li>
           <li>
-            <button
-              @click="addBlock('button', undefined, ButtonType.BigThreeButton)"
-            >
-              ユーザーアイコン
-            </button>
+            <button @click="">未実装</button>
           </li>
           <li>
-            <button
-              @click="addBlock('button', undefined, ButtonType.SmallFourButton)"
-            >
-              4ボタン(小)
-            </button>
+            <button @click="">未実装</button>
           </li>
         </ul>
       </div>

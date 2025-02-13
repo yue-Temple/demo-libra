@@ -146,4 +146,18 @@ body {
 .login button:hover {
   background: #b11813;
 }
+
+/* モバイル表示 */
+@media (max-width: 600px) {
+  .header {
+    position: absolute;
+    top: calc(30% - 50px);
+    left: calc(40% - 90px);
+  }
+  .login {
+    position: absolute;
+    top: calc(70% - 75px);
+    left: calc(20% - 85px);
+  }
+}
 </style>

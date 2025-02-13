@@ -94,87 +94,87 @@ export class AuthGoogleService {
     }
   }
 
-/**
- * API: Google アカウントでのログイン
- * @param authCode - 認可コード
- * @param deviceId - デバイスID
- * @returns { accessToken, refreshToken }
- */
-async loginWithGoogle(
-  authCode: string,
-  deviceId: string
-): Promise<{ accessToken: string; refreshToken: string }> {
-  try {
-    // 環境変数の検証
-    const requiredEnvVars = [
-      'GOOGLE_CLIENT_ID',
-      'GOOGLE_CLIENT_SECRET',
-      'LOGIN_REDIRECT_URI',
-      'JWT_SECRET_KEY',
-      'JWT_REFRESH_SECRET',
-    ];
-    for (const envVar of requiredEnvVars) {
-      if (!process.env[envVar]) {
-        throw new Error(`環境変数 ${envVar} が設定されていません`);
+  /**
+   * API: Google アカウントでのログイン
+   * @param authCode - 認可コード
+   * @param deviceId - デバイスID
+   * @returns { accessToken, refreshToken }
+   */
+  async loginWithGoogle(
+    authCode: string,
+    deviceId: string
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    try {
+      // 環境変数の検証
+      const requiredEnvVars = [
+        'GOOGLE_CLIENT_ID',
+        'GOOGLE_CLIENT_SECRET',
+        'LOGIN_REDIRECT_URI',
+        'JWT_SECRET_KEY',
+        'JWT_REFRESH_SECRET',
+      ];
+      for (const envVar of requiredEnvVars) {
+        if (!process.env[envVar]) {
+          throw new Error(`環境変数 ${envVar} が設定されていません`);
+        }
       }
-    }
 
-    // 認可コードを使用してGoogleからトークンを取得
-    const isLogin = true;
-    const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
+      // 認可コードを使用してGoogleからトークンを取得
+      const isLogin = true;
+      const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
 
-    // IDトークンを検証
-    const googlePayload = await this.verifyGoogleToken(id_token);
-    const googleUserId = googlePayload.sub;
+      // IDトークンを検証
+      const googlePayload = await this.verifyGoogleToken(id_token);
+      const googleUserId = googlePayload.sub;
 
-    // ユーザーを検索
-    const userRepository = AppDataSource.getRepository(User);
-    const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
-    const existingUser = await userRepository.findOne({
-      where: { google_user_id: googleUserId },
-    });
-    if (!existingUser) {
-      throw new Error('この Google アカウントは登録されていません');
-    }
-
-    // 既存のリフレッシュトークンを確認
-    const existingToken = await refreshTokenRepository.findOne({
-      where: { user: { user_id: existingUser.user_id }, device_id: deviceId },
-    });
-
-    // リフレッシュトークンがない場合
-    if (!existingToken) {
-      console.log('リフレッシュトークンを作成');
-      const accessToken = generateAccessToken(existingUser); // アクセストークンを生成
-      const refreshToken = generateRefreshToken(existingUser.user_id); // リフレッシュトークンを生成
-
-      // 新しいリフレッシュトークンをデータベースに保存
-      const newRefreshToken = refreshTokenRepository.create({
-        token: refreshToken,
-        expires_at: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 180日後
-        user: existingUser,
-        device_id: deviceId,
+      // ユーザーを検索
+      const userRepository = AppDataSource.getRepository(User);
+      const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+      const existingUser = await userRepository.findOne({
+        where: { google_user_id: googleUserId },
       });
-      await refreshTokenRepository.save(newRefreshToken);
+      if (!existingUser) {
+        throw new Error('この Google アカウントは登録されていません');
+      }
 
-      return { accessToken, refreshToken };
+      // 既存のリフレッシュトークンを確認
+      const existingToken = await refreshTokenRepository.findOne({
+        where: { user: { user_id: existingUser.user_id }, device_id: deviceId },
+      });
+
+      // リフレッシュトークンがない場合
+      if (!existingToken) {
+        console.log('リフレッシュトークンを作成');
+        const accessToken = generateAccessToken(existingUser); // アクセストークンを生成
+        const refreshToken = generateRefreshToken(existingUser.user_id); // リフレッシュトークンを生成
+
+        // 新しいリフレッシュトークンをデータベースに保存
+        const newRefreshToken = refreshTokenRepository.create({
+          token: refreshToken,
+          expires_at: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 180日後
+          user: existingUser,
+          device_id: deviceId,
+        });
+        await refreshTokenRepository.save(newRefreshToken);
+
+        return { accessToken, refreshToken };
+      }
+
+      // リフレッシュトークンがある場合
+      if (existingToken) {
+        // リフレッシュトークンを渡してアクセストークンを再発行
+        const { accessToken, refreshToken } =
+          await tokenService.refreshAccessToken(existingToken.token);
+        return { accessToken, refreshToken };
+      }
+
+      // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
+      throw new Error('予期せぬエラーが発生しました');
+    } catch (error) {
+      console.error('Google ログインに失敗しました:', error);
+      throw error;
     }
-
-    // リフレッシュトークンがある場合
-    if (existingToken) {
-      // リフレッシュトークンを渡してアクセストークンを再発行
-      const { accessToken, refreshToken } =
-        await tokenService.refreshAccessToken(existingToken.token);
-      return { accessToken, refreshToken };
-    }
-
-    // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
-    throw new Error('予期せぬエラーが発生しました');
-  } catch (error) {
-    console.error('Google ログインに失敗しました:', error);
-    throw error;
   }
-}
 
   /**
    * Google OAuth 2.0 エンドポイントからトークンを取得

@@ -5,12 +5,12 @@
   <div class="home">
     <div class="field">
       <!-- データがない場合 -->
-      <div v-if="!history" class="back">↩一覧へ</div>
+      <div v-if="!history" class="back">存在しないページです。</div>
 
       <!-- データがある場合 -->
       <div v-if="history" class="main-history">
         <div class="topinfo">
-          <div class="back">↩一覧へ</div>
+          <div class="back">✍基本情報の編集 / 記録の共有</div>
           <!-- システムを表示 -->
           <div class="system">
             <span v-if="history.system">〈</span>
@@ -249,7 +249,6 @@ const formatDate = (dateArray: string[] | null): string => {
 .main-history {
   width: 100%;
   max-width: 700px; /* コンテンツの最大幅を設定 */
-  
 }
 .prof-field {
   padding-top: 45px;
@@ -268,7 +267,7 @@ const formatDate = (dateArray: string[] | null): string => {
 }
 /* 一覧へ戻るボタン */
 .back {
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   display: flex;
   padding-top: 5px;
 }
@@ -304,7 +303,7 @@ const formatDate = (dateArray: string[] | null): string => {
 }
 .date span {
   margin-left: auto;
-  margin-right: .5rem;
+  margin-right: 0.5rem;
 }
 
 .image-container {

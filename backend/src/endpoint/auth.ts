@@ -35,10 +35,14 @@ if (
 // メールアドレス＋パスワード登録APIエンドポイント
 router.post('/register-with-email', async (req, res) => {
   try {
-    const { email, password, deviceId} = req.body;
+    const { email, password, deviceId } = req.body;
 
     // authService.registerWithEmail を1回呼び出して、token を取得
-    const token = await mailService.registerWithEmail(email, password,deviceId);
+    const token = await mailService.registerWithEmail(
+      email,
+      password,
+      deviceId
+    );
 
     // token をフロントエンドに返す
     res.status(201).json({ token });

@@ -58,8 +58,15 @@ router.get('/getmenu/:userNumber', async (req: Request, res: Response) => {
     // menuSettings は { features: Features[], layout: Layout } 型
     return res.status(200).json(menuSettings);
   } catch (error) {
-    console.error('Error in getMenu:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    // 該当するデータがない場合
+    if (error instanceof Error) {
+      if (error.message.includes('404')) {
+        return res.status(404).json({ message: '存在しないページです' });
+      }
+    }
+
+    // その他のエラーは500エラーとして返す
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

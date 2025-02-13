@@ -4,7 +4,6 @@ export const generateUuid = (originalFileName: string): string => {
   return `${uuid}_${originalFileName}`;
 };
 
-
 // デバイスIDを生成する関数
 export const getDeviceId = (): string => {
   let deviceId = localStorage.getItem('deviceId');

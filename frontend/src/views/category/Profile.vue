@@ -21,9 +21,11 @@ import MenuBar from '@/components/standard/menubar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
 import { InfoBlock } from '@sharetypes';
 import { getOldObjectKeys } from '@/rogics/getOldObjectKey';
+import { useUserStore } from '@/stores/userStore';
 
 const route = useRoute();
 const toast = useToast();
+const userStore = useUserStore();
 const profileStore = useProfileStore();
 
 const InfoBlock = ref<InfoBlock[]>([]);
@@ -31,18 +33,22 @@ const oldInfoBlock = ref<InfoBlock[]>([]); // 変更前のデータを保持す�
 const addBlocks = ref<InfoBlock[]>([]);
 const deleteBlocks = ref<InfoBlock[]>([]);
 
-onMounted(() => {
-  profileStore
-    .fetchProfileBlocks(Number(route.params.userNumber))
-    .then(() => {
-      InfoBlock.value = profileStore.getProfileBlocks; // ストアのデータをセット
-      oldInfoBlock.value = JSON.parse(
-        JSON.stringify(profileStore.getProfileBlocks)
-      ); // 初期データをdeep copy
-    })
-    .catch((error) => {
-      console.error('失敗しました', error);
-    });
+onMounted(async () => {
+  await userStore.fetchFeatures(Number(route.params.userNumber));
+  if (userStore.menuFetched) {
+    profileStore
+      .fetchProfileBlocks(Number(route.params.userNumber))
+      .then(() => {
+        InfoBlock.value = profileStore.getProfileBlocks; // ストアのデータをセット
+        oldInfoBlock.value = JSON.parse(
+          JSON.stringify(profileStore.getProfileBlocks)
+        ); // 初期データをdeep copy
+      })
+      .catch((error) => {
+        console.error('失敗しました', error);
+      });
+  }
+  window.scrollTo(0, 0);
 });
 
 // 保存

@@ -26,7 +26,7 @@
         class="login-password"
       />
       <button class="login-submit" @click="handleloginWithEmail">
-        ログイン
+        メールアドレスでログイン
       </button>
 
       <!-- Googleアカウントでログイン -->
@@ -184,10 +184,25 @@ body {
   cursor: pointer;
   margin-top: 10px;
   transition: background 0.3s;
+  margin-left: 5px;
 }
 
 .login button:hover {
   background: #b11813;
+}
+
+/* モバイル表示 */
+@media (max-width: 600px) {
+  .header {
+    position: absolute;
+    top: calc(30% - 50px);
+    left: calc(40% - 90px);
+  }
+  .login {
+    position: absolute;
+    top: calc(60% - 75px);
+    left: calc(10% - 55px);
+  }
 }
 
 /* エラーメッセージのスタイル */

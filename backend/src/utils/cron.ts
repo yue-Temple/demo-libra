@@ -15,4 +15,6 @@ cron.schedule('0 3 1 * *', async () => {
   console.log(`[Cron] Deleted ${result.affected} expired tokens.`);
 });
 
-console.log('Cron job for deleting expired tokens is set (Runs on 1st day of each month).');
+console.log(
+  'Cron job for deleting expired tokens is set (Runs on 1st day of each month).'
+);

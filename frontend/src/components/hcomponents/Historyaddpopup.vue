@@ -232,7 +232,7 @@ const oldHistory =
         system: props.container.system || '',
         report: props.container.report || '',
         imgURL: props.container.imgURL || '',
-        image_object_key: props.container.image_object_key || null,
+        image_object_key: props.container.image_object_key || '',
         private: props.container.private || false,
         childblock: props.container.childblock || [],
       }
@@ -259,6 +259,10 @@ const submitForm = async () => {
     const isChanged = (
       Object.keys(newHistory) as (keyof typeof newHistory)[]
     ).some((key) => newHistory[key] !== oldHistory[key]);
+
+    // 更新内容のチェック
+    // console.log(newHistory)
+    // console.log(oldHistory)
 
     // 変更がなかった場合
     if (!isChanged) {

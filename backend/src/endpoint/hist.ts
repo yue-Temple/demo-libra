@@ -178,8 +178,9 @@ router.get('/historydetail/:userNumber/:historyId', async (req, res) => {
   const userNumber = parseInt(req.params.userNumber);
   const historyId = req.params.historyId;
 
+  // パラメータのバリデーション
   if (!userNumber || !historyId) {
-    return res.status(400).json({ message: 'Invalid' });
+    return res.status(400).json({ message: '不正なアクセスです' });
   }
 
   try {
@@ -189,7 +190,14 @@ router.get('/historydetail/:userNumber/:historyId', async (req, res) => {
     );
     res.json(result);
   } catch (error) {
-    console.error('Error fetching histories:', error);
+    // 該当するデータがない場合
+    if (error instanceof Error) {
+      if (error.message === '404') {
+        return res.status(404).json({ message: '存在しないページです' });
+      }
+    }
+
+    // その他のエラーは500エラーとして返す
     res.status(500).json({ message: 'Internal server error' });
   }
 });
