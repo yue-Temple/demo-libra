@@ -82,7 +82,7 @@ onMounted(async () => {
 
 // アイコンアップロードをリッスン
 const uploadUserIcon = (file: File) => {
-  uploadfile.value = file
+  uploadfile.value = file;
   userIcon.value = URL.createObjectURL(file); // アイコンを一時的に表示
 };
 
@@ -165,7 +165,7 @@ const saveSettings = async () => {
         userStore.useuserId,
         userName.value,
         userIcon.value,
-        uploadfile.value,
+        uploadfile.value
       );
       // 変更前の値を更新
       oldName.value = userName.value;

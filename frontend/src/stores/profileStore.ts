@@ -20,6 +20,10 @@ export const useProfileStore = defineStore('profile', {
         return;
       }
 
+      // const userStore = useUserStore();
+      // console.log(userStore.menuFetched)
+      // if(userStore.menuFetched) {return};
+
       try {
         const response = await apiClient.get<InfoBlock[]>(
           `${apiBaseUrl}/prof/profiles/${userNumber}/blocks`

@@ -15,6 +15,7 @@ export const useHistoryStore = defineStore('history', {
     currentPage: 1, // 現在のページ番号
     isLoading: false, // データ取得中のローディング状態
     hasMore: true, // 次のページがあるかどうか
+    scrollPosition: 0,
   }),
   actions: {
     /**
@@ -146,6 +147,9 @@ export const useHistoryStore = defineStore('history', {
       if (!this.hasMore || this.isLoading) return;
       this.isLoading = true;
 
+      const userStore = useUserStore();
+      if (!userStore.menuFetched) return;
+
       try {
         const response = await apiClient.get<{
           data: HistoryContainer[];
@@ -233,6 +237,15 @@ export const useHistoryStore = defineStore('history', {
       this.currentPage = 1;
       this.hasMore = true;
       this.isLoading = false;
+    },
+
+    // スクロール位置を保存
+    saveScrollPosition(position: number) {
+      this.scrollPosition = position;
+    },
+    // スクロール位置を取得
+    getScrollPosition(): number {
+      return this.scrollPosition;
     },
   },
   getters: {

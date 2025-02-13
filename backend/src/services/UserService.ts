@@ -25,8 +25,8 @@ export async function saveUser(
   }
 
   // 上書き保存
-  if(user.user_name != user_name) user.user_name = user_name;
-  if(user.user_icon != user_icon) user.user_icon = user_icon;
+  if (user.user_name != user_name) user.user_name = user_name;
+  if (user.user_icon != user_icon) user.user_icon = user_icon;
   await userRepository.save(user);
 
   const token = generateAccessToken(user);

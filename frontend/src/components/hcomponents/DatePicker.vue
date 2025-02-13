@@ -67,194 +67,170 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-export default {
-  props: {
-    modelValue: {
-      type: Array,
-      default: () => [],
-    },
+const props = defineProps({
+  modelValue: {
+    type: Array,
+    default: () => [],
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const currentDate = ref(new Date());
-    const selectedDates = ref([...props.modelValue]);
-    const isCalendarOpen = ref(false);
-    const isYearPickerOpen = ref(false);
+});
 
-    // 現在の年と月を取得
-    const currentYear = computed(() => currentDate.value.getFullYear());
-    const currentMonth = computed(() => currentDate.value.getMonth());
+const emit = defineEmits(['update:modelValue']);
 
-    // 月の日数を計算
-    const daysInMonth = computed(() => {
-      const year = currentYear.value;
-      const month = currentMonth.value;
-      return new Date(year, month + 1, 0).getDate();
-    });
+const currentDate = ref(new Date());
+const selectedDates = ref([...props.modelValue]);
+const isCalendarOpen = ref(false);
+const isYearPickerOpen = ref(false);
 
-    // 月の最初の日の曜日を取得
-    const firstDayOfMonth = computed(() => {
-      const year = currentYear.value;
-      const month = currentMonth.value;
-      return new Date(year, month, 1).getDay();
-    });
+// 現在の年と月を取得
+const currentYear = computed(() => currentDate.value.getFullYear());
+const currentMonth = computed(() => currentDate.value.getMonth());
 
-    // 空白のセルの数を計算
-    const blankDays = computed(() => {
-      return firstDayOfMonth.value;
-    });
+// 月の日数を計算
+const daysInMonth = computed(() => {
+  const year = currentYear.value;
+  const month = currentMonth.value;
+  return new Date(year, month + 1, 0).getDate();
+});
 
-    // 表示用の日付
-    const displayDate = computed(() => {
-      return selectedDates.value.length > 0
-        ? selectedDates.value.join(', ')
-        : '日付を選択してください';
-    });
+// 月の最初の日の曜日を取得
+const firstDayOfMonth = computed(() => {
+  const year = currentYear.value;
+  const month = currentMonth.value;
+  return new Date(year, month, 1).getDay();
+});
 
-    // 年のリストを生成
-    const years = computed(() => {
-      const currentYear = new Date().getFullYear();
-      return Array.from({ length: 20 }, (_, i) => currentYear - 10 + i);
-    });
+// 空白のセルの数を計算
+const blankDays = computed(() => {
+  return firstDayOfMonth.value;
+});
 
-    // 曜日のリスト
-    const weekDays = computed(() => {
-      return ['日', '月', '火', '水', '木', '金', '土'];
-    });
+// 表示用の日付
+const displayDate = computed(() => {
+  return selectedDates.value.length > 0
+    ? selectedDates.value.join(', ')
+    : '日付を選択してください';
+});
 
-    // 前の月に移動
-    const prevMonth = (event) => {
-      event.preventDefault(); // デフォルトの動作を防ぐ
-      event.stopPropagation(); // イベントの伝播を停止
-      const newDate = new Date(currentDate.value);
-      newDate.setMonth(newDate.getMonth() - 1);
-      currentDate.value = newDate; // currentDateを更新
-    };
+// 年のリストを生成
+const years = computed(() => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 20 }, (_, i) => currentYear - 10 + i);
+});
 
-    // 次の月に移動
-    const nextMonth = (event) => {
-      event.preventDefault(); // デフォルトの動作を防ぐ
-      event.stopPropagation(); // イベントの伝播を停止
-      const newDate = new Date(currentDate.value);
-      newDate.setMonth(newDate.getMonth() + 1);
-      currentDate.value = newDate; // currentDateを更新
-    };
+// 曜日のリスト
+const weekDays = computed(() => {
+  return ['日', '月', '火', '水', '木', '金', '土'];
+});
 
-    // 日付を昇順でソートする関数
-    const sortDates = (dates) => {
-      return dates.sort((a, b) => {
-        // YYYY-MM-DD 形式の文字列を直接比較
-        return a.localeCompare(b);
-      });
-    };
-
-    // 日付を選択
-    const selectDate = (day) => {
-      const date = new Date(currentYear.value, currentMonth.value, day);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月を2桁で表示
-      const dayFormatted = String(date.getDate()).padStart(2, '0'); // 日を2桁で表示
-      const dateString = `${year}-${month}-${dayFormatted}`; // YYYY-MM-DD形式
-
-      if (selectedDates.value.includes(dateString)) {
-        // 既に選択されている場合は削除
-        selectedDates.value = selectedDates.value.filter(
-          (d) => d !== dateString
-        );
-      } else {
-        // 選択されていない場合は追加
-        selectedDates.value.push(dateString);
-        // 日付を昇順でソート
-        selectedDates.value = sortDates(selectedDates.value);
-      }
-
-      // 親コンポーネントに選択された日付を渡す
-      emit('update:modelValue', selectedDates.value);
-    };
-
-    // 選択された日付かどうかを判定
-    const isSelected = (day) => {
-      const date = new Date(currentYear.value, currentMonth.value, day);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const dayFormatted = String(date.getDate()).padStart(2, '0');
-      const dateString = `${year}-${month}-${dayFormatted}`;
-      return selectedDates.value.includes(dateString);
-    };
-
-    // 年を選択
-    const selectYear = (year) => {
-      const newDate = new Date(currentDate.value);
-      newDate.setFullYear(year);
-      currentDate.value = newDate;
-      isYearPickerOpen.value = false;
-    };
-
-    // カレンダーの表示/非表示を切り替え
-    const toggleCalendar = () => {
-      isCalendarOpen.value = !isCalendarOpen.value;
-      isYearPickerOpen.value = false;
-    };
-
-    // 年選択の表示/非表示を切り替え
-    const toggleYearPicker = () => {
-      isYearPickerOpen.value = !isYearPickerOpen.value;
-    };
-
-    // ドキュメント全体のクリックイベントを処理
-    const handleDocumentClick = (event) => {
-      const calendarPopup = document.querySelector('.calendar-popup');
-      const dateInput = document.querySelector('.date-input');
-
-      // calendarPopup または dateInput が null の場合は処理を終了
-      if (!calendarPopup || !dateInput) {
-        return;
-      }
-
-      // カレンダー部分またはテキストボックスがクリックされた場合は何もしない
-      if (
-        calendarPopup.contains(event.target) ||
-        dateInput.contains(event.target)
-      ) {
-        return;
-      }
-
-      // カレンダー部分以外がクリックされた場合はカレンダーを閉じる
-      isCalendarOpen.value = false;
-    };
-    // コンポーネントがマウントされたときにイベントリスナーを追加
-    onMounted(() => {
-      document.addEventListener('click', handleDocumentClick);
-    });
-
-    // コンポーネントがアンマウントされたときにイベントリスナーを削除
-    onUnmounted(() => {
-      document.removeEventListener('click', handleDocumentClick);
-    });
-
-    return {
-      currentYear,
-      currentMonth,
-      daysInMonth,
-      displayDate,
-      years,
-      weekDays,
-      blankDays,
-      isCalendarOpen,
-      isYearPickerOpen,
-      prevMonth,
-      nextMonth,
-      selectDate,
-      isSelected,
-      selectYear,
-      toggleCalendar,
-      toggleYearPicker,
-    };
-  },
+// 前の月に移動
+const prevMonth = (event: Event) => {
+  event.preventDefault(); // デフォルトの動作を防ぐ
+  event.stopPropagation(); // イベントの伝播を停止
+  const newDate = new Date(currentDate.value);
+  newDate.setMonth(newDate.getMonth() - 1);
+  currentDate.value = newDate; // currentDateを更新
 };
+
+// 次の月に移動
+const nextMonth = (event: Event) => {
+  event.preventDefault(); // デフォルトの動作を防ぐ
+  event.stopPropagation(); // イベントの伝播を停止
+  const newDate = new Date(currentDate.value);
+  newDate.setMonth(newDate.getMonth() + 1);
+  currentDate.value = newDate; // currentDateを更新
+};
+
+// 日付を昇順でソートする関数
+const sortDates = (dates: any[]) => {
+  return dates.sort((a: string, b: any) => {
+    // YYYY-MM-DD 形式の文字列を直接比較
+    return a.localeCompare(b);
+  });
+};
+
+// 日付を選択
+const selectDate = (day: number | undefined) => {
+  const date = new Date(currentYear.value, currentMonth.value, day);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月を2桁で表示
+  const dayFormatted = String(date.getDate()).padStart(2, '0'); // 日を2桁で表示
+  const dateString = `${year}-${month}-${dayFormatted}`; // YYYY-MM-DD形式
+
+  if (selectedDates.value.includes(dateString)) {
+    // 既に選択されている場合は削除
+    selectedDates.value = selectedDates.value.filter((d) => d !== dateString);
+  } else {
+    // 選択されていない場合は追加
+    selectedDates.value.push(dateString);
+    // 日付を昇順でソート
+    selectedDates.value = sortDates(selectedDates.value);
+  }
+
+  // 親コンポーネントに選択された日付を渡す
+  emit('update:modelValue', selectedDates.value);
+};
+
+// 選択された日付かどうかを判定
+const isSelected = (day: number | undefined) => {
+  const date = new Date(currentYear.value, currentMonth.value, day);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const dayFormatted = String(date.getDate()).padStart(2, '0');
+  const dateString = `${year}-${month}-${dayFormatted}`;
+  return selectedDates.value.includes(dateString);
+};
+
+// 年を選択
+const selectYear = (year: number) => {
+  const newDate = new Date(currentDate.value);
+  newDate.setFullYear(year);
+  currentDate.value = newDate;
+  isYearPickerOpen.value = false;
+};
+
+// カレンダーの表示/非表示を切り替え
+const toggleCalendar = () => {
+  isCalendarOpen.value = !isCalendarOpen.value;
+  isYearPickerOpen.value = false;
+};
+
+// 年選択の表示/非表示を切り替え
+const toggleYearPicker = () => {
+  isYearPickerOpen.value = !isYearPickerOpen.value;
+};
+
+// ドキュメント全体のクリックイベントを処理
+const handleDocumentClick = (event: Event) => {
+  const calendarPopup = document.querySelector('.calendar-popup');
+  const dateInput = document.querySelector('.date-input');
+
+  // calendarPopup または dateInput が null の場合は処理を終了
+  if (!calendarPopup || !dateInput) {
+    return;
+  }
+
+  const target = event.target as Node; // 明示的に Node 型にキャスト
+
+  // カレンダー部分またはテキストボックスがクリックされた場合は何もしない
+  if (calendarPopup.contains(target) || dateInput.contains(target)) {
+    return;
+  }
+
+  // カレンダー部分以外がクリックされた場合はカレンダーを閉じる
+  isCalendarOpen.value = false;
+};
+// コンポーネントがマウントされたときにイベントリスナーを追加
+onMounted(() => {
+  document.addEventListener('click', handleDocumentClick);
+});
+
+// コンポーネントがアンマウントされたときにイベントリスナーを削除
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick);
+});
 </script>
 
 <style scoped>
@@ -279,7 +255,7 @@ export default {
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px;
-  z-index: 1000;
+  z-index: 500;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transform: scale(85%);
 }
@@ -287,15 +263,15 @@ export default {
 @media (max-width: 600px) {
   .calendar-popup {
     position: absolute;
-    top: 37%;
-    left: -10%;
+    top: 4px;
+    left: -45px;
     background-color: var(--page-background);
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 10px;
-    z-index: 1000;
+    z-index: 500;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transform: scale(80%);
+    transform: scale(70%);
   }
 }
 

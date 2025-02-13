@@ -14,67 +14,27 @@
   </nav>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted, computed } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { Features } from '@sharetypes';
 import { useUserStore } from '@/stores/userStore';
 
-export default defineComponent({
-  name: 'MenuBar',
-  setup() {
-    const route = useRoute();
-    const userStore = useUserStore();
+const route = useRoute();
+const userStore = useUserStore();
+// URLのパラメータからuserNumberを取得
+const userNumber = Number(route.params.userNumber);
 
-    // URLのパラメータからuserNumberを取得
-    const userNumber = Number(route.params.userNumber);
+// 現在のページがメニューの名前を含んでいるかどうかを確認
+const isCurrentPage = (featureName: string): boolean => {
+  return route.path.includes(featureName);
+};
 
-    // メニュー情報を取得する関数
-    const fetchMenuSettings = async () => {
-      if (!userNumber) {
-        console.error('User number is missing from route');
-        return;
-      }
-
-      try {
-        // ストアからメニュー情報を取得
-        await userStore.fetchFeatures(userNumber);
-      } catch (error) {
-        console.error('メニュー設定の取得に失敗しました', error);
-      }
-    };
-
-    // ページがマウントされた時にメニュー情報を取得
-    onMounted(() => {
-      fetchMenuSettings();
-    });
-
-    // 現在のページがメニューの名前を含んでいるかどうかを確認
-    const isCurrentPage = (featureName: string): boolean => {
-      return route.path.includes(featureName);
-    };
-
-    // sortedFeatures を computed で定義して型を明示的に指定
-    const sortedFeatures = computed<Features[]>(() => {
-      return userStore.features // ストアからデータを取得
-        .filter((feature: Features) => feature.value !== 0)
-        .sort((a, b) => a.value - b.value);
-    });
-
-    // // ストアのデータが更新されたら自動的にUIを更新
-    // watch(
-    //   () => userStore.features,
-    //   (newFeatures) => {
-    //     // 必要に応じて何か処理を追加
-    //   }
-    // );
-
-    return {
-      sortedFeatures,
-      isCurrentPage,
-      userNumber,
-    };
-  },
+// sortedFeatures を computed で定義して型を明示的に指定
+const sortedFeatures = computed<Features[]>(() => {
+  return userStore.features // ストアからデータを取得
+    .filter((feature: Features) => feature.value !== 0)
+    .sort((a, b) => a.value - b.value);
 });
 </script>
 

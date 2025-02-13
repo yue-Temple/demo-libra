@@ -1,6 +1,6 @@
 <template>
   <button id="google-signin-button" @click="startGoogleAuth" v-if="isLoginFlow">
-    Googleでログイン
+    Googleアカウントでログイン
   </button>
   <button
     id="google-signin-button"
@@ -72,18 +72,20 @@ const generateRandomString = (length: number) => {
 <style scoped>
 #google-signin-button {
   width: 250px;
-  height: 30px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  height: 35px;
+  background: #ffffff;
+  border: none;
   border-radius: 2px;
-  color: #fff;
+  color: #b9b9b9;
   font-family: 'Exo', sans-serif;
   font-size: 16px;
   font-weight: 400;
-  padding: 4px;
-  margin-bottom: 10px;
-  margin-top: 1rem;
-  margin-right: auto;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s;
+  margin-left: 5px;
 }
-
+#google-signin-button:hover {
+  background: #b11813;
+}
 </style>

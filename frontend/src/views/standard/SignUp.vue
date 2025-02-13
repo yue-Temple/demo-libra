@@ -25,10 +25,10 @@
           autocomplete="new-password"
         />
         <button class="login-submit" type="submit">登録</button>
-      </form>
 
-      <!-- Googleアカウントで登録 -->
-      <LoginWithGoogle :isLoginFlow="false" />
+        <!-- Googleアカウントで登録 -->
+        <LoginWithGoogle :isLoginFlow="false" />
+      </form>
 
       <!-- エラーメッセージ -->
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
@@ -188,9 +188,24 @@ export default defineComponent({
   cursor: pointer;
   margin-top: 10px;
   transition: background 0.3s;
+  margin-left: 5px;
 }
 
 .login button:hover {
   background: #b11813;
+}
+
+/* モバイル表示 */
+@media (max-width: 600px) {
+  .header {
+    position: absolute;
+    top: calc(30% - 50px);
+    left: calc(40% - 90px);
+  }
+  .login {
+    position: absolute;
+    top: calc(60% - 75px);
+    left: calc(30% - 75px);
+  }
 }
 </style>

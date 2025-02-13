@@ -23,7 +23,7 @@ export const useUserStore = defineStore('user', {
     useuserGoogle: null as string | null,
 
     features: [] as Features[], // メニュー機能
-    
+
     menuFetched: false, // キャッシュ用フラグ
   }),
   actions: {
@@ -97,25 +97,24 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-  
     /**
      * API: ユーザーデータを保存 ※トークンが更新される
-     * @param id 
-     * @param name 
-     * @param iconurl 
-     * @param uploadFile 
+     * @param id
+     * @param name
+     * @param iconurl
+     * @param uploadFile
      */
     async saveUserData(
       id: string,
       name: string | null,
       iconurl: string | null,
-      uploadFile: File | null,
+      uploadFile: File | null
     ): Promise<void> {
-      let deleteiconurl:string | null = null; //更新の場合削除するべき画像URL
-      let newiconurl:string | null = iconurl;
+      let deleteiconurl: string | null = null; //更新の場合削除するべき画像URL
+      let newiconurl: string | null = iconurl;
 
       // 画像更新があった場合
-      if(uploadFile != null){
+      if (uploadFile != null) {
         deleteiconurl = this.useuseruserIcon;
         const userNumber = Number(this.useuserNumber);
         const result = await convertToURL(uploadFile, userNumber, 'user');
@@ -142,8 +141,8 @@ export const useUserStore = defineStore('user', {
 
         // トークンを更新
         this.token = response.data.token;
-        localStorage.setItem('accessToken',response.data.token);
-        this.setToken(response.data.token)
+        localStorage.setItem('accessToken', response.data.token);
+        this.setToken(response.data.token);
 
         console.log('設定が保存されました', response.data);
       } catch (error) {
@@ -175,7 +174,6 @@ export const useUserStore = defineStore('user', {
         console.error('データベースからの取得に失敗しました', error);
         throw error;
       }
-      console.log(this.useuserName);
     },
 
     /**

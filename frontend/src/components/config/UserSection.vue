@@ -14,11 +14,7 @@
       <div>
         <!-- プレビュー画像 -->
         <div v-if="previewImage != ''" class="preview-container">
-          <img
-            :src="previewImage"
-            alt="プレビュー画像"
-            class="preview-image"
-          />
+          <img :src="previewImage" alt="プレビュー画像" class="preview-image" />
         </div>
 
         <!-- 画像選択 -->

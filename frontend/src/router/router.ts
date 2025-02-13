@@ -8,6 +8,7 @@ import SignUp from '../views/standard/SignUp.vue';
 import UserConfig from '../views/standard/UserConfig.vue';
 import AuthSuccess from '@/views/standard/AuthSuccess.vue';
 import ErrorPage from '@/views/standard/ErrorPage.vue';
+import NotFound from '@/views/standard/NotFound.vue';
 
 // サブフォルダに格納したコンポーネントをインポート
 import Profile from '../views/category/Profile.vue';
@@ -83,6 +84,12 @@ const routes = [
     path: '/error',
     name: 'ErrorPage',
     component: ErrorPage,
+    props: true,
+  },
+  {
+    path: '/not-found',
+    name: 'NotFound',
+    component: NotFound,
     props: true,
   },
 ];

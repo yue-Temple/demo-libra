@@ -195,8 +195,7 @@ export class HistorygetService {
     });
 
     if (!history) {
-      // 対応する履歴が存在しない場合
-      return { data: null };
+      throw new Error('404');
     }
 
     // histories 配列から historyId に合致する HistoryItem を検索
@@ -205,8 +204,8 @@ export class HistorygetService {
     );
 
     if (!historyItem) {
-      // 対応する履歴アイテムが存在しない場合
-      return { data: null };
+      // 対応する履歴アイテムが存在しない場合、404エラーを投げる
+      throw new Error('404');
     }
 
     // HistoryItem を HistoryContainer に変換
@@ -223,7 +222,6 @@ export class HistorygetService {
       childblock: historyItem.childblock,
     };
 
-    console.log(result);
     return {
       data: result,
     };

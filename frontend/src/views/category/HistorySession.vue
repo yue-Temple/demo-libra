@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <TopBar />
-    <MenuBar />
+    <MenuBar :menu="userStore.features" />
     <!-- 追加画面 -->
     <Historyaddpopup
       v-if="isPopupVisible"
@@ -34,38 +34,41 @@
         :key="index"
         class="timeline-item"
       >
-        <p class="date">
-          <span class="date-date">
-            {{ formatDateDisplay(container.date) }}
-          </span>
-          <span class="subtytle">
-            {{ formatSystemDisplay(container.system) }}
-          </span>
-          <span class="lockmark" v-if="isOwner">
-            <span v-if="container.private === true">🔒</span>
-            <span class="editblock" @click="openEditPopup(container)">
-              ✍編集</span
+        <div v-if="container.private === false || isOwner">
+          <span class="timeline-itemcercle"></span>
+          <p class="date">
+            <span class="date-date">
+              {{ formatDateDisplay(container.date) }}
+            </span>
+            <span class="subtytle">
+              {{ formatSystemDisplay(container.system) }}
+            </span>
+            <span class="lockmark" v-if="isOwner">
+              <span v-if="container.private === true">🔒</span>
+              <span class="editblock" @click="openEditPopup(container)">
+                ✍編集</span
+              >
+            </span>
+          </p>
+          <h2>
+            <label @click="navigateToDetail(container)" class="title">
+              {{ formatTitleDisplay(container.title) }}
+            </label>
+          </h2>
+          <div class="change">
+            <div class="imgbox" v-if="container.imgURL">
+              <img
+                v-if="container.imgURL"
+                :src="getImageSrc(container.imgURL)"
+                @click="openImagePopup(getImageSrc(container.imgURL))"
+              />
+            </div>
+            <div
+              class="text"
+              v-if="reportVisibility === 'repovisible' && container.report"
             >
-          </span>
-        </p>
-        <h2>
-          <label @click="navigateToDetail(container)" class="title">
-            {{ formatTitleDisplay(container.title) }}
-          </label>
-        </h2>
-        <div class="change">
-          <div class="imgbox" v-if="container.imgURL">
-            <img
-              v-if="container.imgURL"
-              :src="getImageSrc(container.imgURL)"
-              @click="openImagePopup(getImageSrc(container.imgURL))"
-            />
-          </div>
-          <div
-            class="text"
-            v-if="reportVisibility === 'repovisible' && container.report"
-          >
-            <p v-html="formatContent4(container.report)"></p>
+              <p v-html="formatContent4(container.report)"></p>
+            </div>
           </div>
         </div>
       </div>
@@ -76,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onUnmounted, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useHistoryStore } from '@/stores/historyStore';
@@ -112,9 +115,32 @@ const sortBy = ref(); // 'ASC' | 'DESC'
 const sortedHistories = ref<HistoryContainer[]>([]); // 表示用の並び替え結果を保持する
 
 // 初期データ取得
-onMounted(async () => {
-  //await historyStore.fetchHistories(routeuserNumber, 'date', 'DESC'); // 初期表示は日付順（新しい順）
+onMounted(() => {
   sortedHistories.value = [...historyStore.getHistories];
+});
+
+// コンポーネントがマウントされたときにスクロール位置を復元
+onMounted(() => {
+  restoreScrollPosition();
+});
+
+onMounted(async () => {
+  // メニュー取得確認
+  await userStore.fetchFeatures(Number(route.params.userNumber));
+
+  // 無限スクロールのトリガー
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && historyStore.hasMore) {
+      historyStore.fetchHistories(routeuserNumber, sort.value, sortBy.value);
+    }
+  });
+
+  if (loader.value) {
+    observer.observe(loader.value);
+  }
+
+  // スクロールイベントのリスナーを追加
+  window.addEventListener('scroll', saveScrollPosition);
 });
 
 // ストアの histories が変更されたら sortedHistories を更新
@@ -126,17 +152,31 @@ watch(
   { deep: true }
 );
 
-// 無限スクロールのトリガー
-onMounted(() => {
-  const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting && historyStore.hasMore) {
-      historyStore.fetchHistories(routeuserNumber, sort.value, sortBy.value);
-    }
-  });
+// コンポーネントがアンマウントされる前にスクロールイベントのリスナーを削除
+onUnmounted(() => {
+  window.removeEventListener('scroll', saveScrollPosition);
+});
 
-  if (loader.value) {
-    observer.observe(loader.value);
+// スクロール位置を保存する関数
+const saveScrollPosition = () => {
+  historyStore.saveScrollPosition(window.scrollY);
+};
+
+// スクロール位置を復元する関数
+const restoreScrollPosition = () => {
+  nextTick(() => {
+    const savedPosition = historyStore.getScrollPosition();
+    window.scrollTo(0, savedPosition);
+  });
+};
+
+// ページ遷移前にスクロール位置を保存
+router.beforeEach((to, from, next) => {
+  if (from.name === 'Home') {
+    // Home ページからの遷移の場合のみ保存
+    saveScrollPosition();
   }
+  next();
 });
 
 // ヒストリーブロック削除
@@ -269,6 +309,18 @@ const getImageSrc = (imageUrl: string | File): string => {
   }
   return '';
 };
+
+// ポップアップの表示状態を監視して、bodyのスクロールを制御
+watch(
+  () => isPopupVisible.value,
+  (newVal) => {
+    if (newVal) {
+      document.body.style.overflow = 'hidden'; // スクロールを無効にする
+    } else {
+      document.body.style.overflow = ''; // スクロールを有効にする
+    }
+  }
+);
 </script>
 
 <style scoped>
@@ -445,7 +497,7 @@ h1 {
   font-weight: 700;
   font-size: 0.785rem;
 }
-.timeline-item::after {
+.timeline-itemcercle {
   width: 10px;
   height: 10px;
   display: block;
