@@ -41,19 +41,19 @@ export const getProfileBlocks = async (
 };
 
 // ブロックの削除API ※未使用
-export const removeBlock = async (profileId: number, blockId: string) => {
-  const profileRepo = AppDataSource.getRepository(Profile);
+// export const removeBlock = async (profileId: number, blockId: string) => {
+//   const profileRepo = AppDataSource.getRepository(Profile);
 
-  const profile = await profileRepo.findOne({
-    where: { user_number: profileId },
-  });
+//   const profile = await profileRepo.findOne({
+//     where: { user_number: profileId },
+//   });
 
-  if (profile && profile.blocks) {
-    // 指定された blockId を持つブロックを削除
-    profile.blocks = profile.blocks.filter((block) => block.id !== blockId);
-    await profileRepo.save(profile);
-    return { success: true, message: 'Block removed successfully' };
-  } else {
-    return { success: false, message: 'Profile not found or block not found' };
-  }
-};
+//   if (profile && profile.blocks) {
+//     // 指定された blockId を持つブロックを削除
+//     profile.blocks = profile.blocks.filter((block) => block.id !== blockId);
+//     await profileRepo.save(profile);
+//     return { success: true, message: 'Block removed successfully' };
+//   } else {
+//     return { success: false, message: 'Profile not found or block not found' };
+//   }
+// };

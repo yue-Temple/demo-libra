@@ -3,8 +3,8 @@ import { LessThan } from 'typeorm';
 import { AppDataSource } from '../data-source'; // TypeORMのデータソース
 import { RefreshToken } from '../entity/RefreshToken';
 
-// 毎月1日の午前3時に期限切れリフレッシュトークンを削除
-cron.schedule('0 3 1 * *', async () => {
+// 2か月に1回、毎月1日の午前3時に実行
+cron.schedule('0 3 1 */2 *', async () => {  
   console.log('[Cron] Deleting expired refresh tokens...');
   const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
 

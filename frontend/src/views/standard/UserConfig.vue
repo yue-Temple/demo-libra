@@ -201,8 +201,6 @@ const resetSettings = () => {
 onBeforeRouteLeave((to, from, next) => {
   const { hasAnyChanges } = hasChanges();
   if (hasAnyChanges) {
-    console.log('sutoa', userStore.features);
-    console.log('menu', featuresFromDB.value);
     const confirmLeave = window.confirm(
       '変更が保存されていません。ページを離れますか？'
     );

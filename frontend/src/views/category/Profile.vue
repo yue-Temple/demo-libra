@@ -1,13 +1,16 @@
 <template>
-  <div class="home">
+  <div>
     <TopBar />
     <MenuBar />
-    <!-- isOwner:オーナー確認 InfoBlock:操作対象 -->
-    <InfoBlockManager
-      :infoBlocks="InfoBlock"
-      @save-page="saveprofile"
-      @update-info-blocks="updateInfoBlocks"
-    />
+    <div class="home">
+      <div class="field">
+        <InfoBlockManager
+          :infoBlocks="InfoBlock"
+          @save-page="saveprofile"
+          @update-info-blocks="updateInfoBlocks"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -125,7 +128,9 @@ const updateInfoBlocks = (
   position: relative;
   padding-bottom: 80px;
 }
-.body {
-  font-size: clamp(9px, 2.5vw, 18px);
+
+.field {
+  max-width: 1000px;
+  margin: 0 auto;
 }
 </style>
