@@ -1,7 +1,7 @@
 import { useUserStore } from '@/stores/userStore';
 const userStore = useUserStore();
 
-// メニューバーが無い画面で再読み込みしたケースに走る関数
+// メニューバーが無い画面で再読み込みした際、メニュー情報とレイアウトを取得する関数
 export const fetchLayoutifNomenu = async (usernumber: string) => {
   const userNumber = Number(usernumber);
 

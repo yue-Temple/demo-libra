@@ -88,9 +88,9 @@ import { HistoryContainer } from '@sharetypes';
 import TopBar from '@/components/standard/topbar.vue';
 import MenuBar from '@/components/standard/menubar.vue';
 import HistoryControls from '@/components/hcomponents/HistoryControls.vue';
-import AddConteinerButton from '@/components/sharecomponents/AddContainerButton.vue';
+import AddConteinerButton from '@/components/hcomponents/AddContainerButton.vue';
 import Historyaddpopup from '@/components/hcomponents/Historyaddpopup.vue';
-import ImagePopup from '@/components/hcomponents/ImagePopup.vue';
+import ImagePopup from '@/components/sharecomponents/ImagePopup.vue';
 import { formatContent4 } from '@/rogics/textformat';
 
 const router = useRouter();

@@ -114,7 +114,7 @@
 <script setup lang="ts">
 import { ref, watchEffect, onUnmounted, watch } from 'vue'; // watchEffect をインポート
 import 'cropperjs/dist/cropper.css';
-import ImageCropper from './ImageCropper.vue';
+import ImageCropper from '../sharecomponents/ImageCropper.vue';
 import { useToast } from 'vue-toastification';
 //ストア
 import { useHistoryStore } from '@/stores/historyStore';

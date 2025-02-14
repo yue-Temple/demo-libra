@@ -12,14 +12,14 @@ import NotFound from '@/views/standard/NotFound.vue';
 
 // サブフォルダに格納したコンポーネントをインポート
 import Profile from '../views/category/Profile.vue';
-import CharaList from '../views/category/CharaList.vue';
-import CharacterDetail from '../views/category/CharacterDetail.vue';
 import HistorySession from '../views/category/HistorySession.vue';
 import HistoryDetail from '@/views/category/HistoryDetail.vue';
 
 // 追加実装予定
-import HistoryAnalyze from '../views/addcategory/HistoryAnalyze.vue';
-import RelationCreate from '../views/addcategory/RelationCreate.vue';
+// import CharaList from '../views/category/CharaList.vue';
+// import CharacterDetail from '../views/category/CharacterDetail.vue';
+// import HistoryAnalyze from '../views/addcategory/HistoryAnalyze.vue';
+// import RelationCreate from '../views/addcategory/RelationCreate.vue';
 
 const routes = [
   {
@@ -48,18 +48,6 @@ const routes = [
     path: '/:userNumber/profile',
     name: 'Profile',
     component: Profile,
-    props: true,
-  },
-  {
-    path: '/:userNumber/chara',
-    name: 'CharaList',
-    component: CharaList,
-    props: true,
-  },
-  {
-    path: '/:userNumber/chara/:id',
-    name: 'CharacterDetail',
-    component: CharacterDetail,
     props: true,
   },
   {

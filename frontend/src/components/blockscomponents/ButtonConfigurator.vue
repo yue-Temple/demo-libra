@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { ref, PropType } from 'vue';
-import ImageCropper from '../hcomponents/ImageCropper.vue';
+import ImageCropper from '../sharecomponents/ImageCropper.vue';
 import Fileupload from '../sharecomponents/Fileupload.vue';
 
 const props = defineProps({
