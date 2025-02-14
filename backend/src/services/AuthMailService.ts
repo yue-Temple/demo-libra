@@ -157,12 +157,6 @@ export class AuthMailService {
   }
 }
 
-export class AuthLogoutService {
-  /**
-   * ログアウト
-   */
-  async logout(): Promise<void> {
-    console.log('ログアウトしました');
-    // 必要に応じてセッションクリアやトークン無効化の処理を追加
-  }
-}
+
+
+

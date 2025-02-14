@@ -69,7 +69,7 @@
 
   <div class="editblock" v-if="isEditing">
     <!-- 入力欄 -->
-    <div class="input-container">
+    <div class="input-container" v-if="editNow">
       <input v-model="button.link_url" placeholder="URL" />
     </div>
     <div class="editflag">
@@ -80,8 +80,8 @@
 
       <!-- 編集中ON（ブロック外） -->
       <div v-if="editNow">
-        <button @click="cancelEditing">✖キャンセル</button>
         <button @click="stopEditing">✓決定</button>
+        <button @click="cancelEditing">✖キャンセル</button>
       </div>
     </div>
 
@@ -327,37 +327,47 @@ onBeforeUnmount(() => {
 
 /* 編集ボタン */
 .editblock {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-left: 19.5dvw;
-  margin-right: 20%;
-  margin-top: -5px;
+  margin-top: -3px;
 }
-.editblock button {
-  color: var(--page-text-sub);
-  font-size: small;
-  background: none;
-  border: none;
-  cursor: pointer;
+.input-container {
+  display: flex; /* 子要素を横並びに */
+  justify-content: flex-end; /* 全体を右寄せ */
+  margin-right: 20%;
+  margin-top: 0px;
 }
 .input-container input {
-  width: 40dvw;
+  justify-self: flex-start; /* 全体を右寄せ */
+  width: 350px;
 }
+.editflag {
+  display: flex; /* 子要素を横並びに */
+  justify-content: flex-end; /* 全体を右寄せ */
+  margin-right: 20%;
+  margin-top: 0px;
+}
+.editflag button {
+  color: var(--page-text-sub);
+  font-size: small;
+  background: none; /* 背景を消す */
+  border: none; /* 枠線を消す */
+  cursor: pointer; /* ホバー時にカーソルを指アイコンにする */
+}
+
 @media (max-width: 600px) {
   .editblock {
     align-items: flex-start;
     margin-left: 7dvw;
     width: 100%;
   }
-  .input-container input {
-    width: 55dvw;
-    align-self: flex-start;
+  .input-container {
+    margin-right: 15dvw;
   }
-  .editflag button {
-    display: flex;
-    flex-direction: column;
-    margin-right: 12dvw;
+  .input-container input {
+    width: 260px;
+  }
+  .editflag {
+    justify-self: flex-end; /* 全体を右寄せ */
+    margin-right: 15dvw;
   }
 }
 
@@ -461,8 +471,8 @@ onBeforeUnmount(() => {
 @media (max-width: 600px) {
   .textbutton-title,
   .title-and-content input {
-    margin-bottom: 0.3rem;
-    font-size: clamp(12px, 2vw, 20px);
+    margin-bottom: 0;
+    font-size: clamp(15px, 2vw, 20px);
   }
 
   .moov .content,

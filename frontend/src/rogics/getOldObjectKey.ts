@@ -28,15 +28,14 @@ export const getOldObjectKeys = (
         newButtonBlock.buttons?.forEach((newButton, buttonIndex) => {
           const oldButton = oldButtonBlock.buttons?.[buttonIndex];
 
-          // image_url が更新され、かつ新しい image_url が File オブジェクトである場合
-          if (
-            oldButton &&
-            newButton.image_url !== oldButton.image_url &&
-            newButton.image_url instanceof File
-          ) {
-            // oldButton の image_object_key を old_object_key 配列に追加
-            if (oldButton.image_object_key) {
-              old_object_keys.push(oldButton.image_object_key);
+          // 古いボタンが存在する場合のみ比較
+          if (oldButton) {
+            // image_url が更新された場合
+            if (newButton.image_url !== oldButton.image_url) {
+              // oldButton の image_object_key を old_object_keys 配列に追加
+              if (oldButton.image_object_key) {
+                old_object_keys.push(oldButton.image_object_key);
+              }
             }
           }
         });
@@ -51,14 +50,14 @@ export const getOldObjectKeys = (
         const newButton = newTextButton.button;
         const oldButton = oldTextButton.button;
 
-        // image_url が更新され、かつ新しい image_url が File オブジェクトである場合
-        if (
-          newButton.image_url !== oldButton.image_url &&
-          newButton.image_url instanceof File
-        ) {
-          // oldButton の image_object_key を old_object_key 配列に追加
-          if (oldButton.image_object_key) {
-            old_object_keys.push(oldButton.image_object_key);
+        // 古いボタンが存在する場合のみ比較
+        if (oldButton) {
+          // image_url が更新された場合
+          if (newButton.image_url !== oldButton.image_url) {
+            // oldButton の image_object_key を old_object_keys 配列に追加
+            if (oldButton.image_object_key) {
+              old_object_keys.push(oldButton.image_object_key);
+            }
           }
         }
       }

@@ -218,12 +218,14 @@ const formatDate = (dateArray: string[] | null): string => {
   justify-content: center; /* 子要素を垂直方向の中央に */
 }
 .horizontal-divider {
-  margin-top: 32px;
-  margin-left: -10%;
+  position: fixed;
+  top: 32px;
+  margin-left: -100%;
   width: 250%;
   position: fixed;
   height: 10px; /* 線の太さ */
   background-color: var(--page-accent); /* 線の色 */
+  z-index: 199;
 }
 .horizontal-divider::before {
   content: ''; /* 必須: 疑似要素を表示 */
@@ -364,5 +366,10 @@ const formatDate = (dateArray: string[] | null): string => {
   font-size: 1.2em;
   color: #666;
   margin-top: 50px;
+}
+
+.prof-field {
+  max-width: 1000px;
+  margin: 0 auto;
 }
 </style>

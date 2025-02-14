@@ -1,19 +1,16 @@
 // src/routes/auth.ts
 import express from 'express';
 import { Request, Response } from 'express';
-import {
-  AuthLogoutService,
-  AuthMailService,
-} from '../services/AuthMailService';
+import { AuthMailService } from '../services/AuthMailService';
 import { AuthGoogleService } from '../services/AuthGoogleService';
-import { AuthTokenService } from '../services/AuthTokenService';
+import { AuthTokenService, logout } from '../services/AuthTokenService';
 import { deleteFromR2 } from '../services/R2Service';
 import { saveUser } from '../services/UserService';
+import { RefreshToken } from '../entity/RefreshToken';
 
 const router = express.Router();
 
 const mailService = new AuthMailService();
-const logoutService = new AuthLogoutService();
 const googleService = new AuthGoogleService();
 const authTokenService = new AuthTokenService();
 
@@ -66,8 +63,8 @@ router.get('/google/register/callback', async (req: Request, res: Response) => {
     }
 
     // 認可コードを使用して登録処理を実行
-    const { accessToken, refreshToken } =
-      await googleService.registerWithGoogle(code, deviceId);
+    const { accessToken } =
+      await googleService.registerWithGoogle(code, deviceId, res);
 
     // クッキーをクリア
     res.clearCookie('oauth_state');
@@ -75,7 +72,7 @@ router.get('/google/register/callback', async (req: Request, res: Response) => {
 
     // フロントエンドにリダイレクト（トークン付与）
     res.redirect(
-      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&isLoginFlow=${'false'}`
+      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&isLoginFlow=${'false'}`
     );
   } catch (error) {
     console.error('認可コード処理エラー:', error);
@@ -122,9 +119,10 @@ router.get('/google/login/callback', async (req: Request, res: Response) => {
     }
 
     // 認可コードを使用してログイン処理を実行
-    const { accessToken, refreshToken } = await googleService.loginWithGoogle(
+    const { accessToken } = await googleService.loginWithGoogle(
       code,
-      deviceId
+      deviceId,
+      res,
     );
 
     // クッキーをクリア
@@ -132,7 +130,7 @@ router.get('/google/login/callback', async (req: Request, res: Response) => {
 
     // フロントエンドにリダイレクト（トークン付与）
     res.redirect(
-      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}&isLoginFlow=${'true'}`
+      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&isLoginFlow=${'true'}`
     );
   } catch (error) {
     console.error('認可コード処理エラー:', error);
@@ -151,16 +149,18 @@ router.get('/google/login/callback', async (req: Request, res: Response) => {
 // ★ログアウト--------------------------------------------------------------------------------------------------------------------------------------------
 // ログアウトAPIエンドポイント
 router.post('/logout', async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+ console.log('ログアウト：リフレッシュトークンの削除')
   try {
-    await logoutService.logout();
-    // クッキーからトークンを削除
-    res.clearCookie('token');
-    res.status(200).json({ message: 'ログアウト成功' });
+    // ログアウト処理を実行
+    await logout(refreshToken);
+
+    // httpOnly クッキーをクリア
+    res.clearCookie('refreshToken', { path: '/' });
+    res.status(200).json({ message: 'ログアウトしました' });
   } catch (error) {
-    res.status(500).json({
-      message: 'ログアウトに失敗しました',
-      error: (error as Error).message,
-    });
+    console.error('ログアウト処理中にエラーが発生しました:', error);
+    res.status(500).json({ message: 'ログアウトに失敗しました' });
   }
 });
 

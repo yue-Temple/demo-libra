@@ -2,6 +2,7 @@ import { AppDataSource } from '../data-source';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
+import { Response } from 'express';
 // エンティティ
 import { User } from '../entity/User';
 import { Menu } from '../entity/Menu';
@@ -20,12 +21,14 @@ export class AuthGoogleService {
    * API: Google アカウントでの登録
    * @param authCode - 認可コード
    * @param deviceId - デバイスID
-   * @returns { accessToken, refreshToken }
+   * @param res 
+   * @returns { accessToken }
    */
   async registerWithGoogle(
     authCode: string,
-    deviceId: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+    deviceId: string,
+    res: Response
+  ): Promise<{ accessToken: string }> {
     try {
       // 環境変数の検証
       const requiredEnvVars = [
@@ -87,23 +90,36 @@ export class AuthGoogleService {
         device_id: deviceId, // デバイスIDを保存
       });
 
-      return { accessToken, refreshToken };
+      // リフレッシュトークンをクッキーに保存
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true, // JavaScriptからアクセス不可
+        secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none', // 開発環境ではクロスサイトを許可
+        path: '/', // すべてのパスで有効
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
+      });
+
+      return { accessToken }; 
+
     } catch (error) {
       console.error('Google 登録に失敗しました:', error);
       throw error;
     }
   }
 
+
   /**
    * API: Google アカウントでのログイン
    * @param authCode - 認可コード
    * @param deviceId - デバイスID
-   * @returns { accessToken, refreshToken }
+   * @param res 
+   * @returns { accessToken }
    */
   async loginWithGoogle(
     authCode: string,
-    deviceId: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+    deviceId: string,
+    res: Response // レスポンスオブジェクトを引数に追加
+  ): Promise<{ accessToken: string }> { // レスポンスからrefreshTokenを削除
     try {
       // 環境変数の検証
       const requiredEnvVars = [
@@ -118,15 +134,15 @@ export class AuthGoogleService {
           throw new Error(`環境変数 ${envVar} が設定されていません`);
         }
       }
-
+  
       // 認可コードを使用してGoogleからトークンを取得
       const isLogin = true;
       const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
-
+  
       // IDトークンを検証
       const googlePayload = await this.verifyGoogleToken(id_token);
       const googleUserId = googlePayload.sub;
-
+  
       // ユーザーを検索
       const userRepository = AppDataSource.getRepository(User);
       const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
@@ -136,18 +152,18 @@ export class AuthGoogleService {
       if (!existingUser) {
         throw new Error('この Google アカウントは登録されていません');
       }
-
+  
       // 既存のリフレッシュトークンを確認
       const existingToken = await refreshTokenRepository.findOne({
         where: { user: { user_id: existingUser.user_id }, device_id: deviceId },
       });
-
-      // リフレッシュトークンがない場合
+  
+      // 1⃣リフレッシュトークンがない場合
       if (!existingToken) {
-        console.log('リフレッシュトークンを作成');
+        console.log('ログイン：リフレッシュトークンを作成');
         const accessToken = generateAccessToken(existingUser); // アクセストークンを生成
         const refreshToken = generateRefreshToken(existingUser.user_id); // リフレッシュトークンを生成
-
+  
         // 新しいリフレッシュトークンをデータベースに保存
         const newRefreshToken = refreshTokenRepository.create({
           token: refreshToken,
@@ -156,18 +172,37 @@ export class AuthGoogleService {
           device_id: deviceId,
         });
         await refreshTokenRepository.save(newRefreshToken);
-
-        return { accessToken, refreshToken };
+  
+        // リフレッシュトークンをクッキーに保存
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true, // JavaScriptからアクセス不可
+          secure: true,
+          sameSite: 'lax',
+          path: '/', // すべてのパスで有効
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
+        });
+  
+        return { accessToken }; 
       }
-
-      // リフレッシュトークンがある場合
+  
+      // 2⃣リフレッシュトークンがある場合　※たぶんいらない（ログアウト時リフレッシュトークン削除する為）
       if (existingToken) {
         // リフレッシュトークンを渡してアクセストークンを再発行
         const { accessToken, refreshToken } =
-          await tokenService.refreshAccessToken(existingToken.token);
-        return { accessToken, refreshToken };
+          await tokenService.refreshAccessToken(existingToken.token); //期限検証,必要に応じて更新
+  
+        // 新しいリフレッシュトークンをクッキーに保存
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
+          path: '/',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
+        });
+  
+        return { accessToken }; 
       }
-
+  
       // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
       throw new Error('予期せぬエラーが発生しました');
     } catch (error) {

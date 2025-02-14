@@ -7,6 +7,7 @@ import { tokenandmess } from '@/fronttype';
 import { apiClient } from './apiClient';
 import { convertToURL } from '@/rogics/imageProcess';
 import { getDeviceId } from '@/rogics/uuid';
+import router from '@/router/router';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -63,12 +64,13 @@ export const useUserStore = defineStore('user', {
     /**
      * ログアウト処理
      */
-    logout() {
-      this.token = null;
-      this.menuFetched = false;
-      localStorage.removeItem('token');
+    async logout() {
       try {
-        apiClient.post(`${apiBaseUrl}/auth/logout`);
+        await apiClient.post(`${apiBaseUrl}/auth/logout`);
+        // 削除処理
+        this.clearToken();
+        this.menuFetched = false;
+        router.push('/');
       } catch (error) {
         console.error('ログアウトに失敗しました:', error);
       }

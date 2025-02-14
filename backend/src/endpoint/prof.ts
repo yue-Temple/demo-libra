@@ -2,7 +2,6 @@ import express from 'express';
 import {
   saveProfile,
   getProfileBlocks,
-  removeBlock,
 } from '../services/ProfileService';
 import {
   deleteBlocksImages,
@@ -54,26 +53,26 @@ router.get('/profiles/:userNumber/blocks', async (req, res) => {
   }
 });
 
-// ブロックの削除エンドポイント
-router.delete('/profiles/:userNumber/blocks/:blockId', async (req, res) => {
-  const userNumber = parseInt(req.params.userNumber, 10);
-  const blockId = req.params.blockId;
+// ブロックの削除エンドポイント ※未使用
+// router.delete('/profiles/:userNumber/blocks/:blockId', async (req, res) => {
+//   const userNumber = parseInt(req.params.userNumber, 10);
+//   const blockId = req.params.blockId;
 
-  if (!blockId) {
-    return res.status(400).json({ error: 'Invalid block ID' });
-  }
+//   if (!blockId) {
+//     return res.status(400).json({ error: 'Invalid block ID' });
+//   }
 
-  try {
-    const result = await removeBlock(userNumber, blockId);
-    if (result.success) {
-      return res.status(200).json(result);
-    } else {
-      return res.status(404).json(result);
-    }
-  } catch (error) {
-    console.error('Error removing block:', error);
-    return res.status(500).json({ error: 'Failed to remove block' });
-  }
-});
+//   try {
+//     const result = await removeBlock(userNumber, blockId);
+//     if (result.success) {
+//       return res.status(200).json(result);
+//     } else {
+//       return res.status(404).json(result);
+//     }
+//   } catch (error) {
+//     console.error('Error removing block:', error);
+//     return res.status(500).json({ error: 'Failed to remove block' });
+//   }
+// });
 
 export default router;
