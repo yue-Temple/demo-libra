@@ -48,13 +48,14 @@ const password = ref('');
 const errorMessage = ref(''); // エラーメッセージ用の ref を追加
 const userStore = useUserStore();
 const router = useRouter(); // ルーターを使うために useRouter を定義
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // メール・パスワードによるログイン
 const handleloginWithEmail = async () => {
   try {
     // バックエンド API を直接呼び出す
     const response = await axios.post(
-      'http://localhost:3000/auth/login-with-email',
+      `http://${apiBaseUrl}/auth/login-with-email`,
       {
         email: email.value,
         password: password.value,
