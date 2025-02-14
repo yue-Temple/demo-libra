@@ -38,7 +38,8 @@ router.post('/register-with-email', async (req, res) => {
     const token = await mailService.registerWithEmail(
       email,
       password,
-      deviceId
+      deviceId,
+      res
     );
 
     // token をフロントエンドに返す
@@ -92,8 +93,8 @@ router.get('/google/register/callback', async (req: Request, res: Response) => {
 // メールアドレス＋パスワードログインAPIエンドポイント
 router.post('/login-with-email', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const token = await mailService.loginWithEmail(email, password); // トークンを受け取る
+    const { email, password, deviceId, } = req.body;
+    const token = await mailService.loginWithEmail(email, password, deviceId, res); // トークンを受け取る
 
     res.status(200).json({ message: 'メールログイン成功', token }); // トークンを含めて返す
   } catch (error) {

@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import 'cropperjs/dist/cropper.css';
-import ImageCropper from '../hcomponents/ImageCropper.vue';
+import ImageCropper from '../sharecomponents/ImageCropper.vue';
 import Fileupload from '../sharecomponents/Fileupload.vue';
 
 // Emits の定義

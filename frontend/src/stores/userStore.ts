@@ -61,18 +61,43 @@ export const useUserStore = defineStore('user', {
         'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     },
 
-    /**
-     * ログアウト処理
+        /**
+     * オーナー確認
+     * @param routeuserNumber
+     * @returns
      */
-    async logout() {
+        checkOwner(routeuserNumber: string | string[]) {
+          if (this.useuserNumber == routeuserNumber) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+
+
+    // メールログイン・ログアウト-------------------------------------------------------------------------
+    /**
+     * API:メールアドレス＋パスワードでユーザー登録
+     * @param email
+     * @param password
+     */
+    async registerWithEmail(email: string, password: string): Promise<void> {
+      const deviceId = getDeviceId();
       try {
-        await apiClient.post(`${apiBaseUrl}/auth/logout`);
-        // 削除処理
-        this.clearToken();
-        this.menuFetched = false;
-        router.push('/');
+        const response = await apiClient.post<{ token: string }>(
+          `${apiBaseUrl}/auth/register-with-email`,
+          {
+            email,
+            password,
+            deviceId,
+          }
+        );
+        // 返されたアクセストークンをローカルストレージに保存
+        localStorage.setItem('accessToken', response.data.token);
+        this.setToken(response.data.token);
+
       } catch (error) {
-        console.error('ログアウトに失敗しました:', error);
+        console.error('メール登録エラー:', error);
       }
     },
 
@@ -92,6 +117,8 @@ export const useUserStore = defineStore('user', {
             deviceId,
           }
         );
+        // 返されたアクセストークンをローカルストレージに保存
+        localStorage.setItem('accessToken', response.data.token);
         this.setToken(response.data.token); // トークンを保存
       } catch (error) {
         console.error('メールアドレスまたはパスワードが間違っています:', error);
@@ -99,60 +126,24 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    /**
-     * API: ユーザーデータを保存 ※トークンが更新される
-     * @param id
-     * @param name
-     * @param iconurl
-     * @param uploadFile
+        /**
+     * ログアウト処理
      */
-    async saveUserData(
-      id: string,
-      name: string | null,
-      iconurl: string | null,
-      uploadFile: File | null
-    ): Promise<void> {
-      let deleteiconurl: string | null = null; //更新の場合削除するべき画像URL
-      let newiconurl: string | null = iconurl;
-
-      // 画像更新があった場合
-      if (uploadFile != null) {
-        deleteiconurl = this.useuseruserIcon;
-        const userNumber = Number(this.useuserNumber);
-        const result = await convertToURL(uploadFile, userNumber, 'user');
-        const icon_object_key = result.objectKey;
-        newiconurl = result.cdnUrl; // 新しい画像をセット
-      }
-
-      try {
-        const response = await apiClient.post<tokenandmess>(
-          `${apiBaseUrl}/Auth/user-save`,
-          {
-            user_id: id,
-            user_name: name,
-            user_icon: newiconurl,
-            delete_iconurl: deleteiconurl,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${this.token}`,
-              'Content-Type': 'application/json', // JSON形式で送信
-            },
+        async logout() {
+          try {
+            await apiClient.post(`${apiBaseUrl}/auth/logout`);
+            // 削除処理
+            this.clearToken();
+            this.menuFetched = false;
+            router.push('/');
+          } catch (error) {
+            console.error('ログアウトに失敗しました:', error);
           }
-        );
+        },
 
-        // トークンを更新
-        this.token = response.data.token;
-        localStorage.setItem('accessToken', response.data.token);
-        this.setToken(response.data.token);
+    
 
-        console.log('設定が保存されました', response.data);
-      } catch (error) {
-        console.error('設定の保存に失敗しました', error);
-        throw error;
-      }
-    },
-
+    // メニュー＋レイアウト-------------------------------------------------------------------------
     /**
      * API: メニューとレイアウトの取得
      * @param userNumber
@@ -217,17 +208,58 @@ export const useUserStore = defineStore('user', {
         throw error;
       }
     },
-
+    // ユーザーデータ-------------------------------------------------------------------------
     /**
-     * オーナー確認
-     * @param routeuserNumber
-     * @returns
+     * API: ユーザーデータを保存 ※トークンが更新される
+     * @param id
+     * @param name
+     * @param iconurl
+     * @param uploadFile
      */
-    checkOwner(routeuserNumber: string | string[]) {
-      if (this.useuserNumber == routeuserNumber) {
-        return true;
-      } else {
-        return false;
+    async saveUserData(
+      id: string,
+      name: string | null,
+      iconurl: string | null,
+      uploadFile: File | null
+    ): Promise<void> {
+      let deleteiconurl: string | null = null; //更新の場合削除するべき画像URL
+      let newiconurl: string | null = iconurl;
+
+      // 画像更新があった場合
+      if (uploadFile != null) {
+        deleteiconurl = this.useuseruserIcon;
+        const userNumber = Number(this.useuserNumber);
+        const result = await convertToURL(uploadFile, userNumber, 'user');
+        const icon_object_key = result.objectKey;
+        newiconurl = result.cdnUrl; // 新しい画像をセット
+      }
+
+      try {
+        const response = await apiClient.post<tokenandmess>(
+          `${apiBaseUrl}/Auth/user-save`,
+          {
+            user_id: id,
+            user_name: name,
+            user_icon: newiconurl,
+            delete_iconurl: deleteiconurl,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+              'Content-Type': 'application/json', // JSON形式で送信
+            },
+          }
+        );
+
+        // トークンを更新
+        this.token = response.data.token;
+        localStorage.setItem('accessToken', response.data.token);
+        this.setToken(response.data.token);
+
+        console.log('設定が保存されました', response.data);
+      } catch (error) {
+        console.error('設定の保存に失敗しました', error);
+        throw error;
       }
     },
   },

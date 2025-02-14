@@ -143,9 +143,10 @@ export class AuthGoogleService {
       const googlePayload = await this.verifyGoogleToken(id_token);
       const googleUserId = googlePayload.sub;
   
-      // ユーザーを検索
+      
       const userRepository = AppDataSource.getRepository(User);
       const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+      // ユーザーを検索
       const existingUser = await userRepository.findOne({
         where: { google_user_id: googleUserId },
       });

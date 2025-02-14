@@ -24,7 +24,7 @@
           class="login-password"
           autocomplete="new-password"
         />
-        <button class="login-submit" type="submit">登録</button>
+        <button class="login-submit" type="submit">メールアドレスで登録</button>
 
         <!-- Googleアカウントで登録 -->
         <LoginWithGoogle :isLoginFlow="false" />
@@ -36,19 +36,13 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { useRegisterStore } from '@/stores/registerStore';
+<script setup lang="ts">
+import { ref } from 'vue';
+
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
 import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
 
-export default defineComponent({
-  components: {
-    LoginWithGoogle,
-  },
-  setup() {
-    const registerStore = useRegisterStore();
     const userStore = useUserStore();
     const email = ref('');
     const password = ref('');
@@ -57,8 +51,10 @@ export default defineComponent({
 
     // メール・パスワードによる新規登録
     const handleregisterWithEmail = async () => {
+      alert("デモ版ではこの機能は使えません。アカウント作成はGoogleアカウント連携のみとなります。");
+      return
       try {
-        registerStore.registerWithEmail(email.value, password.value);
+        userStore.registerWithEmail(email.value, password.value);
         console.log('メールで登録完了');
 
         // ユーザーIDを取得
@@ -75,14 +71,6 @@ export default defineComponent({
       }
     };
 
-    return {
-      email,
-      password,
-      errorMessage,
-      handleregisterWithEmail,
-    };
-  },
-});
 </script>
 
 <style scoped>
