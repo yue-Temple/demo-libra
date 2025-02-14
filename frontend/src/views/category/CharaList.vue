@@ -105,228 +105,227 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { jwtDecode } from 'jwt-decode';
-import TopBar from '@/components/standard/topbar.vue';
-import MenuBar from '@/components/standard/menubar.vue';
+// import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue';
+// import { useRouter, useRoute } from 'vue-router';
+// import { jwtDecode } from 'jwt-decode';
+// import TopBar from '@/components/standard/topbar.vue';
+// import MenuBar from '@/components/standard/menubar.vue';
 
-//型明記
+// //型明記
 
-interface Character {
-  id: number;
-  ownerId: string | null;
-  name: string;
-  icon: string;
-  tags: string[];
-  lastUpdated: string;
-}
+// interface Character {
+//   id: number;
+//   ownerId: string | null;
+//   name: string;
+//   icon: string;
+//   tags: string[];
+//   lastUpdated: string;
+// }
 
-interface JwtPayload {
-  user_id: string;
-  email: string;
-  user_number: number;
-}
+// interface JwtPayload {
+//   user_id: string;
+//   email: string;
+//   user_number: number;
+// }
 
-export default defineComponent({
-  components: {
-    TopBar,
-    MenuBar,
-  },
-  setup() {
-    const router = useRouter(); //ルーターインスタンスを取得するための関数
-    const route = useRoute(); //現在のルート情報を取得するための関数
-    const { isOwner } = useUser(); // useUser からオーナー確認情報を取得
+// export default defineComponent({
+//   components: {
+//     TopBar,
+//     MenuBar,
+//   },
+//   setup() {
+//     const router = useRouter(); //ルーターインスタンスを取得するための関数
+//     const route = useRoute(); //現在のルート情報を取得するための関数
+    
 
-    // 現在のページを判定する関数
-    const isCurrentPage = (featureName: string): boolean => {
-      return route.path.includes(featureName);
-    };
+//     // 現在のページを判定する関数
+//     const isCurrentPage = (featureName: string): boolean => {
+//       return route.path.includes(featureName);
+//     };
 
-    // トークンからユーザーナンバーとIDを取得
-    const token = localStorage.getItem('token');
-    const userNumber = ref<string>(
-      token ? String((jwtDecode(token) as JwtPayload).user_number) : ''
-    );
-    const userId = ref<string | null>(
-      token ? (jwtDecode(token) as JwtPayload).user_id : null
-    );
+//     // トークンからユーザーナンバーとIDを取得
+//     const token = localStorage.getItem('token');
+//     const userNumber = ref<string>(
+//       token ? String((jwtDecode(token) as JwtPayload).user_number) : ''
+//     );
+//     const userId = ref<string | null>(
+//       token ? (jwtDecode(token) as JwtPayload).user_id : null
+//     );
 
-    // 固定メニュー
-    const isMenuOpen = ref(false);
-    const toggleMenu = (): void => {
-      isMenuOpen.value = !isMenuOpen.value;
-    };
+//     // 固定メニュー
+//     const isMenuOpen = ref(false);
+//     const toggleMenu = (): void => {
+//       isMenuOpen.value = !isMenuOpen.value;
+//     };
 
-    //固定メニューハンドル
-    const closeMenu = (): void => {
-      isMenuOpen.value = false;
-    };
+//     //固定メニューハンドル
+//     const closeMenu = (): void => {
+//       isMenuOpen.value = false;
+//     };
 
-    const handleDocumentClickForMenu = (event: MouseEvent): void => {
-      const menuIcon = document.querySelector('.menu-icon');
-      const dropdownMenu = document.querySelector('.fixed-dropdown-menu');
-      if (
-        menuIcon &&
-        !menuIcon.contains(event.target as Node) &&
-        dropdownMenu &&
-        !dropdownMenu.contains(event.target as Node)
-      ) {
-        closeMenu();
-      }
-    };
+//     const handleDocumentClickForMenu = (event: MouseEvent): void => {
+//       const menuIcon = document.querySelector('.menu-icon');
+//       const dropdownMenu = document.querySelector('.fixed-dropdown-menu');
+//       if (
+//         menuIcon &&
+//         !menuIcon.contains(event.target as Node) &&
+//         dropdownMenu &&
+//         !dropdownMenu.contains(event.target as Node)
+//       ) {
+//         closeMenu();
+//       }
+//     };
 
-    onMounted(() => {
-      document.addEventListener('click', handleDocumentClickForMenu);
-    });
+//     onMounted(() => {
+//       document.addEventListener('click', handleDocumentClickForMenu);
+//     });
 
-    onUnmounted(() => {
-      document.removeEventListener('click', handleDocumentClickForMenu);
-    });
+//     onUnmounted(() => {
+//       document.removeEventListener('click', handleDocumentClickForMenu);
+//     });
 
-    // 検索クエリ、ソート順、表示モード
-    const searchQuery = ref('');
-    const sortOrder = ref<'asc' | 'desc'>('desc');
-    const displayMode = ref<'list' | 'panel'>('list');
+//     // 検索クエリ、ソート順、表示モード
+//     const searchQuery = ref('');
+//     const sortOrder = ref<'asc' | 'desc'>('desc');
+//     const displayMode = ref<'list' | 'panel'>('list');
 
-    // ドロップダウンのインデックス
-    const dropdownIndex = ref<number | null>(null);
+//     // ドロップダウンのインデックス
+//     const dropdownIndex = ref<number | null>(null);
 
-    const characters = ref<Character[]>([]);
+//     const characters = ref<Character[]>([]);
 
-    // 検索フィルター（タグ）
-    const filteredCharacters = computed(() => {
-      let result = characters.value;
-      if (searchQuery.value) {
-        result = result.filter((character) =>
-          character.tags.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.value.toLowerCase())
-          )
-        );
-      }
+//     // 検索フィルター（タグ）
+//     const filteredCharacters = computed(() => {
+//       let result = characters.value;
+//       if (searchQuery.value) {
+//         result = result.filter((character) =>
+//           character.tags.some((tag) =>
+//             tag.toLowerCase().includes(searchQuery.value.toLowerCase())
+//           )
+//         );
+//       }
 
-      // ソート（更新日時）
-      if (sortOrder.value === 'asc') {
-        result.sort(
-          (a, b) =>
-            new Date(a.lastUpdated).getTime() -
-            new Date(b.lastUpdated).getTime()
-        );
-      } else {
-        result.sort(
-          (a, b) =>
-            new Date(b.lastUpdated).getTime() -
-            new Date(a.lastUpdated).getTime()
-        );
-      }
+//       // ソート（更新日時）
+//       if (sortOrder.value === 'asc') {
+//         result.sort(
+//           (a, b) =>
+//             new Date(a.lastUpdated).getTime() -
+//             new Date(b.lastUpdated).getTime()
+//         );
+//       } else {
+//         result.sort(
+//           (a, b) =>
+//             new Date(b.lastUpdated).getTime() -
+//             new Date(a.lastUpdated).getTime()
+//         );
+//       }
 
-      return result;
-    });
+//       return result;
+//     });
 
-    // キャラコンテナの追加
-    const addCharacter = (): void => {
-      const newCharacter: Character = {
-        id: characters.value.length + 1,
-        ownerId: userId.value,
-        name: '新しいキャラ',
-        icon: 'https://via.placeholder.com/150',
-        tags: [],
-        lastUpdated: new Date().toISOString(),
-      };
-      characters.value.push(newCharacter);
-      localStorage.setItem('characters', JSON.stringify(characters.value));
-    };
+//     // キャラコンテナの追加
+//     const addCharacter = (): void => {
+//       const newCharacter: Character = {
+//         id: characters.value.length + 1,
+//         ownerId: userId.value,
+//         name: '新しいキャラ',
+//         icon: 'https://via.placeholder.com/150',
+//         tags: [],
+//         lastUpdated: new Date().toISOString(),
+//       };
+//       characters.value.push(newCharacter);
+//       localStorage.setItem('characters', JSON.stringify(characters.value));
+//     };
 
-    // 編集ボタン群
-    const toggleDisplayMode = (): void => {
-      displayMode.value = displayMode.value === 'list' ? 'panel' : 'list';
-    };
+//     // 編集ボタン群
+//     const toggleDisplayMode = (): void => {
+//       displayMode.value = displayMode.value === 'list' ? 'panel' : 'list';
+//     };
 
-    const goToDetails = (id: number): void => {
-      router.push(`/${userNumber.value}/chara/${id}`);
-    };
+//     const goToDetails = (id: number): void => {
+//       router.push(`/${userNumber.value}/chara/${id}`);
+//     };
 
-    const addElement = (id: number): void => {
-      console.log(`Adding element to character with ID: ${id}`);
-    };
+//     const addElement = (id: number): void => {
+//       console.log(`Adding element to character with ID: ${id}`);
+//     };
 
-    const removeElement = (id: number): void => {
-      console.log(`Removing element from character with ID: ${id}`);
-    };
+//     const removeElement = (id: number): void => {
+//       console.log(`Removing element from character with ID: ${id}`);
+//     };
 
-    const deleteCharacter = (id: number): void => {
-      characters.value = characters.value.filter(
-        (character) => character.id !== id
-      );
-      localStorage.setItem('characters', JSON.stringify(characters.value));
-    };
+//     const deleteCharacter = (id: number): void => {
+//       characters.value = characters.value.filter(
+//         (character) => character.id !== id
+//       );
+//       localStorage.setItem('characters', JSON.stringify(characters.value));
+//     };
 
-    // 最終更新日時の表示設定
-    const formatDate = (dateString: string): string => {
-      const date = new Date(dateString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}/${month}/${day} ${hours}:${minutes}`;
-    };
+//     // 最終更新日時の表示設定
+//     const formatDate = (dateString: string): string => {
+//       const date = new Date(dateString);
+//       const year = date.getFullYear();
+//       const month = String(date.getMonth() + 1).padStart(2, '0');
+//       const day = String(date.getDate()).padStart(2, '0');
+//       const hours = String(date.getHours()).padStart(2, '0');
+//       const minutes = String(date.getMinutes()).padStart(2, '0');
+//       return `${year}/${month}/${day} ${hours}:${minutes}`;
+//     };
 
-    // ドロップダウンメニュー「︙」
-    const CharaThreeMenu = (index: number): void => {
-      if (dropdownIndex.value === index) {
-        dropdownIndex.value = null;
-      } else {
-        dropdownIndex.value = index;
-      }
-    };
+//     // ドロップダウンメニュー「︙」
+//     const CharaThreeMenu = (index: number): void => {
+//       if (dropdownIndex.value === index) {
+//         dropdownIndex.value = null;
+//       } else {
+//         dropdownIndex.value = index;
+//       }
+//     };
 
-    //ドロップダウンメニューハンドル
-    const closeDropdown = (): void => {
-      dropdownIndex.value = null;
-    };
+//     //ドロップダウンメニューハンドル
+//     const closeDropdown = (): void => {
+//       dropdownIndex.value = null;
+//     };
 
-    const handleDocumentClick = (event: MouseEvent): void => {
-      const dropdown = document.querySelector('.dropdown-menu');
-      const editButton = (event.target as HTMLElement).closest('.edit-button');
-      if (dropdown && !dropdown.contains(event.target as Node) && !editButton) {
-        closeDropdown();
-      }
-    };
+//     const handleDocumentClick = (event: MouseEvent): void => {
+//       const dropdown = document.querySelector('.dropdown-menu');
+//       const editButton = (event.target as HTMLElement).closest('.edit-button');
+//       if (dropdown && !dropdown.contains(event.target as Node) && !editButton) {
+//         closeDropdown();
+//       }
+//     };
 
-    onMounted(() => {
-      document.addEventListener('click', handleDocumentClick);
-      document.addEventListener('scroll', closeDropdown);
-    });
+//     onMounted(() => {
+//       document.addEventListener('click', handleDocumentClick);
+//       document.addEventListener('scroll', closeDropdown);
+//     });
 
-    onUnmounted(() => {
-      document.removeEventListener('click', handleDocumentClick);
-      document.removeEventListener('scroll', closeDropdown);
-    });
+//     onUnmounted(() => {
+//       document.removeEventListener('click', handleDocumentClick);
+//       document.removeEventListener('scroll', closeDropdown);
+//     });
 
-    return {
-      isOwner,
-      userId,
-      userNumber,
-      searchQuery,
-      sortOrder,
-      displayMode,
-      filteredCharacters,
-      addCharacter,
-      toggleDisplayMode,
-      goToDetails,
-      addElement,
-      removeElement,
-      deleteCharacter,
-      formatDate,
-      CharaThreeMenu,
-      dropdownIndex,
-      isCurrentPage,
-      isMenuOpen,
-      toggleMenu,
-    };
-  },
-});
+//     return {
+//       userId,
+//       userNumber,
+//       searchQuery,
+//       sortOrder,
+//       displayMode,
+//       filteredCharacters,
+//       addCharacter,
+//       toggleDisplayMode,
+//       goToDetails,
+//       addElement,
+//       removeElement,
+//       deleteCharacter,
+//       formatDate,
+//       CharaThreeMenu,
+//       dropdownIndex,
+//       isCurrentPage,
+//       isMenuOpen,
+//       toggleMenu,
+//     };
+//   },
+// });
 </script>
 
 <style scoped>

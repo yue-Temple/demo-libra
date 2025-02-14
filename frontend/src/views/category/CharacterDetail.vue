@@ -109,88 +109,88 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, Ref } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+// import { defineComponent, ref, computed, Ref } from 'vue';
+// import { useRouter, useRoute } from 'vue-router';
 
-interface Feature {
-  label: string;
-  name: string;
-  value: number;
-  disabled: boolean;
-  title: string;
-}
+// interface Feature {
+//   label: string;
+//   name: string;
+//   value: number;
+//   disabled: boolean;
+//   title: string;
+// }
 
-interface Character {
-  id: number;
-  ownerId: string | null;
-  name: string;
-  icon: string;
-  gender: string;
-  age: string;
-  birthday: string;
-  height: string;
-  job: string;
-  color: string;
-  notes: string;
-}
+// interface Character {
+//   id: number;
+//   ownerId: string | null;
+//   name: string;
+//   icon: string;
+//   gender: string;
+//   age: string;
+//   birthday: string;
+//   height: string;
+//   job: string;
+//   color: string;
+//   notes: string;
+// }
 
-export default defineComponent({
-  name: 'CharacterDetail',
-  setup() {
-    const router = useRouter();
-    const route = useRoute();
+// export default defineComponent({
+//   name: 'CharacterDetail',
+//   setup() {
+//     const router = useRouter();
+//     const route = useRoute();
 
-    // ログイン状態やID
-    const isLoggedIn: Ref<boolean> = ref(
-      localStorage.getItem('userLoggedIn') === 'true'
-    );
-    const userId = ref<string | null>(
-      isLoggedIn.value ? localStorage.getItem('userid') : null
-    );
+//     // ログイン状態やID
+//     const isLoggedIn: Ref<boolean> = ref(
+//       localStorage.getItem('userLoggedIn') === 'true'
+//     );
+//     const userId = ref<string | null>(
+//       isLoggedIn.value ? localStorage.getItem('userid') : null
+//     );
 
-    // ページの所有者かどうかを判定するフラグ
-    const isPageOwner: Ref<boolean> = ref(true); // ここでは仮にtrueとしていますが、実際のロジックに合わせて設定してください
+//     // ページの所有者かどうかを判定するフラグ
+//     const isPageOwner: Ref<boolean> = ref(true); // ここでは仮にtrueとしていますが、実際のロジックに合わせて設定してください
 
-    // 編集モードの状態
-    const isEditing: Ref<boolean> = ref(false);
+//     // 編集モードの状態
+//     const isEditing: Ref<boolean> = ref(false);
 
-    // キャラクターのロード関数に型を指定
-    const loadCharacter = (id: number): Character | null => {
-      const storedCharacters = localStorage.getItem('characters');
-      const characters = storedCharacters ? JSON.parse(storedCharacters) : [];
-      return (
-        characters.find((character: Character) => character.id === id) || null
-      );
-    };
+//     // キャラクターのロード関数に型を指定
+//     const loadCharacter = (id: number): Character | null => {
+//       const storedCharacters = localStorage.getItem('characters');
+//       const characters = storedCharacters ? JSON.parse(storedCharacters) : [];
+//       return (
+//         characters.find((character: Character) => character.id === id) || null
+//       );
+//     };
 
-    const characterId = parseInt(route.params.id as string, 10);
-    const character: Ref<Character | null> = ref(loadCharacter(characterId));
+//     const characterId = parseInt(route.params.id as string, 10);
+//     const character: Ref<Character | null> = ref(loadCharacter(characterId));
 
-    const toggleEditMode = (): void => {
-      isEditing.value = !isEditing.value;
-    };
+//     const toggleEditMode = (): void => {
+//       isEditing.value = !isEditing.value;
+//     };
 
-    // メニューバーの設定を読み込む
-    const features: Ref<Feature[]> = ref(
-      JSON.parse(localStorage.getItem('features') || '[]')
-    );
-    const sortedFeatures = computed(() => {
-      return features.value
-        .filter((feature) => feature.value !== 0)
-        .sort((a, b) => a.value - b.value);
-    });
+//     // メニューバーの設定を読み込む
+//     const features: Ref<Feature[]> = ref(
+//       JSON.parse(localStorage.getItem('features') || '[]')
+//     );
+//     const sortedFeatures = computed(() => {
+//       return features.value
+//         .filter((feature) => feature.value !== 0)
+//         .sort((a, b) => a.value - b.value);
+//     });
 
-    return {
-      isLoggedIn,
-      userId,
-      isPageOwner,
-      character,
-      isEditing,
-      toggleEditMode,
-      sortedFeatures,
-    };
-  },
-});
+//     return {
+//       isLoggedIn,
+//       userId,
+//       isPageOwner,
+//       character,
+//       isEditing,
+//       toggleEditMode,
+//       sortedFeatures,
+//     };
+//   },
+// });
 </script>
 
 <style scoped>

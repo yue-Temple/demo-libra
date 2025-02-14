@@ -3,15 +3,26 @@ import vue from '@vitejs/plugin-vue';
 import path from 'path'; // エイリアス設定に必要
 
 export default defineConfig({
-  base: '/', // 必要に応じて base URL を変更
+  base: '/',
   plugins: [vue()],
   server: {
-    port: 5174, // 固定ポート
+    port: 5174,
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // '@' を 'src' ディレクトリにマッピング
-      '@sharetypes': path.resolve(__dirname, '../sharetypes.d.ts'), // sharetypesのパスをエイリアスとして設定
+      '@': path.resolve(__dirname, './src'),
+      '@sharetypes': path.resolve(__dirname, '../sharetypes.d.ts'),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        chunkFileNames: 'assets/chunks/[name].[hash].js', // チャンクファイルの出力先
+        entryFileNames: 'assets/entry/[name].[hash].js', // エントリーファイルの出力先
+        assetFileNames: 'assets/styles/[name].[hash].[ext]', // CSS ファイルの出力先
+      },
     },
   },
 });

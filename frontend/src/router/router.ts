@@ -47,19 +47,19 @@ const routes = [
   {
     path: '/:userNumber/profile',
     name: 'Profile',
-    component: Profile,
+    component: () => import('../views/category/Profile.vue'),
     props: true,
   },
   {
     path: '/:userNumber/history',
     name: 'HistorySession',
-    component: HistorySession,
+    component: () => import('../views/category/HistorySession.vue'),
     props: true,
   },
   {
     path: '/:userNumber/history/:id',
     name: 'HistoryDetail',
-    component: HistoryDetail,
+    component: () => import('@/views/category/HistoryDetail.vue'),
     props: true,
   },
   {
