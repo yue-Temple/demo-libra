@@ -69,12 +69,18 @@ export default defineComponent({
       router.push('/');
     };
     const goToHelp = (): void => {
+      alert("デモ版では使えません。");
+      return
       router.push(`/${userId}/help`); //◆
     };
     const goToTerms = (): void => {
+      alert("デモ版では使えません。");
+      return
       router.push(`/${userId}/terms`); //◆
     };
     const goToPrivacyPolicy = (): void => {
+      alert("デモ版では使えません。");
+      return
       router.push(`/${userId}/privacy`); //◆
     };
 
