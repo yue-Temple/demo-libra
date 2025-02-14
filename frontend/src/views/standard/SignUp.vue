@@ -51,7 +51,8 @@ import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
 
     // メール・パスワードによる新規登録
     const handleregisterWithEmail = async () => {
-
+      alert("デモ版ではこの機能は使えません。アカウント作成はGoogleアカウント連携のみとなります。");
+      return
       try {
         userStore.registerWithEmail(email.value, password.value);
         console.log('メールで登録完了');
