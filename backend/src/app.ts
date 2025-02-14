@@ -18,6 +18,7 @@ const configureCors = () => {
   const allowedOrigins = [
     'http://localhost:5174', // 開発環境
     'https://yourdomain.com', // 本番環境
+    'https://demo-libra-back.com',// デモ環境
   ];
   return cors({
     origin: (origin, callback) => {
