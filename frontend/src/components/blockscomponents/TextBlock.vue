@@ -32,8 +32,8 @@
 
     <!-- 編集中ON（ブロック外） -->
     <div v-if="isEditing && editNow">
-      <button @click="stopEditing">✓決定</button>
       <button @click="cancelEditing">✖キャンセル</button>
+      <button @click="stopEditing">✓決定</button>
     </div>
   </div>
 </template>
