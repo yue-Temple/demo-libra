@@ -8,7 +8,7 @@
     </div>
     <div class="login">
       <!-- フォームタグを使用 -->
-      <form @submit.prevent="handleregisterWithEmail">
+
         <!-- メール・パスワードによる新規登録 -->
         <input
           v-model="email"
@@ -24,11 +24,11 @@
           class="login-password"
           autocomplete="new-password"
         />
-        <button class="login-submit" type="submit">メールアドレスで登録</button>
+        <button class="login-submit" @click="handleregisterWithEmail">メールアドレスで登録</button>
 
         <!-- Googleアカウントで登録 -->
         <LoginWithGoogle :isLoginFlow="false" />
-      </form>
+
 
       <!-- エラーメッセージ -->
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
