@@ -55,7 +55,7 @@ const handleloginWithEmail = async () => {
   try {
     // バックエンド API を直接呼び出す
     const response = await axios.post(
-      `http://${apiBaseUrl}/auth/login-with-email`,
+      `${apiBaseUrl}/auth/login-with-email`,
       {
         email: email.value,
         password: password.value,

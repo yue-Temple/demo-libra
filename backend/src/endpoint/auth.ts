@@ -28,6 +28,8 @@ if (
   throw new Error('Google OAuth 関連の環境変数が設定されていません');
 }
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 // ★登録--------------------------------------------------------------------------------------------------------------------------------------------
 // メールアドレス＋パスワード登録APIエンドポイント
 router.post('/register-with-email', async (req, res) => {
@@ -73,7 +75,7 @@ router.get('/google/register/callback', async (req: Request, res: Response) => {
 
     // フロントエンドにリダイレクト（トークン付与）
     res.redirect(
-      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&isLoginFlow=${'false'}`
+      `${FRONTEND_URL}/auth-success?accessToken=${encodeURIComponent(accessToken)}&isLoginFlow=${'false'}`
     );
   } catch (error) {
     console.error('認可コード処理エラー:', error);
@@ -84,7 +86,7 @@ router.get('/google/register/callback', async (req: Request, res: Response) => {
     }
     // エラーページにリダイレクト
     res.redirect(
-      `http://localhost:5174/error?message=${encodeURIComponent(errorMessage)}`
+      `${FRONTEND_URL}/error?message=${encodeURIComponent(errorMessage)}`
     );
   }
 });
@@ -131,7 +133,7 @@ router.get('/google/login/callback', async (req: Request, res: Response) => {
 
     // フロントエンドにリダイレクト（トークン付与）
     res.redirect(
-      `http://localhost:5174/auth-success?accessToken=${encodeURIComponent(accessToken)}&isLoginFlow=${'true'}`
+      `${FRONTEND_URL}/auth-success?accessToken=${encodeURIComponent(accessToken)}&isLoginFlow=${'true'}`
     );
   } catch (error) {
     console.error('認可コード処理エラー:', error);
@@ -142,7 +144,7 @@ router.get('/google/login/callback', async (req: Request, res: Response) => {
     }
     // エラーページにリダイレクト
     res.redirect(
-      `http://localhost:5174/error?message=${encodeURIComponent(errorMessage)}`
+      `${FRONTEND_URL}/error?message=${encodeURIComponent(errorMessage)}`
     );
   }
 });
