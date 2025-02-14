@@ -46,7 +46,7 @@ import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
     const userStore = useUserStore();
     const email = ref('');
     const password = ref('');
-    const errorMessage = ref('');
+    const errorMessage = ref(''); 
     const router = useRouter();
 
     // メール・パスワードによる新規登録
