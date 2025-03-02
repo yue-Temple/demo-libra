@@ -26,6 +26,9 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  color: var(--page-text);
+  background-color: var(--page-background);
+  z-index: -1;
 }
 
 body::before {
@@ -35,7 +38,6 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color:red;
   background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
   background-size: cover; /* 全体にフィット */
   background-repeat: no-repeat; /* 繰り返しなし */

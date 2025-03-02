@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <div class="texture"></div>
     <div class="topbody">
       <div class="topimage">
         <!-- 画像の挿入 -->
@@ -58,16 +59,30 @@ const checkLogin = () => {
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:700,400,300');
 @import url('https://fonts.googleapis.com/css2?family=Kaisei+Tokumin&family=Zen+Kurenaido&display=swap');
 
-.body{
-  background-color: #ffffff;
-}
-
 /* トップ画面＋フッター */
 .container {
   position: relative; /* 相対位置を設定 */
   display: flex;
   flex-direction: column; /* 上下に並べる */
   overflow-x: hidden;
+  background-color: #ffffff;
+  z-index: 1; /* 他の要素の背面に配置 */
+}
+.texture{
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
+  background-size: cover; /* 全体にフィット */
+  background-repeat: no-repeat; /* 繰り返しなし */
+  background-position: center top; /* 中央上部 */
+  background-attachment: fixed; /* 固定 */
+  opacity: 0.07; 
+  z-index: -10; /* 他の要素の背面に配置 */
+  pointer-events: none;
 }
 
 /* トップ画面 */
@@ -130,15 +145,14 @@ const checkLogin = () => {
   flex-grow: 1; /* 残りの領域を埋める */
   width: 40%;
   height: 100%; /* 親要素の高さに合わせる */
-  z-index: 1;
   padding: 20px; /* 内側の余白を追加 */
   position: relative;
   animation: slideInFromRight 1s ease-out forwards;
   animation-delay: 0.1s; /* オプション */
+  z-index: 0;
 }
 
 /* タイトル */
-
 .header {
   position: absolute;
   top: 40px;
@@ -215,18 +229,6 @@ const checkLogin = () => {
     opacity: 0.4;
     z-index: 0;
     animation: fadeInFromBottom 1s ease-out forwards; /* アニメーションを適用 */
-  }
-
-  /* 情報群 */
-  .content {
-    position: absolute;
-    width: 100%;
-    height: 100%; /* 親要素の高さに合わせる */
-    z-index: 1;
-    padding: 20px; /* 内側の余白を追加 */
-    position: relative;
-    animation: slideInFromRight 1s ease-out forwards;
-    animation-delay: 0.1s; /* オプション */
   }
 
   .header {

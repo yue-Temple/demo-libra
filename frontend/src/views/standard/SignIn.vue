@@ -87,6 +87,23 @@ const goToPassReset = () => {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  background-color: #ffffff;
+  z-index: 1; /* 他の要素の背面に配置 */
+}
+.body::before{
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
+  background-size: cover; /* 全体にフィット */
+  background-repeat: no-repeat; /* 繰り返しなし */
+  background-position: center top; /* 中央上部 */
+  background-attachment: fixed; /* 固定 */
+  opacity: 0.07; 
+  z-index: 2; /* 他の要素の背面に配置 */
 }
 
 .login {
@@ -101,6 +118,7 @@ const goToPassReset = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 10;
 }
 
 .login h4 {

@@ -12,14 +12,6 @@
 import Topbar from '@/components/standard/topbar.vue';
 </script>
 
-<style>
-/* ページ全体の背景色 */
-body {
-  color: var(--page-text);
-  background-color: var(--page-background);
-}
-</style>
-
 <style scoped>
 .home {
   margin-top: 52px;
