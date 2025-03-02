@@ -25,4 +25,5 @@ export default defineConfig({
       },
     },
   },
+  assetsInclude: ['**/*.webp'], // .webp ファイルを静的アセットとして明示的に指定
 });

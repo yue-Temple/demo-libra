@@ -4,6 +4,7 @@
     <div class="topbody">
       <div class="topimage">
         <!-- 画像の挿入 -->
+        <!-- <img src="../../assets/kari.jpg" /> -->
         <img src="" />
       </div>
       <div class="content">
