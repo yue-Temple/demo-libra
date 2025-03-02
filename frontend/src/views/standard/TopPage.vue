@@ -56,9 +56,6 @@ const checkLogin = () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Exo:100,200,400');
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:700,400,300');
-@import url('https://fonts.googleapis.com/css2?family=Kaisei+Tokumin&family=Zen+Kurenaido&display=swap');
 
 /* トップ画面＋フッター */
 .container {
