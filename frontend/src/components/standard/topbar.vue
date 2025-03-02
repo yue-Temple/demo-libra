@@ -17,10 +17,8 @@
     <div v-if="isMenuOpen" class="fixed-dropdown-menu">
       <ul>
         <li @click="goToMypage"><i class="pi pi-home"></i>　マイページ</li>
-        <li @click="goToHelp">
-          <i class="pi pi-question-circle"></i>　ヘルプ（使い方）
-        </li>
         <li @click="goToUserConfig"><i class="pi pi-cog"></i>　ユーザー設定</li>
+        <li @click="goToHelp"><i class="pi pi-question-circle"></i>　ヘルプ（使い方）</li>
         <li @click="logout"><i class="pi pi-sign-out"></i>　ログアウト</li>
       </ul>
     </div>
@@ -152,7 +150,7 @@ const logout = (): void => {
   cursor: pointer;
   border: solid 1px #ccc;
   background-color: white;
-  background-image: url(../../assets/icon/account_circle.webp); /* 画像のパスを指定 */
+  background-image: url(@/assets/icon/account_circle.webp); /* 画像のパスを指定 */
   background-size: cover; /* 画像を要素にフィット */
   background-position: center; /* 中央寄せ */
 }
@@ -163,7 +161,7 @@ const logout = (): void => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../src/assets/texture.jpg'); /* テクスチャ画像 */
+  background-image: url('@/assets/texture.jpg'); /* テクスチャ画像 */
   background-size: cover; /* 画像を全体にフィット */
   background-position: center; /* 中央揃え */
   opacity: 0.1; /* テクスチャの透明度20% */
@@ -215,7 +213,7 @@ const logout = (): void => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../src/assets/texture.jpg'); /* テクスチャ画像 */
+  background-image: url('@/assets/texture.jpg'); /* テクスチャ画像 */
   background-size: cover; /* 画像を全体にフィット */
   background-position: center; /* 中央揃え */
   opacity: 0.1; /* テクスチャの透明度20% */
