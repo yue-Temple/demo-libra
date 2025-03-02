@@ -3,7 +3,7 @@ import { LessThan } from 'typeorm';
 import { AppDataSource } from '../data-source'; // TypeORMのデータソース
 import { RefreshToken } from '../entity/RefreshToken';
 import { UserTemporary } from '../entity/UserTemporary';
-import { UserPasswordReset } from '../entity/UserPasswordReset'; 
+import { UserPasswordReset } from '../entity/UserPasswordReset';
 
 // リフレッシュトークンの削除ジョブ (2か月に1回、毎月1日の午前3時に実行)
 cron.schedule('0 3 1 */2 *', async () => {
@@ -28,11 +28,14 @@ cron.schedule('0 4 * * *', async () => {
 // パスワードリセット用トークンの削除ジョブ (毎日午前5時に実行)
 cron.schedule('0 5 * * *', async () => {
   console.log('[Cron] Deleting expired password reset tokens...');
-  const passwordResetRepository = AppDataSource.getRepository(UserPasswordReset);
+  const passwordResetRepository =
+    AppDataSource.getRepository(UserPasswordReset);
   const result = await passwordResetRepository.delete({
     expires_at: LessThan(new Date()),
   });
-  console.log(`[Cron] Deleted ${result.affected} expired password reset tokens.`);
+  console.log(
+    `[Cron] Deleted ${result.affected} expired password reset tokens.`
+  );
 });
 
 console.log(

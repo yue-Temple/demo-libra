@@ -1,11 +1,19 @@
 <template>
   <div class="fixed-top-bar">
     <div class="logo" @click="gototoppage">🌟ロゴ</div>
+
+    <!-- userIconが存在する場合 -->
     <div
+      v-if="userIcon != null"
       class="icon"
-      @click="toggleMenu"
       :style="{ backgroundImage: `url(${userIcon})` }"
+      @click="toggleMenu"
     ></div>
+
+    <!-- userIconが存在しない場合 -->
+    <div v-else class="noicon" @click="toggleMenu"></div>
+
+    <!-- メニューが開いている場合に表示 -->
     <div v-if="isMenuOpen" class="fixed-dropdown-menu">
       <ul>
         <li @click="goToMypage"><i class="pi pi-home"></i>　マイページ</li>
@@ -73,7 +81,7 @@ onUnmounted(() => {
 
 // ページ遷移関数
 const goToMypage = (): void => {
-  goToMainPage(router, route);
+  goToMainPage(router, route.params.userNumber);
 };
 const goToHelp = (): void => {
   alert('デモ版では使えません。');
@@ -82,8 +90,8 @@ const goToHelp = (): void => {
 };
 const goToUserConfig = (): void => {
   if (userStore.token == null) {
-    if (confirm('ログインしていません。トップページへ移動します')) {
-      router.push(`/`);
+    if (confirm('ログインしていません。ログイン画面に遷移しますか？')) {
+      router.push(`/sign-in`);
     }
   } else {
     router.push(`/${userId}/user-config`);
@@ -132,6 +140,19 @@ const logout = (): void => {
   border: solid 1px #ccc;
   background-color: transparent;
   background-image: url(userIcon); /* 画像のパスを指定 */
+  background-size: cover; /* 画像を要素にフィット */
+  background-position: center; /* 中央寄せ */
+}
+.noicon {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin: 5px;
+  margin-right: 1rem;
+  cursor: pointer;
+  border: solid 1px #ccc;
+  background-color: white;
+  background-image: url(../../assets/icon/account_circle.webp); /* 画像のパスを指定 */
   background-size: cover; /* 画像を要素にフィット */
   background-position: center; /* 中央寄せ */
 }

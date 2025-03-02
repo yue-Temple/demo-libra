@@ -42,7 +42,10 @@
       <p>認証に成功しました</p>
       <p>新しいパスワードを設定してください</p>
       <form @submit.prevent="resetpassword">
-        <PasswordInput v-model="newpassword" placeholder="新しいパスワードを入力" />
+        <PasswordInput
+          v-model="newpassword"
+          placeholder="新しいパスワードを入力"
+        />
         <button type="submit" class="login-submit">送信</button>
       </form>
       <!-- エラーメッセージ -->
@@ -86,7 +89,10 @@ const mailSendforPasswardReset = async () => {
 // 認証コードの検証
 const verifyEmail = async () => {
   try {
-    const successMessage = await apipassreset.verifyonepass(email.value, authcode.value);
+    const successMessage = await apipassreset.verifyonepass(
+      email.value,
+      authcode.value
+    );
     if (successMessage) {
       // 成功時の処理
       isputcode.value = false;
@@ -102,14 +108,16 @@ const verifyEmail = async () => {
 // 新しいパスワードを設定
 const resetpassword = async () => {
   try {
-    const successMessage = await apipassreset.setNewPassword(email.value, newpassword.value);
+    const successMessage = await apipassreset.setNewPassword(
+      email.value,
+      newpassword.value
+    );
     if (successMessage) {
       // 成功時の処理
       issetpassword.value = false;
       errorMessage.value = '';
       router.push(`/sign-in`);
       alert('パスワードの更新に成功しました。');
-      
     }
   } catch (error) {
     // エラーメッセージを表示
@@ -127,7 +135,7 @@ const resetpassword = async () => {
   background-color: #ffffff;
   z-index: 1; /* 他の要素の背面に配置 */
 }
-.body::before{
+.body::before {
   content: '';
   position: fixed;
   top: 0;
@@ -139,7 +147,7 @@ const resetpassword = async () => {
   background-repeat: no-repeat; /* 繰り返しなし */
   background-position: center top; /* 中央上部 */
   background-attachment: fixed; /* 固定 */
-  opacity: 0.07; 
+  opacity: 0.07;
   z-index: 2; /* 他の要素の背面に配置 */
 }
 

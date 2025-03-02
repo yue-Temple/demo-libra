@@ -1,9 +1,8 @@
-import { AppDataSource } from "../data-source";
+import { AppDataSource } from '../data-source';
 import bcrypt from 'bcryptjs';
-import { User } from "../entity/User";
-import { UserPasswordReset } from "../entity/UserPasswordReset";
-import { sendVerificationEmail } from "../utils/sendAuthEmail";
-
+import { User } from '../entity/User';
+import { UserPasswordReset } from '../entity/UserPasswordReset';
+import { sendVerificationEmail } from '../utils/sendAuthEmail';
 
 export class AuthPassResetService {
   /**
@@ -14,16 +13,21 @@ export class AuthPassResetService {
   static async ResetRequest(email: string): Promise<void> {
     try {
       const userRepository = AppDataSource.getRepository(User);
-      const passwordResetRepository = AppDataSource.getRepository(UserPasswordReset);
+      const passwordResetRepository =
+        AppDataSource.getRepository(UserPasswordReset);
 
       // 既に登録されているか確認
-      const existingUser = await userRepository.findOne({ where: { user_email: email } });
+      const existingUser = await userRepository.findOne({
+        where: { user_email: email },
+      });
       if (!existingUser) {
         throw new Error('登録されていないメールアドレスです');
       }
 
       // OTPを生成
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6桁のランダムな数字
+      const verificationCode = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString(); // 6桁のランダムな数字
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30分後の有効期限
 
       // OTPをデータベースに保存
@@ -52,10 +56,13 @@ export class AuthPassResetService {
   static async otpVerify(email: string, code: string): Promise<void> {
     try {
       const userRepository = AppDataSource.getRepository(User);
-      const passwordResetRepository = AppDataSource.getRepository(UserPasswordReset);
+      const passwordResetRepository =
+        AppDataSource.getRepository(UserPasswordReset);
 
       // 既に登録されているか確認
-      const existingUser = await userRepository.findOne({ where: { user_email: email } });
+      const existingUser = await userRepository.findOne({
+        where: { user_email: email },
+      });
       if (!existingUser) {
         throw new Error('登録されていないメールアドレスです');
       }
@@ -89,10 +96,13 @@ export class AuthPassResetService {
   static async passwordSet(email: string, newPassword: string): Promise<void> {
     try {
       const userRepository = AppDataSource.getRepository(User);
-      const passwordResetRepository = AppDataSource.getRepository(UserPasswordReset);
+      const passwordResetRepository =
+        AppDataSource.getRepository(UserPasswordReset);
 
       // 既に登録されているか確認
-      const existingUser = await userRepository.findOne({ where: { user_email: email } });
+      const existingUser = await userRepository.findOne({
+        where: { user_email: email },
+      });
       if (!existingUser) {
         throw new Error('登録されていないメールアドレスです');
       }

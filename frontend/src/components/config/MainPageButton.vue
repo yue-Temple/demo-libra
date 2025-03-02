@@ -11,10 +11,9 @@ import { goToMainPage } from '@/components/standard/gotomainpage';
 export default defineComponent({
   setup() {
     const router = useRouter();
-    const route = null; // コンフィグページからの遷移なのでルートパラメーターなし
 
     const handleGoToMainPage = () => {
-      goToMainPage(router, route);
+      goToMainPage(router, null);
     };
 
     return {

@@ -9,7 +9,6 @@ import { History } from './entity/History';
 import { HistoryItem } from './entity/HistoryItem';
 import { RefreshToken } from './entity/RefreshToken';
 
-
 export const AppDataSource = new DataSource({
   type: 'postgres', // データベースタイプはpostgresに設定
   url: process.env.DATABASE_URL, // 環境変数で設定したURLを使用

@@ -32,7 +32,7 @@ export class HistorygetService {
       where: { user_number },
       relations: ['histories'], // histories 配列を含める
     });
-  
+
     if (!history) {
       // 対応する履歴が存在しない場合
       return {
@@ -40,10 +40,10 @@ export class HistorygetService {
         hasNext: false,
       };
     }
-  
+
     // histories 配列を取得
     let histories = history.histories;
-  
+
     // 検索条件に基づいて絞り込み
     if (serchtitle !== null || serchdate !== null) {
       histories = histories.filter((item) => {
@@ -51,23 +51,23 @@ export class HistorygetService {
         const titleMatch = serchtitle
           ? item.title?.toLowerCase().includes(serchtitle.toLowerCase())
           : true;
-  
+
         // serchdate が指定されている場合、keydate カラムと前方一致するか確認
         const dateMatch = serchdate
-        ? item.keydate !== null && // keydate が null でないことを確認
-          item.keydate.slice(0, serchdate.length) === serchdate
-        : true;
-  
+          ? item.keydate !== null && // keydate が null でないことを確認
+            item.keydate.slice(0, serchdate.length) === serchdate
+          : true;
+
         // 両方の条件を満たす場合に絞り込む
         return titleMatch && dateMatch;
       });
-      console.log(histories)
+      console.log(histories);
     }
-  
+
     // 並び替え処理
     histories.sort((a, b) => {
       let valueA, valueB;
-  
+
       if (sortBy === 'id') {
         // sortBy が 'id' の場合、historyid を使用
         valueA = a.historyid;
@@ -77,13 +77,13 @@ export class HistorygetService {
         valueA = a.keydate || '9999-99-99'; // null の場合は最大値として扱う
         valueB = b.keydate || '9999-99-99';
       }
-  
+
       // 文字列型の場合のみ比較を行う
       if (typeof valueA === 'string' && typeof valueB === 'string') {
         // null 値を考慮した比較ロジック
         const isNullA = a.keydate === null;
         const isNullB = b.keydate === null;
-  
+
         if (isNullA && !isNullB) {
           // a が null の場合、常に a > b とする（末尾に配置）
           return 1;
@@ -92,24 +92,24 @@ export class HistorygetService {
           // b が null の場合、常に a < b とする（末尾に配置）
           return -1;
         }
-  
+
         // 通常の文字列比較
         return sortOrder === 'ASC'
           ? valueA.localeCompare(valueB)
           : valueB.localeCompare(valueA);
       }
-  
+
       // 比較不能な場合は 0 を返す
       return 0;
     });
-  
+
     // ページネーション
     const skip = (page - 1) * limit;
     const paginatedHistories = histories.slice(skip, skip + limit);
-  
+
     // 次のページがあるかどうかを判定
     const hasNext = skip + limit < histories.length;
-  
+
     // HistoryItem[] を HistoryContainer[] に変換
     const result = paginatedHistories.map((item) => ({
       id: item.historyid,

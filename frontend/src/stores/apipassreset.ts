@@ -20,7 +20,10 @@ export const apipassreset = {
       if (axios.isAxiosError(error)) {
         // AxiosError の場合
         if (error.response) {
-          throw new Error(error.response.data.message || 'ワンタイムパスワードの送信に失敗しました。');
+          throw new Error(
+            error.response.data.message ||
+              'ワンタイムパスワードの送信に失敗しました。'
+          );
         } else {
           throw new Error('ネットワークエラーが発生しました。');
         }
@@ -48,7 +51,10 @@ export const apipassreset = {
       if (axios.isAxiosError(error)) {
         // AxiosError の場合
         if (error.response) {
-          throw new Error(error.response.data.message || 'ワンタイムパスワードの認証に失敗しました。');
+          throw new Error(
+            error.response.data.message ||
+              'ワンタイムパスワードの認証に失敗しました。'
+          );
         } else {
           throw new Error('ネットワークエラーが発生しました。');
         }
@@ -65,7 +71,10 @@ export const apipassreset = {
    * @param newpassword 新しいパスワード
    * @returns 成功メッセージまたはエラーメッセージ
    */
-  setNewPassword: async (email: string, newpassword: string): Promise<string> => {
+  setNewPassword: async (
+    email: string,
+    newpassword: string
+  ): Promise<string> => {
     try {
       const response = await apiClient.post(
         `${apiBaseUrl}/auth/password-reset/set`,
@@ -76,7 +85,9 @@ export const apipassreset = {
       if (axios.isAxiosError(error)) {
         // AxiosError の場合
         if (error.response) {
-          throw new Error(error.response.data.message || 'パスワードの更新に失敗しました。');
+          throw new Error(
+            error.response.data.message || 'パスワードの更新に失敗しました。'
+          );
         } else {
           throw new Error('ネットワークエラーが発生しました。');
         }

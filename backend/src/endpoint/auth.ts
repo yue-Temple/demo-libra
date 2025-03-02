@@ -40,11 +40,9 @@ router.post('/register-with-email', async (req, res) => {
     await mailService.registerWithEmail(email);
 
     // 成功レスポンスを返す
-    res
-      .status(200)
-      .json({
-        message: '仮登録が完了しました。認証コードを確認してください。',
-      });
+    res.status(200).json({
+      message: '仮登録が完了しました。認証コードを確認してください。',
+    });
   } catch (error) {
     if (
       (error as Error).message === 'このメールアドレスは既に登録されています'
@@ -198,7 +196,10 @@ router.post('/password-reset/request', async (req, res) => {
     await AuthPassResetService.ResetRequest(email);
     res.status(200).json({ message: 'OTPを送信しました。' });
   } catch (error) {
-    console.error('パスワードリセットリクエスト中にエラーが発生しました:', error);
+    console.error(
+      'パスワードリセットリクエスト中にエラーが発生しました:',
+      error
+    );
     res.status(500).json({ message: (error as Error).message });
   }
 });
@@ -208,7 +209,9 @@ router.post('/password-reset/verify', async (req, res) => {
   try {
     const { email, code } = req.body;
     if (!email || !code) {
-      return res.status(400).json({ message: 'メールアドレスとOTPは必須です。' });
+      return res
+        .status(400)
+        .json({ message: 'メールアドレスとOTPは必須です。' });
     }
 
     await AuthPassResetService.otpVerify(email, code);
@@ -224,7 +227,9 @@ router.post('/password-reset/set', async (req, res) => {
   try {
     const { email, newpassword } = req.body;
     if (!email || !newpassword) {
-      return res.status(400).json({ message: 'メールアドレスと新しいパスワードは必須です。' });
+      return res
+        .status(400)
+        .json({ message: 'メールアドレスと新しいパスワードは必須です。' });
     }
 
     await AuthPassResetService.passwordSet(email, newpassword);

@@ -46,7 +46,7 @@ const handleGoToMainPage = () => {
 const checkLogin = () => {
   if (userStore.token) {
     console.log('ログイン状態-->メインページへ');
-    goToMainPage(router,null); // メインページに遷移
+    goToMainPage(router, null); // メインページに遷移
   } else {
     console.log('未ログイン状態-->ログインページへ');
     router.push('/sign-in'); // ログインページに遷移
@@ -68,7 +68,7 @@ const checkLogin = () => {
   background-color: #ffffff;
   z-index: 1; /* 他の要素の背面に配置 */
 }
-.texture{
+.texture {
   content: '';
   position: fixed;
   top: 0;
@@ -80,7 +80,7 @@ const checkLogin = () => {
   background-repeat: no-repeat; /* 繰り返しなし */
   background-position: center top; /* 中央上部 */
   background-attachment: fixed; /* 固定 */
-  opacity: 0.07; 
+  opacity: 0.07;
   z-index: -10; /* 他の要素の背面に配置 */
   pointer-events: none;
 }

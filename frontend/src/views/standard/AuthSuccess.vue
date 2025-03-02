@@ -26,7 +26,7 @@ if (accessToken) {
   // 登録時：ユーザー設定ページ　ログイン時：メインページに遷移
   const userId = userStore.useuserId;
   if (isLoginFlow) {
-    goToMainPage(router,null);
+    goToMainPage(router, null);
   } else {
     router.push(`/${userId}/user-config`);
   }

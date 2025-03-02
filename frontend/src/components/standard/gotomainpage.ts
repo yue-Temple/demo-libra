@@ -6,7 +6,7 @@ import { useProfileStore } from '@/stores/profileStore';
 
 export const goToMainPage = async (
   router: ReturnType<typeof useRouter>,
-  route: any
+  routeuserNumber: any
 ) => {
   const userStore = useUserStore(); // ストアのインスタンスを取得
   const profileStore = useProfileStore();
@@ -17,13 +17,11 @@ export const goToMainPage = async (
 
   if (userNumber) {
     try {
-      // 他人ページから遷移時、初期化
-      if (route != null) {
-        if (Number(route.params.userNumber) != userNumber) {
-          userStore.menuFetched = false;
-          profileStore.profileBlocksFetched = false;
-          historyStore.reset();
-        }
+      // 他人ページORコンフィグから遷移時、初期化
+      if (Number(routeuserNumber) != userNumber || routeuserNumber == null) {
+        userStore.menuFetched = false;
+        profileStore.profileBlocksFetched = false;
+        historyStore.reset();
       }
 
       //メニュー設定をストアから取得
@@ -60,6 +58,13 @@ export const goToMainPage = async (
       }
     } catch (error) {
       console.error('メニュー設定の取得に失敗しました', error);
+    }
+  } else {
+    const confirmLogin = confirm(
+      'ログインしていません。ログイン画面に遷移しますか？'
+    );
+    if (confirmLogin) {
+      router.push('/sign-in');
     }
   }
 };

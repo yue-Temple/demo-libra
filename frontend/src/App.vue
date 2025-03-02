@@ -43,7 +43,7 @@ body::before {
   background-repeat: no-repeat; /* 繰り返しなし */
   background-position: center top; /* 中央上部 */
   background-attachment: fixed; /* 固定 */
-  opacity: 0.1; 
+  opacity: 0.1;
   z-index: -1; /* 他の要素の背面に配置 */
   pointer-events: none;
 }

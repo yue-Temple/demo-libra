@@ -68,9 +68,13 @@ export class User {
   })
   refreshTokens!: RefreshToken[]; // リフレッシュトークンとのリレーション
 
-  @OneToMany(() => UserPasswordReset, (UserPasswordReset) => UserPasswordReset.user, {
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(
+    () => UserPasswordReset,
+    (UserPasswordReset) => UserPasswordReset.user,
+    {
+      onDelete: 'CASCADE',
+    }
+  )
   passwordResetTokens!: UserPasswordReset[]; // パスワードリセットトークンとのリレーション
 
   constructor(
