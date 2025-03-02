@@ -106,19 +106,18 @@ nav ul li a:hover::after {
 }
 
 /* いらない */
-nav ul li.current a::before,
-nav ul li a:hover::before {
+nav ul li::before {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../src/assets/texture.jpg'); /* テクスチャ画像 */
+  background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
   background-size: cover; /* 画像を全体にフィット */
   background-position: center; /* 中央揃え */
   opacity: 0.1; /* テクスチャの透明度を調整 */
-  z-index: 2; /* テクスチャを背景色の上に重ねる */
+  z-index: -2; /* テクスチャを背景色の上に重ねる */
 }
 
 /* 選択中のアンダーライン */

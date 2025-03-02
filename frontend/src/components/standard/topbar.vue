@@ -161,7 +161,7 @@ const logout = (): void => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/texture.jpg'); /* テクスチャ画像 */
+  background-image: url('@/assets/texture.webp'); /* テクスチャ画像 */
   background-size: cover; /* 画像を全体にフィット */
   background-position: center; /* 中央揃え */
   opacity: 0.1; /* テクスチャの透明度20% */
@@ -205,18 +205,5 @@ const logout = (): void => {
   height: 10px; /* 線の太さ */
   background-color: var(--page-accent); /* 線の色 */
   z-index: 20;
-}
-
-.horizontal-divider::before {
-  content: ''; /* 必須: 疑似要素を表示 */
-  position: absolute; /* 親要素内に固定配置 */
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('@/assets/texture.jpg'); /* テクスチャ画像 */
-  background-size: cover; /* 画像を全体にフィット */
-  background-position: center; /* 中央揃え */
-  opacity: 0.1; /* テクスチャの透明度20% */
-  z-index: -1;
 }
 </style>
