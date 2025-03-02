@@ -105,7 +105,7 @@ nav ul li a:hover::after {
   z-index: 1; /* 背景色を前面に */
 }
 
-/* いらない */
+/* テクスチャ */
 nav ul li::before {
   content: '';
   position: absolute;
@@ -116,7 +116,7 @@ nav ul li::before {
   background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
   background-size: cover; /* 画像を全体にフィット */
   background-position: center; /* 中央揃え */
-  opacity: 0.1; /* テクスチャの透明度を調整 */
+  opacity: 0.07; /* テクスチャの透明度を調整 */
   z-index: -2; /* テクスチャを背景色の上に重ねる */
 }
 
