@@ -38,7 +38,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
+  background-image: url('@/assets/texture.webp'); /* テクスチャ画像 */
   background-size: cover; /* 全体にフィット */
   background-repeat: no-repeat; /* 繰り返しなし */
   background-position: center top; /* 中央上部 */
