@@ -18,13 +18,14 @@
         <input type="text" placeholder="部分一致検索" v-model="serchtitle" />
       </div>
       <!-- ソートボックス -->
-      <div class="searchof" for="sort-order">▾並び順</div>
-      <select id="sort-order" v-model="sortOrder">
-        <option value="date-new">日付順 / 新⇀旧</option>
-        <option value="date-old">日付順 / 旧⇀新</option>
-        <option value="id-new">作成順 / 新⇀旧</option>
-        <option value="id-old">作成順 / 旧⇀新</option>
-      </select>
+      <div class="searchof" for="sort-order">▾並び順
+        <select id="sort-order" v-model="sortOrder">
+          <option value="date-new">日付順 / 新⇀旧</option>
+          <option value="date-old">日付順 / 旧⇀新</option>
+          <option value="id-new">作成順 / 新⇀旧</option>
+          <option value="id-old">作成順 / 旧⇀新</option>
+        </select>
+      </div>
       <button class="serchbutton" @click="handleSerch">🔍検索</button>
     </div>
 
@@ -155,14 +156,19 @@ const toggleVisibility = () => {
   margin-bottom: 0.5rem;
   width: 100%;
 }
+.search select {
+  margin-bottom: 0.5rem;
+  padding: 1px;
+  width: 98%;
+}
 .search button {
   width: 70px;
   margin-left: auto;
   margin-top: 1rem;
+  padding: 5px;
 }
 .searchof {
   font-size: 0.9rem !important;
-  font-weight: normal;
 }
 /* メディアクエリ: 600px以下の場合 */
 @media (max-width: 600px) {
