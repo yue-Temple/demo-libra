@@ -85,8 +85,7 @@ export class AuthTokenService {
     await refreshTokenRepository.save(existingToken);
 
     // 新しいリフレッシュトークンを生成
-    const newRefreshToken = 
-    jwt.sign(
+    const newRefreshToken = jwt.sign(
       { user_id: existingToken.user.user_id },
       refreshSecretKey,
       { expiresIn: '180d' }
@@ -138,35 +137,30 @@ export function generateAccessToken(user: {
  * @returns 生成されたリフレッシュトークン
  */
 export function generateRefreshToken(user_id: string): string {
-  return jwt.sign(
-    { user_id }, 
-    refreshSecretKey, 
-    { expiresIn: refreshExpiry }
-  );
-};
+  return jwt.sign({ user_id }, refreshSecretKey, { expiresIn: refreshExpiry });
+}
 
-
-  /**
-   * ログアウトAPI
-   * @param refreshToken 
-   */
-  export async function logout(refreshToken: string): Promise<void> {
-    if (!refreshToken) {
-      throw new Error('リフレッシュトークンがありません');
-    }
-  
-    try {
-      // データベースからリフレッシュトークンを削除
-      const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
-      const result = await refreshTokenRepository.delete({ token: refreshToken });
-  
-      if (result.affected === 0) {
-        throw new Error('リフレッシュトークンが見つかりませんでした');
-      }
-  
-      console.log('ログアウトしました');
-    } catch (error) {
-      console.error('ログアウト中にエラーが発生しました:', error);
-      throw error; // 呼び出し元にエラーを伝播
-    }
+/**
+ * ログアウトAPI
+ * @param refreshToken
+ */
+export async function logout(refreshToken: string): Promise<void> {
+  if (!refreshToken) {
+    throw new Error('リフレッシュトークンがありません');
   }
+
+  try {
+    // データベースからリフレッシュトークンを削除
+    const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+    const result = await refreshTokenRepository.delete({ token: refreshToken });
+
+    if (result.affected === 0) {
+      throw new Error('リフレッシュトークンが見つかりませんでした');
+    }
+
+    console.log('ログアウトしました');
+  } catch (error) {
+    console.error('ログアウト中にエラーが発生しました:', error);
+    throw error; // 呼び出し元にエラーを伝播
+  }
+}

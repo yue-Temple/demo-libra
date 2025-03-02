@@ -14,7 +14,7 @@ export const getDeviceId = (): string => {
 };
 
 // ランダムな文字列を生成する関数
-const generateRandomString = (length: number) => {
+export const generateRandomString = (length: number) => {
   const chars =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';

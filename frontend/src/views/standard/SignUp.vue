@@ -1,85 +1,109 @@
 <template>
   <div class="body">
-    <div class="background-blur">
-      <div class="grad"></div>
-    </div>
-    <div class="header">
-      <div>Sign <span>Up</span></div>
-    </div>
-    <div class="login">
-      <!-- フォームタグを使用 -->
+    <div class="login" v-if="!issend">
+      <!-- タイトル -->
+      <div class="header">
+        <div>Sign <span>Up</span></div>
+      </div>
 
-        <!-- メール・パスワードによる新規登録 -->
+      <h4>メールアドレスで登録</h4>
+      <!-- メール・パスワードによる新規登録 -->
+      <form @submit.prevent="handleregisterWithEmail">
         <input
           v-model="email"
           type="email"
-          placeholder="email address"
+          placeholder="メールアドレスを入力"
           class="login-username"
           autocomplete="email"
+          required
         />
-        <input
-          v-model="password"
-          type="password"
-          placeholder="password"
-          class="login-password"
-          autocomplete="new-password"
-        />
-        <button class="login-submit" @click="handleregisterWithEmail">メールアドレスで登録</button>
+        <PasswordInput v-model="password" placeholder="パスワードを入力" />
+        <button type="submit" class="login-submit">登録</button>
+      </form>
 
-        <!-- Googleアカウントで登録 -->
-        <LoginWithGoogle :isLoginFlow="false" />
+      <Divider />
 
+      <h4>ソーシャルIDで登録</h4>
+      <!-- Googleアカウントで登録 -->
+      <LoginWithGoogle :isLoginFlow="false" />
 
       <!-- エラーメッセージ -->
-      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <div v-show="errorMessage" class="error-message">{{ errorMessage }}</div>
+    </div>
+
+    <div class="login" v-if="issend">
+      <!-- 認証コードの入力 -->
+      <h4>ワンタイムパスワードの入力</h4>
+      <p>入力されたメールアドレス宛に、</p>
+      <p>ワンタイムパスワードを送信しました。</p>
+      <p>15分以内に入力してください。</p>
+      <form @submit.prevent="verifyEmail">
+        <div class="onepass">
+          <InputOtp v-model="authcode" :length="6" integerOnly class="rr" />
+        </div>
+        <button type="submit" class="login-submit">送信</button>
+      </form>
+      <!-- エラーメッセージ -->
+      <div v-show="errorMessage" class="error-message">{{ errorMessage }}</div>
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
+import Divider from 'primevue/divider';
 import { ref } from 'vue';
-
+import InputOtp from 'primevue/inputotp';
 import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
 import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
+import PasswordInput from '@/components/standard/PasswordInput.vue';
 
-    const userStore = useUserStore();
-    const email = ref('');
-    const password = ref('');
-    const errorMessage = ref(''); 
-    const router = useRouter();
+const router = useRouter();
+const userStore = useUserStore();
+const email = ref('');
+const password = ref('');
+const errorMessage = ref('');
+const issend = ref(false); // 認証コード送信フラグ
+const authcode = ref('');
 
-    // メール・パスワードによる新規登録
-    const handleregisterWithEmail = async () => {
-      alert("デモ版ではこの機能は使えません。アカウント作成はGoogleアカウント連携のみとなります。");
-      return
-      try {
-        userStore.registerWithEmail(email.value, password.value);
-        console.log('メールで登録完了');
+// メール・パスワードによる新規登録
+const handleregisterWithEmail = async () => {
+  try {
+    const errorMessageFromAPI = await userStore.registerWithEmail(email.value);
+    if (errorMessageFromAPI) {
+      // エラーメッセージがある場合は格納
+      errorMessage.value = errorMessageFromAPI;
+      return;
+    }
 
-        // ユーザーIDを取得
-        const userId = userStore.useuserId;
-        if (!userId) {
-          throw new Error('ユーザーIDが取得できませんでした');
-        }
+    // 成功時の処理
+    issend.value = true;
+    errorMessage.value = '';
+  } catch (error) {
+    // 予期せぬエラーの場合
+    errorMessage.value = (error as Error).message;
+  }
+};
 
-        // UserConfigページへ遷移
-        router.push(`/${userId}/user-config`);
-      } catch (error) {
-        errorMessage.value = (error as Error).message;
-        console.error(errorMessage.value);
-      }
-    };
+// 認証コードの検証
+const verifyEmail = async () => {
+  try {
+    await userStore.verifyEmail(email.value, password.value, authcode.value);
 
+    // ユーザーIDを取得
+    const userId = userStore.useuserId;
+    if (!userId) {
+      throw new Error('ユーザーIDが取得できませんでした');
+    }
+
+    // UserConfigページへ遷移
+    router.push(`/${userId}/user-config`);
+  } catch (error) {
+    errorMessage.value = (error as Error).message;
+    console.error(errorMessage.value);
+  }
+};
 </script>
-
 <style scoped>
-.error-message {
-  color: red;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
 .body {
   position: relative;
   width: 100vw;
@@ -87,55 +111,12 @@ import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
   overflow: hidden;
 }
 
-.background-blur {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-size: cover;
-  filter: blur(2px);
-  opacity: 0.7; /* 透明度を調整 */
-  z-index: 0;
-}
-
-.grad {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0),
-    rgba(0, 0, 0, 0.663)
-  );
-  z-index: 1;
-  opacity: 0.7;
-}
-
-.header {
-  position: absolute;
-  top: calc(50% - 35px);
-  left: calc(50% - 255px);
-  z-index: 2;
-}
-
-.header div {
-  color: #fff;
-  font-family: 'Exo', sans-serif;
-  font-size: 40px;
-  font-weight: 200;
-}
-
-.header div span {
-  color: #b11813 !important;
-}
-
 .login {
+  color: #221406;
   position: absolute;
-  top: calc(50% - 75px);
-  left: calc(50% - 50px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 350px;
   padding: 10px;
   z-index: 2;
@@ -143,24 +124,54 @@ import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
   flex-direction: column;
   align-items: center;
 }
+.login h4 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.login p {
+  margin: 0;
+  font-size: 0.8rem;
+}
 
+/* タイトル */
+.header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 1.5rem;
+}
+.header div {
+  color: #221406;
+  font-family: 'Exo', sans-serif;
+  font-size: 40px;
+  font-weight: 200;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
+}
+.header div span {
+  color: #bd8f49 !important;
+}
+
+.login form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .login input[type='email'],
 .login input[type='password'] {
   width: 250px;
   height: 30px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.6);
   border-radius: 2px;
-  color: #fff;
+  color: #221406;
   font-family: 'Exo', sans-serif;
   font-size: 16px;
   font-weight: 400;
   padding: 4px;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .login input::placeholder {
-  color: #fff;
+  color: #ccc;
 }
 
 .login button {
@@ -169,31 +180,42 @@ import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
   background: #ffffff;
   border: none;
   border-radius: 2px;
-  color: #b9b9b9;
+  color: #221406;
   font-family: 'Exo', sans-serif;
   font-size: 16px;
   font-weight: 400;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 15px;
   transition: background 0.3s;
   margin-left: 5px;
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
 }
 
 .login button:hover {
-  background: #b11813;
+  color: #fff;
+  background: #221406;
+}
+
+.onepass {
+  margin-top: 1rem;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
 }
 
 /* モバイル表示 */
 @media (max-width: 600px) {
-  .header {
-    position: absolute;
-    top: calc(30% - 50px);
-    left: calc(40% - 90px);
-  }
   .login {
-    position: absolute;
-    top: calc(60% - 75px);
-    left: calc(30% - 75px);
+    width: 90%;
+  }
+
+  .login input[type='email'],
+  .login input[type='password'],
+  .login button {
+    width: 100%;
   }
 }
 </style>

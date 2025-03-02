@@ -42,10 +42,6 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('../src/assets/texture.jpg'); /* テクスチャ画像 */
-  background-size: cover; /* 画像を全体にフィット */
-  background-position: center; /* 中央揃え */
-  opacity: 0.1; /* テクスチャの透明度20% */
   z-index: -1;
 }
 

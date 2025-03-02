@@ -1,30 +1,46 @@
 <template>
   <div class="user-config">
     <Topbar />
-    <div class="horizontal-divider"></div>
-    <h1>設定画面</h1>
 
-    <!-- UserSection コンポーネント -->
-    <UserSection
-      v-model:userName="userName"
-      :userEmail="userStore.useuserEmail || ''"
-      :userGoogle="userStore.useuserGoogle || ''"
-      :userIcon="userStore.useuseruserIcon || ''"
-      @update:usericon="uploadUserIcon"
-    />
+    <h1>設定</h1>
 
-    <!-- Features Settings Section -->
-    <FeaturesSettingsSection
-      :featuresFromDB="featuresFromDB"
-      :error="error"
-      @change-menu="handleMenuChange"
-    />
+    <!-- タブ表示 -->
+    <Tabs value="0">
+      <TabList>
+        <Tab value="0">ユーザー情報</Tab>
+        <Tab value="1">メニューバー</Tab>
+        <Tab value="2">レイアウト</Tab>
+      </TabList>
+      <TabPanels>
+        <!-- ユーザー設定タブ -->
+        <TabPanel value="0">
+          <UserSection
+            v-model:userName="userName"
+            :userEmail="userStore.useuserEmail || ''"
+            :userGoogle="userStore.useuserGoogle || ''"
+            :userIcon="userStore.useuseruserIcon || ''"
+            @update:usericon="uploadUserIcon"
+          />
+        </TabPanel>
 
-    <!-- Layout LayoutSection Section -->
-    <LayoutSection
-      :selectnowlayout="layout"
-      @change-layout="handleLayoutChange"
-    />
+        <!-- メニュー設定タブ -->
+        <TabPanel value="1">
+          <FeaturesSettingsSection
+            :featuresFromDB="featuresFromDB"
+            :error="error"
+            @change-menu="handleMenuChange"
+          />
+        </TabPanel>
+
+        <!-- レイアウト設定タブ -->
+        <TabPanel value="2">
+          <LayoutSection
+            :selectnowlayout="layout"
+            @change-layout="handleLayoutChange"
+          />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
 
     <!-- Save Settings Button -->
     <button @click="saveSettings">設定を保存</button>
@@ -33,7 +49,6 @@
     <MainPageButton />
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
@@ -48,6 +63,13 @@ import UserSection from '@/components/config/UserSection.vue';
 import FeaturesSettingsSection from '@/components/config/FeaturesSettingsSection.vue';
 import LayoutSection from '@/components/config/LayoutSection.vue';
 import MainPageButton from '@/components/config/MainPageButton.vue';
+
+// タブコンポーネント
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
 
 const toast = useToast();
 // ストアの利用
@@ -215,15 +237,6 @@ onBeforeRouteLeave((to, from, next) => {
   }
 });
 </script>
-
-<style>
-/* ページ全体の背景色 */
-body {
-  color: var(--page-text);
-  background-color: var(--page-background);
-}
-</style>
-
 <style scoped>
 h1 {
   margin-top: 45px;
@@ -231,31 +244,49 @@ h1 {
 .h2 {
   margin-bottom: 0;
 }
-.horizontal-divider {
-  margin-top: 12px;
-  margin-left: -100%;
-  width: 250%;
-  position: fixed;
-  height: 10px; /* 線の太さ */
-  background-color: var(--page-accent); /* 線の色 */
-}
-
-.horizontal-divider::before {
-  content: ''; /* 必須: 疑似要素を表示 */
-  position: absolute; /* 親要素内に固定配置 */
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('../src/assets/texture.jpg'); /* テクスチャ画像 */
-  background-size: cover; /* 画像を全体にフィット */
-  background-position: center; /* 中央揃え */
-  opacity: 0.1; /* テクスチャの透明度20% */
-  z-index: -1;
-}
 
 .user-config {
   max-width: 600px;
   margin: auto;
   padding: 20px;
+}
+
+/* タブのスタイル */
+
+:deep(.p-tabs p-component) {
+  max-width: 100%;
+  overflow: hidden;
+}
+:deep(.p-tab:hover) {
+  border-color: #000000 !important;
+}
+:deep(.p-tablist-tab-list) {
+  position: relative;
+  background-color: transparent !important;
+  color: var(--page-text);
+  border-color: var(--page-text);
+  max-width: 100%;
+  overflow: hidden;
+}
+:deep(.p-tablist-tab-list button) {
+  border-color: var(--page-text);
+  font-size: 0.8rem;
+  white-space: normal; /* テキストを折り返す */
+  word-wrap: break-word; /* 長い単語も折り返す */
+  padding: 10px;
+}
+
+:deep(.p-tabpanels) {
+  background-color: transparent !important;
+  color: var(--page-text);
+}
+:deep(.p-tab:hover) {
+  border-color: var(--page-text) !important;
+}
+
+/* アクティブなタブのスタイル */
+:deep(.p-tab[aria-selected='true']) {
+  background-color: var(--page-button); /* アクティブなタブの背景色 */
+  color: var(--page-buttontext); /* アクティブなタブの文字色 */
 }
 </style>

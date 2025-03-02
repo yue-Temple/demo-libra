@@ -79,7 +79,7 @@
       </div>
 
       <!-- 編集中ON（ブロック外） -->
-      <div v-if="editNow"> 
+      <div v-if="editNow">
         <button @click="cancelEditing">✖キャンセル</button>
         <button @click="stopEditing">✓決定</button>
       </div>

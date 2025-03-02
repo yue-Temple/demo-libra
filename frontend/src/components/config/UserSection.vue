@@ -9,14 +9,14 @@
   <div class="user-section">
     <!-- ユーザーアイコンセクション -->
     <div class="user-icon-section">
-      <h2>❚ ユーザー情報</h2>
-      <span>❏ユーザーアイコン</span>
+      <h2>ユーザー情報の編集</h2>
       <div>
         <!-- プレビュー画像 -->
         <div v-if="previewImage != ''" class="preview-container">
           <img :src="previewImage" alt="プレビュー画像" class="preview-image" />
         </div>
-
+        <br />
+        <span>❏ユーザーアイコン</span>
         <!-- 画像選択 -->
         <fileupload
           :title="''"
@@ -137,7 +137,7 @@ const handleCroppedImage = (previewUrl: string, file: File) => {
 
 <style scoped>
 h2 {
-  margin-bottom: 0;
+  margin-top: 0;
 }
 .user-section {
   margin-bottom: 20px;

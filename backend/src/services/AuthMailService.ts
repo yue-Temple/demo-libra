@@ -1,6 +1,5 @@
 import { AppDataSource } from '../data-source';
 import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
 import { Response } from 'express';
 // エンティティ
 import { User } from '../entity/User';
@@ -9,28 +8,29 @@ import { RefreshToken } from '../entity/RefreshToken';
 // 型定義
 import { Role } from '../backtype';
 // 関数
-import { generateRandomUserId, generateverifyToken } from '../utils/uuid';
-import { AuthTokenService, generateAccessToken, generateRefreshToken } from './AuthTokenService';
+import { generateRandomUserId } from '../utils/uuid';
+import {
+  AuthTokenService,
+  generateAccessToken,
+  generateRefreshToken,
+} from './AuthTokenService';
+import { UserTemporary } from '../entity/UserTemporary';
+import { sendVerificationEmail } from '../utils/sendAuthEmail';
 
 const tokenService = new AuthTokenService();
 
 export class AuthMailService {
   /**
-   * メールアドレス＋パスワードでの登録
+   * メールアドレス＋パスワードでの仮登録
    * @param email
-   * @param password
-   * @param deviceId - デバイスID
-   * @param res
-   * @returns
+   * @returns 認証コードの送信結果
    */
-  async registerWithEmail(
-    email: string,
-    password: string,
-    deviceId: string,
-    res: Response
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async registerWithEmail(email: string): Promise<void> {
     try {
       const userRepository = AppDataSource.getRepository(User);
+      const temporaryUserRepository =
+        AppDataSource.getRepository(UserTemporary);
+
       // 既に登録されているか確認
       const existingUser = await userRepository.findOne({
         where: { user_email: email },
@@ -39,65 +39,124 @@ export class AuthMailService {
         throw new Error('このメールアドレスは既に登録されています');
       }
 
-      // ユーザーIDとパスワードを生成
-      const userid = generateRandomUserId();
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // 既に仮登録されている場合は削除
+      const tempoexistingUser = await temporaryUserRepository.findOne({
+        where: { email },
+      });
+      if (tempoexistingUser) {
+        await temporaryUserRepository.remove(tempoexistingUser);
+      }
 
-      // 新しいユーザーを作成
+      // 仮登録レコードを作成
+      const verificationCode = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30分
+
+      const temporaryUser = new UserTemporary();
+      temporaryUser.email = email;
+      temporaryUser.verification_code = verificationCode;
+      temporaryUser.expires_at = expiresAt;
+
+      await temporaryUserRepository.save(temporaryUser);
+
+      // 認証コード付きメールを送信
+      await sendVerificationEmail(email, verificationCode);
+
+      console.log('仮登録成功。認証コード(有効期限:30分)を送信しました。');
+    } catch (error) {
+      console.error('仮登録に失敗しました:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 認証コードの検証と本登録
+   * @param email
+   * @param password
+   * @param code
+   * @param deviceId
+   * @param res
+   * @returns { accessToken }
+   */
+  async verifyAndCompleteRegistration(
+    email: string,
+    password: string,
+    code: string,
+    deviceId: string,
+    res: Response
+  ): Promise<{ accessToken: string }> {
+    try {
+      const temporaryUserRepository =
+        AppDataSource.getRepository(UserTemporary);
+      const userRepository = AppDataSource.getRepository(User);
+      const menuRepository = AppDataSource.getRepository(Menu);
+      const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+
+      // 仮登録レコードを取得
+      const temporaryUser = await temporaryUserRepository.findOne({
+        where: { email },
+      });
+      if (!temporaryUser) {
+        throw new Error('仮登録レコードが見つかりません');
+      }
+
+      // 認証コードの有効期限を確認
+      if (new Date() > temporaryUser.expires_at) {
+        throw new Error('認証コードの有効期限が切れています');
+      }
+
+      // 認証コードを検証
+      if (temporaryUser.verification_code !== code) {
+        throw new Error('認証コードが一致しません');
+      }
+
+      // 本登録レコードを作成
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const userid = generateRandomUserId();
+
       const newUser = new User();
       newUser.user_id = userid;
       newUser.user_email = email;
       newUser.password = hashedPassword;
       newUser.user_role = Role.NormalUser;
-      newUser.is_email_verified = false; // 初期状態では未認証
+      newUser.last_login = new Date();
+      newUser.is_email_verified = true; // メール認証済み
       await userRepository.save(newUser);
 
       // メニューテーブルの生成
-      const menuRepository = AppDataSource.getRepository(Menu);
       const newMenu = new Menu();
       newMenu.user_number = newUser.user_number; // 外部キーを設定
       await menuRepository.save(newMenu);
 
-      // メール検証用トークンを生成
-      const verificationToken = generateverifyToken();
-      newUser.email_verification_token = verificationToken;
-      newUser.email_verification_token_expires = new Date(
-        Date.now() + 24 * 60 * 60 * 1000 // 24時間有効
-      );
-
-      // 認証リンク付きメールを送信
-      await this.sendVerificationEmail(email, verificationToken);
-      console.log(
-        'メールアドレス登録成功。認証リンク(有効期限:24時間)を送信しました。'
-      );
-
       // JWT トークンを生成
       const accessToken = generateAccessToken(newUser);
-
-      // リフレッシュトークンを生成
       const refreshToken = generateRefreshToken(newUser.user_id);
 
-      // リフレッシュトークンをデータベースに保存（デバイスIDを含む）
-      const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
+      // リフレッシュトークンをデータベースに保存
       await refreshTokenRepository.save({
         token: refreshToken,
         expires_at: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 180日後
-        user: newUser, // リレーションを設定
-        device_id: deviceId, // デバイスIDを保存
+        user: newUser,
+        device_id: deviceId,
       });
 
       // リフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
-        httpOnly: true, // JavaScriptからアクセス不可
-        secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
-        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none', // 開発環境ではクロスサイトを許可
-        path: '/', // すべてのパスで有効
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
+        path: '/',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
       });
 
-      return { accessToken, refreshToken };
+      // 仮登録レコードを削除
+      await temporaryUserRepository.delete({ id: temporaryUser.id });
+
+      console.log('本登録が完了しました。');
+      return { accessToken };
     } catch (error) {
-      console.error('登録に失敗しました:', error);
+      console.error('本登録に失敗しました:', error);
       throw error;
     }
   }
@@ -120,17 +179,28 @@ export class AuthMailService {
     const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
 
     // ユーザーを検索
-    const existingUser = await userRepository.findOne({ where: { user_email: email } });
+    const existingUser = await userRepository.findOne({
+      where: { user_email: email },
+    });
 
     // ユーザーが存在しない、またはパスワードが null の場合
     if (!existingUser || !existingUser.password) {
       throw new Error('メールアドレスもしくはパスワードが間違っています');
     }
+
     // パスワードの検証
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
     if (!isPasswordValid) {
-      throw new Error('パスワードが間違っています');
+      throw new Error('メールアドレスもしくはパスワードが間違っています');
     }
+
+    // 最終ログインカラムを更新
+    await userRepository.update(existingUser.user_id, {
+      last_login: new Date(),
+    });
 
     // 既存のリフレッシュトークンを確認
     const existingToken = await refreshTokenRepository.findOne({
@@ -161,15 +231,16 @@ export class AuthMailService {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
       });
 
-      return { accessToken }; 
+      return { accessToken };
     }
 
-    // 2⃣リフレッシュトークンがある場合　※たぶんいらない（ログアウト時リフレッシュトークン削除する為）
+    // 2⃣リフレッシュトークンがある場合　（別デバイスログインなど？）
     if (existingToken) {
       // リフレッシュトークンを渡してアクセストークンを再発行
       const { accessToken, refreshToken } =
         await tokenService.refreshAccessToken(existingToken.token); //期限検証,必要に応じて更新
 
+      console.log('koko');
       // 新しいリフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -179,50 +250,14 @@ export class AuthMailService {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
       });
 
-      return { accessToken }; 
+      return { accessToken };
     }
 
-   // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
-   throw new Error('予期せぬエラーが発生しました');
-  } catch (error: any) {
-    console.error('Google ログインに失敗しました:', error);
+    // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
+    throw new Error('予期せぬエラーが発生しました');
+  }
+  catch(error: any) {
+    console.error('ログインに失敗しました:', error);
     throw error;
   }
-
-    /**
-   * 認証リンク付きメールを送信するロジック
-   * @param email
-   * @param token
-   */
-    private async sendVerificationEmail(
-      email: string,
-      token: string
-    ): Promise<void> {
-      const transporter = nodemailer.createTransport({
-        service: 'Gmail', // Gmailを使用する場合
-        auth: {
-          user: process.env.EMAIL_USER, // 環境変数から送信元メールアドレス
-          pass: process.env.EMAIL_PASS, // 環境変数からパスワード
-        },
-      });
-  
-      const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-  
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'メールアドレスの認証',
-        text: `以下のリンクをクリックしてメールアドレスを認証してください: ${verificationUrl}`,
-        html: `<p>以下のリンクをクリックしてメールアドレスを認証してください:</p><a href="${verificationUrl}">${verificationUrl}</a>`,
-      };
-  
-      await transporter.sendMail(mailOptions);
-    };
-};
-
-
-
-
-
-
-
+}

@@ -10,7 +10,6 @@ export class HistoryItem {
   @Column({ type: 'jsonb', nullable: true }) // 'json' → 'jsonb' (PostgreSQL推奨)
   date: string[] | null;
 
-  @Index()
   @Column({ type: 'varchar', length: 255, nullable: true })
   keydate: string | null;
 

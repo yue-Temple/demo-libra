@@ -124,7 +124,7 @@ const updateInfoBlocks = (
 
 <style scoped>
 .home {
-  margin-top: 100px;
+  margin-top: 130px;
   position: relative;
   padding-bottom: 80px;
 }

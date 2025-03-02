@@ -1,19 +1,37 @@
 <template>
   <div class="history-controls">
-    <!-- ソートボックス -->
-    <div class="sort-control">
-      <label class="sorttitle" for="sort-order">ソート:</label>
-      <select id="sort-order" v-model="sortOrder" @change="handleSortChange">
-        <option value="date-new">日付順/新⇀旧</option>
-        <option value="date-old">日付順/旧⇀新</option>
-        <option value="id-new">作成順/新⇀旧</option>
-        <option value="id-old">作成順/旧⇀新</option>
+    <div class="search">
+      条件検索
+      <div class="searchof">
+        ▾日付指定<br />
+        <input
+          type="text"
+          placeholder="yyyy-mm-ddを入力"
+          maxlength="8"
+          inputmode="numeric"
+          pattern="\d{1,10}"
+          v-model="serchdate"
+        />
+      </div>
+      <div class="searchof">
+        ▾タイトル名指定<br />
+        <input type="text" placeholder="部分一致検索" v-model="serchtitle" />
+      </div>
+      <!-- ソートボックス -->
+      <div class="searchof" for="sort-order">▾並び順</div>
+      <select id="sort-order" v-model="sortOrder">
+        <option value="date-new">日付順 / 新⇀旧</option>
+        <option value="date-old">日付順 / 旧⇀新</option>
+        <option value="id-new">作成順 / 新⇀旧</option>
+        <option value="id-old">作成順 / 旧⇀新</option>
       </select>
+      <button class="serchbutton" @click="handleSerch">🔍検索</button>
     </div>
 
-    <!-- レポート表示/非表示トグルボタン -->
-    <div class="visibility-control">
-      <label class="repotitle">レポート:</label>
+    <div type="dashed" class="divider" />
+    <div class="control-type">
+      <!-- レポート表示/非表示トグルボタン -->
+      <label class="repotitle">レポート</label>
       <button
         class="toggle-button"
         :class="{ 'hidden-state': reportVisibility === 'hidden' }"
@@ -23,68 +41,82 @@
       </button>
     </div>
   </div>
+  <div class="history-controls-sub"></div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { ref } from 'vue';
 
-export default {
-  name: 'HistoryControls',
-  emits: ['sort-change', 'visibility-change'],
-  setup(props, { emit }) {
-    // 初期値は「表示」
-    const sortOrder = ref('date-new');
-    const reportVisibility = ref('repovisible');
+const emit = defineEmits(['serch-change', 'visibility-change']);
 
-    const handleSortChange = () => {
-      emit('sort-change', sortOrder.value);
-    };
+const sortOrder = ref('date-new');
+const reportVisibility = ref('repovisible'); // 初期値は「表示」
+const serchdate = ref(null);
+const serchtitle = ref(null);
 
-    // 表示/非表示をトグルする関数
-    const toggleVisibility = () => {
-      reportVisibility.value =
-        reportVisibility.value === 'hidden' ? 'repovisible' : 'hidden';
-      emit('visibility-change', reportVisibility.value);
-    };
+// 条件検索関数
+const handleSerch = () => {
+  emit('serch-change', {
+    date: serchdate.value,
+    title: serchtitle.value,
+    sortOrder: sortOrder.value,
+  });
+};
 
-    return {
-      sortOrder,
-      reportVisibility,
-      handleSortChange,
-      toggleVisibility,
-    };
-  },
+// 表示/非表示をトグルする関数
+const toggleVisibility = () => {
+  reportVisibility.value =
+    reportVisibility.value === 'hidden' ? 'repovisible' : 'hidden';
+  emit('visibility-change', reportVisibility.value);
 };
 </script>
 
 <style scoped>
+/* 区切り線 */
+.divider {
+  width: 100%;
+  border-top: #ccc solid 1px;
+  color: transparent;
+}
+/* 空間確保用 */
+.history-controls-sub {
+  position: relative;
+  display: flex;
+  width: 25dvw;
+  max-width: 230px;
+  height: 290px;
+  padding: 1rem;
+  margin: 1rem;
+  margin-right: 2rem;
+  margin-left: 1rem;
+}
 .history-controls {
   position: fixed;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: -30px;
-  padding: 0.5rem;
-  right: 1rem;
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: var(--top-bar-menu-text);
-  background-color: var(--top-bar-menu-background-80);
-  border-radius: 4px;
-  z-index: 100;
-}
-
-.sorttitle {
-  margin-right: 0.5rem;
-}
-
-.repotitle {
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 25dvw;
+  max-width: 230px;
+  height: 330px;
+  padding: 1rem;
+  margin: 1rem;
+  margin-right: 2rem;
   margin-left: 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: var(--top-bar-menu-background-10);
+  border: 4px double #ccc;
+  border-radius: 4px;
+  z-index: 10;
 }
 
-.visibility-control {
-  display: flex;
-  align-items: center;
+.history-controls select {
+  width: 100%;
+}
+
+.control-type {
+  width: 100%;
 }
 
 .toggle-button {
@@ -98,10 +130,10 @@ export default {
   color: black;
   cursor: pointer;
   font-size: 0.8rem;
+  margin-bottom: 10px;
   margin-left: 0.5rem;
   box-sizing: border-box; /* ボーダーを幅に含める */
 }
-
 .toggle-button.hidden-state {
   border: 2px solid #ccc; /* ボーダーのサイズ変更 */
   padding: calc(0.25rem - 2px) calc(0.5rem - 2px); /* ボーダー分を引く */
@@ -113,22 +145,56 @@ export default {
   box-sizing: border-box; /* 同じく適用 */
 }
 
+.search {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+}
+.search input {
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+.search button {
+  width: 70px;
+  margin-left: auto;
+  margin-top: 1rem;
+}
+.searchof {
+  font-size: 0.9rem !important;
+  font-weight: normal;
+}
 /* メディアクエリ: 600px以下の場合 */
 @media (max-width: 600px) {
+  .history-controls-sub {
+    height: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
+  }
   .history-controls {
-    font-size: 0.7rem;
-    padding: 0.3rem;
-    right: 0.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 95dvw;
+    max-width: 100%;
+    height: 360px;
+    padding: 1rem;
+    margin: 0;
+    margin-right: 0rem;
+    margin-left: 0rem;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: var(--top-bar-menu-background-10);
+    border: 4px double #ccc;
+    border-radius: 4px;
+    z-index: 10;
   }
-
-  .repotitle {
-    margin-left: 0.5rem;
-  }
-
-  .toggle-button {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.7rem;
-    margin-left: 0.3rem;
+  .search,
+  .search input {
+    width: 98%;
   }
 }
 </style>

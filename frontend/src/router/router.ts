@@ -3,17 +3,15 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { checkUserExists } from './checkUser';
 // 基本ページ
 import TopPage from '../views/standard/TopPage.vue';
-import SignIn from '../views/standard/SignIn.vue';
-import SignUp from '../views/standard/SignUp.vue';
 import UserConfig from '../views/standard/UserConfig.vue';
 import AuthSuccess from '@/views/standard/AuthSuccess.vue';
 import ErrorPage from '@/views/standard/ErrorPage.vue';
 import NotFound from '@/views/standard/NotFound.vue';
 
 // サブフォルダに格納したコンポーネントをインポート
-import Profile from '../views/category/Profile.vue';
-import HistorySession from '../views/category/HistorySession.vue';
-import HistoryDetail from '@/views/category/HistoryDetail.vue';
+// import Profile from '../views/category/Profile.vue';
+// import HistorySession from '../views/category/HistorySession.vue';
+// import HistoryDetail from '@/views/category/HistoryDetail.vue';
 
 // 追加実装予定
 // import CharaList from '../views/category/CharaList.vue';
@@ -30,16 +28,20 @@ const routes = [
   {
     path: '/sign-in',
     name: 'SignIn',
-    component: SignIn,
+    component: () => import('../views/standard/SignIn.vue'),
   },
   {
     path: '/sign-up',
     name: 'SignUp',
-    component: SignUp,
+    component: () => import('../views/standard/SignUp.vue'),
   },
-  // ユーザーIDをURLパラメータとして受け取る
   {
-    path: '/:userId/user-config',
+    path: '/pass-reset',
+    name: 'PassReset',
+    component: () => import('../views/standard/PassReset.vue'),
+  },
+  {
+    path: '/:userId/user-config', // ユーザーIDをURLパラメータとして受け取る
     name: 'UserConfig',
     component: UserConfig,
     props: true, // URLパラメータをコンポーネントに渡す

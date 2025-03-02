@@ -136,7 +136,6 @@
 //   setup() {
 //     const router = useRouter(); //ルーターインスタンスを取得するための関数
 //     const route = useRoute(); //現在のルート情報を取得するための関数
-    
 
 //     // 現在のページを判定する関数
 //     const isCurrentPage = (featureName: string): boolean => {

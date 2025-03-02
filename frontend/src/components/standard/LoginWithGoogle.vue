@@ -7,11 +7,12 @@
     @click="startGoogleAuth"
     v-if="!isLoginFlow"
   >
-    Googleで登録
+    Googleアカウントで登録
   </button>
 </template>
 
 <script setup lang="ts">
+import { generateRandomString, getDeviceId } from '@/rogics/uuid';
 import { useUserStore } from '@/stores/userStore';
 
 const props = defineProps({
@@ -27,8 +28,6 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 // Google認証開始関数
 const startGoogleAuth = async () => {
   userStore.isLoginFlow = props.isLoginFlow; // ストアにログインOR登録を記録
-  console.log(userStore.isLoginFlow);
-  console.log(props.isLoginFlow);
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const redirectUri = encodeURIComponent(
@@ -48,26 +47,6 @@ const startGoogleAuth = async () => {
   // 遷移
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${combinedState}&access_type=offline`;
 };
-
-// デバイスIDを生成する関数
-const getDeviceId = (): string => {
-  let deviceId = localStorage.getItem('deviceId');
-  if (!deviceId) {
-    deviceId = generateRandomString(32);
-  }
-  return deviceId;
-};
-
-// ランダムな文字列を生成する関数
-const generateRandomString = (length: number) => {
-  const chars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
 </script>
 
 <style scoped>
@@ -77,16 +56,19 @@ const generateRandomString = (length: number) => {
   background: #ffffff;
   border: none;
   border-radius: 2px;
-  color: #b9b9b9;
+  color: #221406;
   font-family: 'Exo', sans-serif;
   font-size: 16px;
   font-weight: 400;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 15px;
+  margin-bottom: 10px;
   transition: background 0.3s;
   margin-left: 5px;
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
 }
 #google-signin-button:hover {
-  background: #b11813;
+  color: #fff;
+  background: #221406;
 }
 </style>

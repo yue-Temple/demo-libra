@@ -1,88 +1,82 @@
 <template>
   <div class="body">
-    <div class="background-blur">
-      <div class="grad"></div>
-    </div>
-
-    <div class="header">
-      <div>Sign<span>In</span></div>
-    </div>
-
     <div class="login">
-      <!-- エラーメッセージ -->
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <!-- タイトル -->
+      <div class="header">
+        <div>Sign<span>In</span></div>
+      </div>
 
+      <h4>メールアドレスでログイン</h4>
       <!-- メール・パスワードによるログイン -->
-      <input
-        v-model="email"
-        type="text"
-        placeholder="email address"
-        class="login-username"
-      />
-      <input
-        v-model="password"
-        type="password"
-        placeholder="password"
-        class="login-password"
-      />
-      <button class="login-submit" @click="handleloginWithEmail">
-        メールアドレスでログイン
-      </button>
+      <form @submit.prevent="handleloginWithEmail">
+        <input
+          v-model="email"
+          type="email"
+          placeholder="メールアドレスを入力"
+          class="login-username"
+          required
+        />
+        <PasswordInput v-model="password" placeholder="パスワードを入力" />
+        <button type="submit" class="login-submit">ログイン</button>
+      </form>
 
+      <!-- エラーメッセージ -->
+      <p v-show="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <p class="reset" @click="goToPassReset">パスワードを忘れた方（再設定）</p>
+
+      <Divider />
+
+      <h4>ソーシャルIDでログイン</h4>
       <!-- Googleアカウントでログイン -->
       <LoginWithGoogle :isLoginFlow="true" />
+      <Divider />
+
+      <div class="info">
+        <p>ご利用にはアカウント登録(無料)が必要です。<br /></p>
+        <p>
+          <span class="signup" @click="goToSignUp">新規アカウント登録</span>
+        </p>
+      </div>
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
+import Divider from 'primevue/divider';
 import { ref } from 'vue';
+import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
 import { goToMainPage } from '@/components/standard/gotomainpage'; // goToMainPage をインポート
+import PasswordInput from '@/components/standard/PasswordInput.vue';
 import LoginWithGoogle from '@/components/standard/LoginWithGoogle.vue';
-import axios from 'axios'; // axios をインポート
-import { useUserStore } from '@/stores/userStore'; // ストアのインポート
 
+const router = useRouter();
+const userStore = useUserStore();
 const email = ref('');
 const password = ref('');
 const errorMessage = ref(''); // エラーメッセージ用の ref を追加
-const userStore = useUserStore();
-const router = useRouter(); // ルーターを使うために useRouter を定義
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
 // メール・パスワードによるログイン
 const handleloginWithEmail = async () => {
   try {
-    // バックエンド API を直接呼び出す
-    const response = await axios.post(
-      `${apiBaseUrl}/auth/login-with-email`,
-      {
-        email: email.value,
-        password: password.value,
-      }
-    );
-
-    // レスポンスからトークンを取得
-    const { token } = response.data as { token: string };
-    // ストアにトークンを保存
-    userStore.setToken(token);
-
-    console.log('メールログイン成功');
-
-    // goToMainPage を呼び出してメインページに遷移
-    goToMainPage(router);
+    // ログイン処理
+    await userStore.loginWithEmail(email.value, password.value);
+    // メインページに遷移
+    goToMainPage(router, null);
   } catch (error) {
-    console.error('メールログインエラー:', error);
-    errorMessage.value = 'メールアドレスもしくはパスワードが間違っています';
+    // エラーメッセージを表示
+    errorMessage.value =
+      error instanceof Error ? error.message : 'ログインに失敗しました';
   }
 };
-</script>
 
-<style>
-body {
-  background-color: #f0f0f0;
-}
-</style>
+// ボタンを押したときの遷移処理
+const goToSignUp = () => {
+  router.push('/sign-up');
+};
+const goToPassReset = () => {
+  router.push('/pass-reset');
+};
+</script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css?family=Exo:100,200,400');
@@ -95,56 +89,12 @@ body {
   overflow: hidden;
 }
 
-.background-blur {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('https://cdn.pixabay.com/photo/2016/12/01/20/12/texture-1876086_1280.jpg');
-  background-size: cover;
-  filter: blur(2px);
-  opacity: 0.7; /* 透明度を調整 */
-  z-index: 0;
-}
-
-.grad {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0),
-    rgba(0, 0, 0, 0.663)
-  );
-  z-index: 1;
-  opacity: 0.7;
-}
-
-.header {
-  position: absolute;
-  top: calc(50% - 35px);
-  left: calc(50% - 255px);
-  z-index: 2;
-}
-
-.header div {
-  color: #fff;
-  font-family: 'Exo', sans-serif;
-  font-size: 40px;
-  font-weight: 200;
-}
-
-.header div span {
-  color: #b11813 !important;
-}
-
 .login {
+  color: #221406;
   position: absolute;
-  top: calc(50% - 75px);
-  left: calc(50% - 50px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 350px;
   padding: 10px;
   z-index: 2;
@@ -153,23 +103,51 @@ body {
   align-items: center;
 }
 
-.login input[type='text'],
-.login input[type='password'] {
+.login h4 {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+/* タイトル */
+.header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 1.5rem;
+}
+
+.header div {
+  color: #221406;
+  font-family: 'Exo', sans-serif;
+  font-size: 40px;
+  font-weight: 200;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header div span {
+  color: #bd8f49 !important;
+}
+
+.login form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login input[type='email'] {
   width: 250px;
   height: 30px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.6);
   border-radius: 2px;
-  color: #fff; /* テキスト色を白に設定 */
+  color: #221406;
   font-family: 'Exo', sans-serif;
   font-size: 16px;
   font-weight: 400;
   padding: 4px;
-  margin-bottom: 10px;
+  margin-top: 10px;
+  padding-right: 40px;
 }
-
 .login input::placeholder {
-  color: #fff; /* プレースホルダー色を白に設定 */
+  color: #ccc;
 }
 
 .login button {
@@ -178,31 +156,51 @@ body {
   background: #ffffff;
   border: none;
   border-radius: 2px;
-  color: #b9b9b9;
+  color: #221406;
   font-family: 'Exo', sans-serif;
   font-size: 16px;
   font-weight: 400;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 15px;
   transition: background 0.3s;
   margin-left: 5px;
+  box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
+}
+.login button:hover {
+  color: #fff;
+  background: #221406;
 }
 
-.login button:hover {
-  background: #b11813;
+.info p {
+  font-size: 0.8rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signup {
+  text-decoration: underline;
+  color: blue;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.reset {
+  color: blue;
+  cursor: pointer;
+  font-size: 0.7rem;
 }
 
 /* モバイル表示 */
 @media (max-width: 600px) {
-  .header {
-    position: absolute;
-    top: calc(30% - 50px);
-    left: calc(40% - 90px);
-  }
   .login {
-    position: absolute;
-    top: calc(60% - 75px);
-    left: calc(10% - 55px);
+    width: 90%;
+  }
+
+  .login input[type='email'],
+  .login button {
+    width: 100%;
   }
 }
 
@@ -210,6 +208,6 @@ body {
 .error-message {
   color: red;
   font-size: 11px;
-  margin-bottom: 10px;
+  margin: 0px;
 }
 </style>

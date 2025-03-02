@@ -35,12 +35,14 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
+  background-color:red;
   background-image: url('../src/assets/texture.webp'); /* テクスチャ画像 */
   background-size: cover; /* 全体にフィット */
   background-repeat: no-repeat; /* 繰り返しなし */
   background-position: center top; /* 中央上部 */
   background-attachment: fixed; /* 固定 */
-  opacity: 0.1; /* 透明度20% */
+  opacity: 0.1; 
   z-index: -1; /* 他の要素の背面に配置 */
+  pointer-events: none;
 }
 </style>

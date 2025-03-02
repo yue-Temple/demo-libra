@@ -2,13 +2,14 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-"scripts": {
+  "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
-  "start": "node dist/app.js", 
-  "dev": "nodemon --watch src --exec ts-node src/app.ts", 
+  "demo": "cross-env NODE_ENV=demo node dist/app.js", 
+  "start": "cross-env NODE_ENV=production node dist/app.js", 
+  "dev": "cross-env NODE_ENV=development nodemon", 
   "build": "tsc", 
   "format": "prettier --write \"src/**/*.ts\""
-},
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -40,6 +41,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "@types/uuid": "^10.0.0",
+    "cross-env": "^7.0.3",
     "nodemon": "^3.1.9",
     "prettier": "^3.4.2",
     "ts-node": "^10.9.2",

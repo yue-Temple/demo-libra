@@ -2,21 +2,24 @@
   <div class="title-radio">
     <label>{{ title }}</label>
     <div class="radio-group">
-      <span>（画像選択</span>
-      <input
-        type="radio"
-        name="pictureType"
-        value="upload"
-        v-model="pictureOption"
-      />
-      <span>　貼り付け</span>
-      <input
-        type="radio"
-        name="pictureType"
-        value="copy"
-        v-model="pictureOption"
-      />
-      <span>）</span>
+      <label class="radio-label">
+        <input
+          type="radio"
+          name="pictureType"
+          value="upload"
+          v-model="pictureOption"
+        />
+        画像選択
+      </label>
+      <label class="radio-label">
+        <input
+          type="radio"
+          name="pictureType"
+          value="copy"
+          v-model="pictureOption"
+        />
+        貼り付け
+      </label>
     </div>
   </div>
 
@@ -140,12 +143,19 @@ const handlePasteFromClipboard = async () => {
   display: flex;
   gap: 5px;
   font-size: 0.8rem;
+  align-items: center; /* 垂直方向の中央揃え */
 }
+
 .radio-group span {
   margin-top: 0px;
 }
+
 .radio-group input {
   margin: 0;
-  padding: 1rem;
+  vertical-align: middle; /* テキストと高さを合わせる */
+}
+
+.radio-label {
+  margin-right: 1rem;
 }
 </style>

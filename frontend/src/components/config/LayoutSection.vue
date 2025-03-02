@@ -1,7 +1,7 @@
 <!-- LayoutSelect.vue -->
 <template>
   <div class="selectbuttons">
-    <h2>❚ レイアウトを選択</h2>
+    <h2>ページレイアウト選択</h2>
     <!-- ※keyはオブジェクトプロパティ名 -->
     <div
       v-for="(layout, key, index) in themes"
@@ -51,6 +51,9 @@ const selectLayout = (layout: string) => {
 </script>
 
 <style scoped>
+h2 {
+  margin-top: 0;
+}
 .button-sample {
   display: flex;
   align-items: center;

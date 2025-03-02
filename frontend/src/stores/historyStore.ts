@@ -137,13 +137,20 @@ export const useHistoryStore = defineStore('history', {
      * @param userNumber
      * @param sortBy 並び替え条件（例: 'id', 'date'）
      * @param sortOrder 並び替え順序（'ASC' または 'DESC'）
+     * @param serchdate
+     * @param serchtitle
      * @returns
      */
     async fetchHistories(
       userNumber: number,
       sortBy: string = 'date', // デフォルトの並び替え条件
-      sortOrder: 'ASC' | 'DESC' = 'DESC' // デフォルトの並び替え順序
+      sortOrder: 'ASC' | 'DESC' = 'DESC', // デフォルトの並び替え順序
+      serchdate: string | null,
+      serchtitle: string | null
     ) {
+      if (this.historyfetched) {
+        return;
+      }
       if (!this.hasMore || this.isLoading) return;
       this.isLoading = true;
 
@@ -160,6 +167,8 @@ export const useHistoryStore = defineStore('history', {
             limit: 20, // 1ページあたりの項目数
             sortBy, // 並び替え条件
             sortOrder, // 並び替え順序
+            serchdate,
+            serchtitle,
           },
         });
 

@@ -5,8 +5,23 @@ import { createPinia } from 'pinia'; // Piniaのインポート
 import Toast, { PluginOptions } from 'vue-toastification';
 import 'vue-toastification/dist/index.css'; // スタイルをインポート
 
+// PrimeVueのインポート
+import PrimeVue from 'primevue/config'; // PrimeVueの設定
+import 'primeicons/primeicons.css';
+import Aura from '@primeuix/themes/aura';
+// import Nora from '@primeuix/themes/nora';
+// import Lara from '@primeuix/themes/lara';
+// import material from '@primeuix/themes/material';
+
 // Vueアプリケーションの作成
 const app = createApp(App);
+
+//Primevueテーマ
+app.use(PrimeVue, {
+  theme: {
+    preset: Aura,
+  },
+});
 
 // トースト通知の設定
 const toastOptions: PluginOptions = {
@@ -25,7 +40,7 @@ const toastOptions: PluginOptions = {
 // 必要なプラグインを適用
 app.use(router); // routerを適用
 app.use(createPinia()); // Piniaを適用
-app.use(Toast, toastOptions); // プラグインを適用
+app.use(Toast, toastOptions); // トースト通知を適用
 
 // アプリケーションをマウント
 app.mount('#app');

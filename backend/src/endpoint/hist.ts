@@ -141,7 +141,7 @@ router.delete(
  * 取得APIのエンドポイント
  * GET /histories/:user_number
  * URL Params: user_number
- * Query Params: page, limit, sortBy, sortOrder
+ * Query Params: page, limit, sortBy, sortOrder,serchdate,serchtitle
  */
 router.get('/histories/:userNumber', async (req, res) => {
   const userNumber = parseInt(req.params.userNumber);
@@ -153,6 +153,10 @@ router.get('/histories/:userNumber', async (req, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
   const sortBy = (req.query.sortBy as 'id' | 'date') || 'historyid';
   const sortOrder = (req.query.sortOrder as 'ASC' | 'DESC') || 'ASC';
+  const serchdate: string | null =
+    (req.query.serchdate as string | undefined) ?? null;
+  const serchtitle: string | null =
+    (req.query.serchtitle as string | undefined) ?? null;
 
   try {
     const result = await historygetService.getHistories(
@@ -160,7 +164,9 @@ router.get('/histories/:userNumber', async (req, res) => {
       page,
       limit,
       sortBy,
-      sortOrder
+      sortOrder,
+      serchdate,
+      serchtitle
     );
     res.json(result);
   } catch (error) {

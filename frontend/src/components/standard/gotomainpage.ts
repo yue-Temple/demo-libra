@@ -1,16 +1,32 @@
 import { useRouter } from 'vue-router';
 import { Features, menu_name } from '@sharetypes'; // 型定義
 import { useUserStore } from '@/stores/userStore'; // ストアをインポート
+import { useHistoryStore } from '@/stores/historyStore';
+import { useProfileStore } from '@/stores/profileStore';
 
-export const goToMainPage = async (router: ReturnType<typeof useRouter>) => {
+export const goToMainPage = async (
+  router: ReturnType<typeof useRouter>,
+  route: any
+) => {
   const userStore = useUserStore(); // ストアのインスタンスを取得
+  const profileStore = useProfileStore();
+  const historyStore = useHistoryStore();
 
   // 現在のユーザーナンバーをストアから取得
   const userNumber = Number(userStore.useuserNumber);
 
   if (userNumber) {
     try {
-      // メニュー設定をストアのアクションを使って取得
+      // 他人ページから遷移時、初期化
+      if (route != null) {
+        if (Number(route.params.userNumber) != userNumber) {
+          userStore.menuFetched = false;
+          profileStore.profileBlocksFetched = false;
+          historyStore.reset();
+        }
+      }
+
+      //メニュー設定をストアから取得
       await userStore.fetchFeatures(userNumber);
 
       // ストアからメニューデータを取得

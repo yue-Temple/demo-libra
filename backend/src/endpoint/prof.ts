@@ -1,8 +1,5 @@
 import express from 'express';
-import {
-  saveProfile,
-  getProfileBlocks,
-} from '../services/ProfileService';
+import { saveProfile, getProfileBlocks } from '../services/ProfileService';
 import {
   deleteBlocksImages,
   oldFilesDeleteFromR2,

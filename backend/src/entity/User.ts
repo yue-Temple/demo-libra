@@ -11,7 +11,8 @@ import { Profile } from './Profile';
 import { History } from './History';
 import { Role } from '../backtype';
 import { RefreshToken } from './RefreshToken';
-import { Menu } from './Menu'; // 追加: Menu エンティティをインポート
+import { Menu } from './Menu';
+import { UserPasswordReset } from './UserPasswordReset';
 
 @Entity()
 export class User {
@@ -48,18 +49,6 @@ export class User {
   @Column({ type: 'boolean', default: false })
   is_email_verified: boolean = false; // メール検証状態
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  email_verification_token: string | null; // メール検証用トークン
-
-  @Column({ type: 'timestamp', nullable: true })
-  email_verification_token_expires: Date | null; // トークン有効期限
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  password_reset_token: string | null; // パスワードリセットトークン
-
-  @Column({ type: 'timestamp', nullable: true })
-  password_reset_token_expires: Date | null; // トークン有効期限
-
   // リレーション
   @OneToOne(() => Profile, (profile) => profile.user, {
     onDelete: 'CASCADE',
@@ -79,6 +68,11 @@ export class User {
   })
   refreshTokens!: RefreshToken[]; // リフレッシュトークンとのリレーション
 
+  @OneToMany(() => UserPasswordReset, (UserPasswordReset) => UserPasswordReset.user, {
+    onDelete: 'CASCADE',
+  })
+  passwordResetTokens!: UserPasswordReset[]; // パスワードリセットトークンとのリレーション
+
   constructor(
     user_id: string = '',
     user_number: number = 0,
@@ -88,11 +82,7 @@ export class User {
     password: string | null = null,
     user_role: Role = Role.NormalUser,
     google_user_id: string | null = null,
-    last_login: Date | null = null,
-    email_verification_token: string | null = null,
-    email_verification_token_expires: Date | null = null,
-    password_reset_token: string | null = null,
-    password_reset_token_expires: Date | null = null
+    last_login: Date | null = null
   ) {
     this.user_id = user_id;
     this.user_number = user_number;
@@ -103,9 +93,5 @@ export class User {
     this.user_role = user_role;
     this.google_user_id = google_user_id;
     this.last_login = last_login;
-    this.email_verification_token = email_verification_token;
-    this.email_verification_token_expires = email_verification_token_expires;
-    this.password_reset_token = password_reset_token;
-    this.password_reset_token_expires = password_reset_token_expires;
   }
 }

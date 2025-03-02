@@ -1,5 +1,3 @@
-import axios from 'axios'; // APIリクエスト用のライブラリ
-
 /**
  * ユーザー番号が存在するかどうかを確認する関数
  * @param userNumber - 確認するユーザー番号

@@ -1,5 +1,9 @@
 import dotenv from 'dotenv';
-dotenv.config(); // <最初に> .env ファイルを読み込む
+import path from 'path';
+// <最初に> .env ファイルを読み込む
+const envPath = path.resolve(process.cwd(), `.env.${process.env.NODE_ENV}`);
+dotenv.config({ path: envPath });
+
 import cookieParser from 'cookie-parser';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -18,7 +22,7 @@ const configureCors = () => {
   const allowedOrigins = [
     'http://localhost:5174', // 開発環境
     'https://yourdomain.com', // 本番環境
-    'https://demo-libra-front.onrender.com',// デモ環境
+    'https://demo-libra-front.onrender.com', // デモ環境
   ];
   return cors({
     origin: (origin, callback) => {

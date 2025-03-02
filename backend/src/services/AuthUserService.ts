@@ -1,7 +1,5 @@
 import { AppDataSource } from '../data-source';
 import { User } from '../entity/User';
-import jwt from 'jsonwebtoken';
-import { secretKey, tokenExpiry } from '../app';
 import { userData } from '../../../sharetypes';
 import { generateAccessToken } from './AuthTokenService';
 

@@ -21,7 +21,7 @@ export class AuthGoogleService {
    * API: Google アカウントでの登録
    * @param authCode - 認可コード
    * @param deviceId - デバイスID
-   * @param res 
+   * @param res
    * @returns { accessToken }
    */
   async registerWithGoogle(
@@ -67,6 +67,7 @@ export class AuthGoogleService {
       newUser.user_id = userId;
       newUser.user_role = Role.NormalUser;
       newUser.google_user_id = googleUserId;
+      newUser.last_login = new Date();
       await userRepository.save(newUser);
 
       // メニューテーブルの生成
@@ -77,8 +78,6 @@ export class AuthGoogleService {
 
       // JWT トークンを生成
       const accessToken = generateAccessToken(newUser);
-
-      // リフレッシュトークンを生成
       const refreshToken = generateRefreshToken(newUser.user_id);
 
       // リフレッシュトークンをデータベースに保存（デバイスIDを含む）
@@ -99,27 +98,26 @@ export class AuthGoogleService {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
       });
 
-      return { accessToken }; 
-
+      return { accessToken };
     } catch (error) {
       console.error('Google 登録に失敗しました:', error);
       throw error;
     }
   }
 
-
   /**
    * API: Google アカウントでのログイン
    * @param authCode - 認可コード
    * @param deviceId - デバイスID
-   * @param res 
+   * @param res
    * @returns { accessToken }
    */
   async loginWithGoogle(
     authCode: string,
     deviceId: string,
     res: Response // レスポンスオブジェクトを引数に追加
-  ): Promise<{ accessToken: string }> { // レスポンスからrefreshTokenを削除
+  ): Promise<{ accessToken: string }> {
+    // レスポンスからrefreshTokenを削除
     try {
       // 環境変数の検証
       const requiredEnvVars = [
@@ -134,16 +132,15 @@ export class AuthGoogleService {
           throw new Error(`環境変数 ${envVar} が設定されていません`);
         }
       }
-  
+
       // 認可コードを使用してGoogleからトークンを取得
       const isLogin = true;
       const { id_token } = await this.fetchGoogleTokens(authCode, isLogin);
-  
+
       // IDトークンを検証
       const googlePayload = await this.verifyGoogleToken(id_token);
       const googleUserId = googlePayload.sub;
-  
-      
+
       const userRepository = AppDataSource.getRepository(User);
       const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
       // ユーザーを検索
@@ -153,18 +150,23 @@ export class AuthGoogleService {
       if (!existingUser) {
         throw new Error('この Google アカウントは登録されていません');
       }
-  
+
+      // 最終ログインカラムを更新
+      await userRepository.update(existingUser.user_id, {
+        last_login: new Date(),
+      });
+
       // 既存のリフレッシュトークンを確認
       const existingToken = await refreshTokenRepository.findOne({
         where: { user: { user_id: existingUser.user_id }, device_id: deviceId },
       });
-  
+
       // 1⃣リフレッシュトークンがない場合
       if (!existingToken) {
         console.log('ログイン：リフレッシュトークンを作成');
         const accessToken = generateAccessToken(existingUser); // アクセストークンを生成
         const refreshToken = generateRefreshToken(existingUser.user_id); // リフレッシュトークンを生成
-  
+
         // 新しいリフレッシュトークンをデータベースに保存
         const newRefreshToken = refreshTokenRepository.create({
           token: refreshToken,
@@ -173,7 +175,7 @@ export class AuthGoogleService {
           device_id: deviceId,
         });
         await refreshTokenRepository.save(newRefreshToken);
-  
+
         // リフレッシュトークンをクッキーに保存
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true, // JavaScriptからアクセス不可
@@ -182,16 +184,16 @@ export class AuthGoogleService {
           path: '/', // すべてのパスで有効
           maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
         });
-  
-        return { accessToken }; 
+
+        return { accessToken };
       }
-  
-      // 2⃣リフレッシュトークンがある場合　※たぶんいらない（ログアウト時リフレッシュトークン削除する為）
+
+      // 2⃣リフレッシュトークンがある場合　（別デバイスログインなど？）
       if (existingToken) {
         // リフレッシュトークンを渡してアクセストークンを再発行
         const { accessToken, refreshToken } =
           await tokenService.refreshAccessToken(existingToken.token); //期限検証,必要に応じて更新
-  
+
         // 新しいリフレッシュトークンをクッキーに保存
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
@@ -200,10 +202,10 @@ export class AuthGoogleService {
           path: '/',
           maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
         });
-  
-        return { accessToken }; 
+
+        return { accessToken };
       }
-  
+
       // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
       throw new Error('予期せぬエラーが発生しました');
     } catch (error) {

@@ -61,43 +61,91 @@ export const useUserStore = defineStore('user', {
         'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     },
 
-        /**
+    /**
      * オーナー確認
      * @param routeuserNumber
      * @returns
      */
-        checkOwner(routeuserNumber: string | string[]) {
-          if (this.useuserNumber == routeuserNumber) {
-            return true;
-          } else {
-            return false;
-          }
-        },
-
+    checkOwner(routeuserNumber: string | string[]) {
+      if (this.useuserNumber == routeuserNumber) {
+        return true;
+      } else {
+        return false;
+      }
+    },
 
     // メールログイン・ログアウト-------------------------------------------------------------------------
     /**
-     * API:メールアドレス＋パスワードでユーザー登録
+     * API: メールアドレスで仮登録
+     * @param email
+     * @returns エラーメッセージ（エラー時）
+     */
+    async registerWithEmail(email: string): Promise<string | void> {
+      try {
+        // 仮登録APIにリクエストを送信
+        await apiClient.post(`${apiBaseUrl}/auth/register-with-email`, {
+          email,
+        });
+
+        // 成功時は何も返さない
+        return;
+      } catch (error) {
+        const err = error as any; // error を any 型にキャスト
+
+        // エラーメッセージを抽出
+        let errorMessage = '仮登録に失敗しました。再度お試しください。'; // デフォルトのエラーメッセージ
+
+        if (err.response && err.response.data && err.response.data.error) {
+          // APIからのエラーメッセージを取得
+          errorMessage = err.response.data.error;
+        } else if (err.message) {
+          // ネットワークエラーなどのメッセージを取得
+          errorMessage = err.message;
+        }
+
+        // エラーメッセージを返す
+        return errorMessage;
+      }
+    },
+
+    /**
+     * API: ワンパス認証コードの検証と本登録
      * @param email
      * @param password
+     * @param authCode
      */
-    async registerWithEmail(email: string, password: string): Promise<void> {
-      const deviceId = getDeviceId();
-      try {
-        const response = await apiClient.post<{ token: string }>(
-          `${apiBaseUrl}/auth/register-with-email`,
-          {
-            email,
-            password,
-            deviceId,
-          }
-        );
-        // 返されたアクセストークンをローカルストレージに保存
-        localStorage.setItem('accessToken', response.data.token);
-        this.setToken(response.data.token);
+    async verifyEmail(
+      email: string,
+      password: string,
+      authCode: string
+    ): Promise<void> {
+      const deviceId = getDeviceId(); // デバイスIDを取得
 
+      try {
+        // 本登録APIにリクエストを送信
+        const response = await apiClient.post<{
+          accessToken: string;
+          refreshToken: string;
+        }>(`${apiBaseUrl}/auth/verify-and-complete-registration`, {
+          email,
+          password,
+          code: authCode,
+          deviceId,
+        });
+
+        // アクセストークンとリフレッシュトークンを保存
+        localStorage.setItem('accessToken', response.data.accessToken);
+
+        // ストアにトークンをセット
+        this.setToken(response.data.accessToken);
+
+        // 成功メッセージを表示
+        alert('本登録が完了しました。ログインしました。');
       } catch (error) {
-        console.error('メール登録エラー:', error);
+        console.error('本登録エラー:', error);
+        alert(
+          '本登録に失敗しました。認証コードまたはパスワードを確認してください。'
+        );
       }
     },
 
@@ -109,7 +157,7 @@ export const useUserStore = defineStore('user', {
     async loginWithEmail(email: string, password: string): Promise<void> {
       const deviceId = getDeviceId();
       try {
-        const response = await apiClient.post<tokenandmess>(
+        const response = await apiClient.post(
           `${apiBaseUrl}/auth/login-with-email`,
           {
             email,
@@ -117,31 +165,29 @@ export const useUserStore = defineStore('user', {
             deviceId,
           }
         );
+        console.log(response.data.token.accessToken);
         // 返されたアクセストークンをローカルストレージに保存
-        localStorage.setItem('accessToken', response.data.token);
-        this.setToken(response.data.token); // トークンを保存
-      } catch (error) {
-        console.error('メールアドレスまたはパスワードが間違っています:', error);
+        localStorage.setItem('accessToken', response.data.token.accessToken);
+        this.setToken(response.data.token.accessToken); // トークンを保存
+      } catch (error: any) {
         throw new Error('メールアドレスまたはパスワードが間違っています');
       }
     },
 
-        /**
+    /**
      * ログアウト処理
      */
-        async logout() {
-          try {
-            await apiClient.post(`${apiBaseUrl}/auth/logout`);
-            // 削除処理
-            this.clearToken();
-            this.menuFetched = false;
-            router.push('/');
-          } catch (error) {
-            console.error('ログアウトに失敗しました:', error);
-          }
-        },
-
-    
+    async logout() {
+      try {
+        await apiClient.post(`${apiBaseUrl}/auth/logout`);
+        // 削除処理
+        this.clearToken();
+        this.menuFetched = false;
+        router.push('/');
+      } catch (error) {
+        console.error('ログアウトに失敗しました:', error);
+      }
+    },
 
     // メニュー＋レイアウト-------------------------------------------------------------------------
     /**
@@ -230,7 +276,6 @@ export const useUserStore = defineStore('user', {
         deleteiconurl = this.useuseruserIcon;
         const userNumber = Number(this.useuserNumber);
         const result = await convertToURL(uploadFile, userNumber, 'user');
-        const icon_object_key = result.objectKey;
         newiconurl = result.cdnUrl; // 新しい画像をセット
       }
 

@@ -1,7 +1,6 @@
 <template>
   <!-- <MenuBar /> -->
   <TopBar />
-  <div class="horizontal-divider"></div>
   <div class="home">
     <div class="field">
       <!-- データがない場合 -->
@@ -210,6 +209,7 @@ const formatDate = (dateArray: string[] | null): string => {
 @import url('https://fonts.googleapis.com/css?family=Oswald|Roboto:400,700');
 
 .home {
+  margin-top: 30px;
   position: relative;
   padding-bottom: 80px;
   display: flex;
@@ -217,28 +217,7 @@ const formatDate = (dateArray: string[] | null): string => {
   align-items: center; /* 子要素を水平方向の中央に */
   justify-content: center; /* 子要素を垂直方向の中央に */
 }
-.horizontal-divider {
-  position: fixed;
-  top: 32px;
-  margin-left: -100%;
-  width: 250%;
-  position: fixed;
-  height: 10px; /* 線の太さ */
-  background-color: var(--page-accent); /* 線の色 */
-  z-index: 199;
-}
-.horizontal-divider::before {
-  content: ''; /* 必須: 疑似要素を表示 */
-  position: absolute; /* 親要素内に固定配置 */
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('../src/assets/texture.jpg'); /* テクスチャ画像 */
-  background-size: cover; /* 画像を全体にフィット */
-  background-position: center; /* 中央揃え */
-  opacity: 0.1; /* テクスチャの透明度20% */
-  z-index: -1;
-}
+
 .field {
   display: flex;
   flex-direction: column; /* 縦並び */
@@ -251,6 +230,7 @@ const formatDate = (dateArray: string[] | null): string => {
 .main-history {
   width: 100%;
   max-width: 700px; /* コンテンツの最大幅を設定 */
+  padding: 10px;
 }
 .prof-field {
   padding-top: 45px;

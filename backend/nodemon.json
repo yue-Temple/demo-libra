@@ -1,0 +1,7 @@
+{
+    "watch": ["src"],
+    "ext": "ts",
+    "ignore": ["node_modules", "dist"],
+    "exec": "cross-env NODE_ENV=development ts-node src/app.ts"
+  }
+  

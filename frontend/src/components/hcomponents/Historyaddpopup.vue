@@ -83,7 +83,7 @@
                 class="delete"
                 type="button"
               >
-                <b>消去</b>
+                <b>削除</b>
               </button>
               <!-- 追加ボタン -->
               <button
