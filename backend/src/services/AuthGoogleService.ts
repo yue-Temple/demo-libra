@@ -92,7 +92,7 @@ export class AuthGoogleService {
       // リフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true, // JavaScriptからアクセス不可
-        secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
+        secure: true, // HTTPSのみ
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none', // 開発環境ではクロスサイトを許可
         path: '/', // すべてのパスで有効
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
@@ -179,7 +179,7 @@ export class AuthGoogleService {
         // リフレッシュトークンをクッキーに保存
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: true,
           sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
           path: '/',
           maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
@@ -197,7 +197,7 @@ export class AuthGoogleService {
         // 新しいリフレッシュトークンをクッキーに保存
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: true,
           sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
           path: '/',
           maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効

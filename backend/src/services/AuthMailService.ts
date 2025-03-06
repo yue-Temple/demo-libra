@@ -144,7 +144,7 @@ export class AuthMailService {
       // リフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
         path: '/',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
@@ -225,7 +225,7 @@ export class AuthMailService {
       // リフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
         path: '/',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
@@ -244,7 +244,7 @@ export class AuthMailService {
       // 新しいリフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
         path: '/',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
