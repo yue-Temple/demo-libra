@@ -78,13 +78,13 @@
             </button>
           </li>
           <li>
-            <button @click="">未実装：ギャラリーブロック</button>
+            <button @click="">未実装:ギャラリーブロック</button>
           </li>
           <li>
-            <button @click="">未実装</button>
+            <button @click="">未実装:パスワード付きテキストブロック</button>
           </li>
           <li>
-            <button @click="">未実装</button>
+            <button @click="">未実装:ワンクッション付きテキストブロック</button>
           </li>
         </ul>
       </div>

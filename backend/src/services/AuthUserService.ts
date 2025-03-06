@@ -8,7 +8,7 @@ import { generateAccessToken } from './AuthTokenService';
  * @param user_id
  * @param user_name
  * @param user_icon
- * @returns token
+ * @returns newtoken
  */
 export async function saveUser(
   user_id: string,
@@ -17,16 +17,23 @@ export async function saveUser(
 ): Promise<string> {
   const userRepository = AppDataSource.getRepository(User);
   const user = await userRepository.findOneBy({ user_id });
+  
 
   if (!user) {
     throw new Error('ユーザーが見つかりません');
   }
-
+  
   // 上書き保存
   if (user.user_name != user_name) user.user_name = user_name;
   if (user.user_icon != user_icon) user.user_icon = user_icon;
-  await userRepository.save(user);
 
+  try{
+    await userRepository.save(user);
+  }catch(error){
+    console.error("DB保存失敗:", error); // エラーオブジェクトを出力
+    throw new Error('保存失敗');   
+  }
+  
   const token = generateAccessToken(user);
 
   return token;

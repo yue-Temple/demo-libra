@@ -18,7 +18,9 @@
       <ul>
         <li @click="goToMypage"><i class="pi pi-home"></i>　マイページ</li>
         <li @click="goToUserConfig"><i class="pi pi-cog"></i>　ユーザー設定</li>
-        <li @click="goToHelp"><i class="pi pi-question-circle"></i>　ヘルプ（使い方）</li>
+        <li @click="goToHelp">
+          <i class="pi pi-question-circle"></i>　ヘルプ（使い方）
+        </li>
         <li @click="logout"><i class="pi pi-sign-out"></i>　ログアウト</li>
       </ul>
     </div>

@@ -1,15 +1,15 @@
 import express from 'express';
 import { saveProfile, getProfileBlocks } from '../services/ProfileService';
 import {
-  deleteBlocksImages,
-  oldFilesDeleteFromR2,
+  getdeleteBlocksImageKeys,
+  deleteMultipleFromR2,
 } from '../services/R2Service';
 
 const router = express.Router();
 
 // プロフィールの保存エンドポイント
 router.post('/saveprofile', async (req, res) => {
-  const { userNumber, newblocks, deleteblocks, old_object_keys } = req.body;
+  const { userNumber, newblocks, deleteblocks, old_image_urls } = req.body;
 
   // 入力データのバリデーション
   if (!userNumber || !newblocks || !Array.isArray(newblocks)) {
@@ -18,12 +18,14 @@ router.post('/saveprofile', async (req, res) => {
 
   try {
     // ストレージサービスから画像削除の処理
-    if (deleteblocks) {
-      deleteBlocksImages(deleteblocks);
+    if (deleteblocks || old_image_urls) {
+      const deleteKeys = await getdeleteBlocksImageKeys(
+        deleteblocks,
+        old_image_urls
+      );
+      deleteMultipleFromR2(deleteKeys);
     }
-    if (old_object_keys) {
-      oldFilesDeleteFromR2(old_object_keys);
-    }
+
     // 他、保存
     const result = await saveProfile(userNumber, newblocks);
     if (result.success) {

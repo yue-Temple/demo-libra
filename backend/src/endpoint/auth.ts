@@ -7,6 +7,8 @@ import { AuthTokenService, logout } from '../services/AuthTokenService';
 import { deleteFromR2 } from '../services/R2Service';
 import { saveUser } from '../services/AuthUserService';
 import { AuthPassResetService } from '../services/AuthPassResetService';
+import { deleteUseraccount } from '../services/UserService';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -260,12 +262,15 @@ router.post('/logout', async (req, res) => {
 
 // ★保存--------------------------------------------------------------------------------------------------------------------------------------------
 // ユーザーデータ保存APIエンドポイント
-router.post('/user-save', async (req, res) => {
+router.post('/user-save'
+  ,authenticateToken, // トークン検証ミドルウェア
+   async (req, res) => {
   try {
     const { user_id, user_name, user_icon, delete_iconurl } = req.body;
-
+    console.log(user_id, user_name, user_icon)
+          
     // saveUser メソッドを呼び出してユーザーデータを保存
-    const token = await saveUser(user_id, user_name, user_icon);
+    const newtoken = await saveUser(user_id, user_name, user_icon);
 
     // 旧R2データを削除
     if (delete_iconurl) {
@@ -279,13 +284,45 @@ router.post('/user-save', async (req, res) => {
     // 成功レスポンスを返す
     res.status(200).json({
       message: 'ユーザーデータ保存成功',
-      token,
+      newtoken,
     });
   } catch (error) {
     res.status(500).json({
       message: 'ユーザーデータ保存に失敗しました',
       error: (error as Error).message,
     });
+  }
+});
+
+/**
+ * ユーザーアカウント削除エンドポイント
+ * @param req - リクエストオブジェクト
+ * @param res - レスポンスオブジェクト
+ */
+router.delete('/user-delete',
+  authenticateToken, // トークン検証ミドルウェア
+  async (req: Request, res: Response) => {
+
+  try { 
+    // ミドルウェアで検証済みのユーザー ID を使用
+    const user_id = req.body.user_id;
+
+    // ユーザーアカウント削除関数を呼び出し
+    await deleteUseraccount(user_id)
+
+    // 成功レスポンスを返す
+    res.status(200).json({ message: 'アカウント削除が完了しました' });
+  } catch (error) {
+    console.error('アカウント削除中にエラーが発生しました:', error);
+
+    // エラーレスポンスを返す
+    if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res
+        .status(500)
+        .json({ message: 'アカウント削除中に不明なエラーが発生しました' });
+    }
   }
 });
 

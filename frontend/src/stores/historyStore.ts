@@ -29,7 +29,6 @@ export const useHistoryStore = defineStore('history', {
         // 画像データが存在すれば、URL化処理
         if (uploadFile != null) {
           const result = await convertToURL(uploadFile, userNumber, 'history');
-          newHistory.image_object_key = result.objectKey;
           newHistory.imgURL = result.cdnUrl;
         }
 
@@ -38,7 +37,7 @@ export const useHistoryStore = defineStore('history', {
         });
 
         // ストア更新
-        this.histories.push(newHistory);
+        this.histories.unshift(newHistory);
       } catch (error) {
         console.error('卓歴の追加に失敗しました', error);
         this.histories = this.histories.filter(
@@ -55,18 +54,17 @@ export const useHistoryStore = defineStore('history', {
     async updateHistory(
       updateHistoryContent: HistoryContainer,
       uploadFile: File | null,
-      old_image_object_key: string
+      old_imageURL: string
     ): Promise<void> {
       const userNumber = getuseUserNumber();
-      let old_object_key = null;
+      let old_image_url = null;
 
       try {
         // 画像データが存在すれば、URL化処理
         if (uploadFile != null) {
           const result = await convertToURL(uploadFile, userNumber, 'history');
-          updateHistoryContent.image_object_key = result.objectKey;
           updateHistoryContent.imgURL = result.cdnUrl;
-          old_object_key = old_image_object_key; // 画像データがある時のみ破棄データが発生する
+          old_image_url = old_imageURL; // 画像データがある時のみ破棄データが発生する
         }
 
         const index = this.histories.findIndex(
@@ -80,7 +78,7 @@ export const useHistoryStore = defineStore('history', {
           `${apiBaseUrl}/hist/updatehistories/${userNumber}`,
           {
             updateHistoryContent: updateHistoryContent,
-            old_object_key: old_object_key,
+            image_url: old_image_url,
           }
         );
       } catch (error) {
@@ -93,15 +91,15 @@ export const useHistoryStore = defineStore('history', {
      * API:ヒストリプロフィールを保存
      * @param historyId
      * @param newblocks
-     * @param deleteblocks
-     * @param old_object_keys
+     * @param deleteblocks - 削除されたブロック
+     * @param old_image_urls - 上書きで発生した古い画像のURL
      * @returns
      */
     async savehistProfile(
       historyId: string,
       newblocks: InfoBlock[],
       deleteblocks: InfoBlock[],
-      old_object_keys: string[]
+      old_image_urls: string[]
     ): Promise<InfoBlock[]> {
       const userNumber = getuseUserNumber();
       const kind = 'historyprofile';
@@ -120,7 +118,7 @@ export const useHistoryStore = defineStore('history', {
           {
             newblocks: processedAddBlocks,
             deleteblocks: deleteblocks,
-            old_object_keys: old_object_keys,
+            old_image_urls: old_image_urls,
           }
         );
 
@@ -217,9 +215,9 @@ export const useHistoryStore = defineStore('history', {
     /**
      *  API:記録を削除
      * @param historyId
-     * @param delete_image_object_key
+     * @param delete_imageURL
      */
-    async deleteHistory(historyId: string, delete_image_object_key: string) {
+    async deleteHistory(historyId: string, delete_imageURL: string) {
       const userNumber = getuseUserNumber();
       try {
         // フロントエンドの状態から記録を削除
@@ -231,7 +229,7 @@ export const useHistoryStore = defineStore('history', {
         await apiClient.delete(
           `${apiBaseUrl}/hist/histories/${userNumber}/${historyId}`,
           {
-            data: { delete_image_object_key },
+            data: { delete_imageURL },
           }
         );
       } catch (error) {

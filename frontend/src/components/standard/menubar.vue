@@ -1,14 +1,30 @@
 <template>
-  <nav>
+  <!-- 利用者向け表示 -->
+  <nav v-if="isOwner">
     <ul>
       <li
-        v-for="(feature, index) in sortedFeatures"
+        v-for="(feature, index) in sortedFeaturesForOwner"
         :key="index"
         :class="{ current: isCurrentPage(feature.name) }"
       >
         <router-link :to="`/${userNumber}/` + feature.name">{{
           feature.title
         }}</router-link>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- 他ユーザー向け表示 -->
+  <nav v-else>
+    <ul>
+      <li
+        v-for="(feature, index) in sortedFeaturesForOther"
+        :key="index"
+        :class="{ current: isCurrentPage(feature.name) }"
+      >
+        <router-link :to="`/${userNumber}/` + feature.name">
+          {{ feature.title }}
+        </router-link>
       </li>
     </ul>
   </nav>
@@ -24,17 +40,27 @@ const route = useRoute();
 const userStore = useUserStore();
 // URLのパラメータからuserNumberを取得
 const userNumber = Number(route.params.userNumber);
+// オーナー確認
+const isOwner = Number(userStore.useuserNumber) == userNumber;
 
 // 現在のページがメニューの名前を含んでいるかどうかを確認
 const isCurrentPage = (featureName: string): boolean => {
   return route.path.includes(featureName);
 };
 
-// sortedFeatures を computed で定義して型を明示的に指定
-const sortedFeatures = computed<Features[]>(() => {
-  return userStore.features // ストアからデータを取得
-    .filter((feature: Features) => feature.value !== 0)
-    .sort((a, b) => a.value - b.value);
+// メニューの並び替え
+const sortedFeaturesForOwner = computed<Features[]>(() => {
+  return userStore.features
+    .filter((feature) => Math.floor((feature.value % 100) / 10) !== 0)
+    .sort(
+      (a, b) =>
+        Math.floor((a.value % 100) / 10) - Math.floor((b.value % 100) / 10)
+    );
+});
+const sortedFeaturesForOther = computed<Features[]>(() => {
+  return userStore.features
+    .filter((feature) => feature.value % 10 !== 0)
+    .sort((a, b) => (a.value % 10) - (b.value % 10));
 });
 </script>
 

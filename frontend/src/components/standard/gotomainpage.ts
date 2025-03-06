@@ -30,8 +30,12 @@ export const goToMainPage = async (
       // ストアからメニューデータを取得
       const menuSettings: Features[] = userStore.features;
 
-      // メインページ（value が 1 の機能）を探す
-      const mainPage = menuSettings.find((feature) => feature.value === 1);
+      // メインページ（value の10の位が 1 の機能）を探す
+      const mainPage = menuSettings.find((feature) => {
+        const tensPlace = Math.floor((feature.value % 100) / 10); // 10の位を取得
+        return tensPlace === 1; // 10の位が1かどうかをチェック
+      });
+
       if (!mainPage) {
         return;
       }

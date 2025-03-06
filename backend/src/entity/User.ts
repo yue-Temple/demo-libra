@@ -28,8 +28,8 @@ export class User {
   @Column({ type: 'varchar', length: 50, nullable: true })
   user_email: string | null;
 
-  @Column({ type: 'varchar', length: 255 })
-  user_icon: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  user_icon: string | null;
 
   @Column({ type: 'varchar', length: 60, nullable: true })
   password: string | null;

@@ -1,11 +1,16 @@
 import { InfoBlock, ButtonBlock, TextButton } from '@sharetypes';
 
-// old_object_key 配列を作成する関数
-export const getOldObjectKeys = (
+/**
+ * old_image_url 配列を作成する関数
+ * @param newBlocks
+ * @param oldBlocks
+ * @returns
+ */
+export const getOldImageurls = (
   newBlocks: InfoBlock[],
   oldBlocks: InfoBlock[]
 ): string[] => {
-  const old_object_keys: string[] = [];
+  const old_image_urls: string[] = [];
 
   // oldBlocks を id をキーとしたマップに変換
   const oldBlocksMap = new Map<string, InfoBlock>();
@@ -32,9 +37,9 @@ export const getOldObjectKeys = (
           if (oldButton) {
             // image_url が更新された場合
             if (newButton.image_url !== oldButton.image_url) {
-              // oldButton の image_object_key を old_object_keys 配列に追加
-              if (oldButton.image_object_key) {
-                old_object_keys.push(oldButton.image_object_key);
+              // oldButton の image_url を old_image_urls 配列に追加
+              if (typeof oldButton.image_url === 'string') {
+                old_image_urls.push(oldButton.image_url);
               }
             }
           }
@@ -54,9 +59,9 @@ export const getOldObjectKeys = (
         if (oldButton) {
           // image_url が更新された場合
           if (newButton.image_url !== oldButton.image_url) {
-            // oldButton の image_object_key を old_object_keys 配列に追加
-            if (oldButton.image_object_key) {
-              old_object_keys.push(oldButton.image_object_key);
+            // oldButton の image_url を old_image_urls 配列に追加
+            if (typeof oldButton.image_url === 'string') {
+              old_image_urls.push(oldButton.image_url);
             }
           }
         }
@@ -64,5 +69,5 @@ export const getOldObjectKeys = (
     }
   });
 
-  return old_object_keys;
+  return old_image_urls;
 };

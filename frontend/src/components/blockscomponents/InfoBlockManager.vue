@@ -213,7 +213,6 @@ const handleAddBlock = (block: {
               title_color: null,
               link_url: null,
               image_url: null,
-              image_object_key: null,
               icon_url: null,
             })
           )
@@ -236,7 +235,6 @@ const handleAddBlock = (block: {
           title_color: null,
           link_url: null,
           image_url: null,
-          image_object_key: null,
           icon_url: null,
         },
         content: '',

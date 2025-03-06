@@ -18,7 +18,7 @@ export interface userData{
   user_role: string | null;
   user_email: string | null;
   user_google: string | null;
-  user_icon: string; 
+  user_icon: string | null; 
 };
 
 // メニュー|利用機能の設定データ型
@@ -83,7 +83,6 @@ export interface Button {
   title_color: string | null;
   link_url: string | null;
   image_url: string  | File | null;
-  image_object_key: string | null;
   icon_url: string | null;
 }
 
@@ -115,7 +114,6 @@ export interface HistoryContainer {
   system:string | null;
   report:string | null;
   imgURL:string | File | null;
-  image_object_key: string | null;
   private:boolean;
   childblock:InfoBlock[] | [];
 }
@@ -129,7 +127,6 @@ export interface saveHistoryContainer {
   system:string | null;
   report:string | null;
   imgURL:string | null;
-  image_object_key: string | null;
   private:boolean;
   childblock:InfoBlock[] | [];
 }

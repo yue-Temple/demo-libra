@@ -2,9 +2,9 @@ import express, { Request, Response } from 'express';
 import { HistoryService } from '../services/HistoryService';
 import { HistorygetService } from '../services/HistorygetService';
 import {
-  deleteBlocksImages,
+  getdeleteBlocksImageKeys,
   deleteFromR2,
-  oldFilesDeleteFromR2,
+  deleteMultipleFromR2,
 } from '../services/R2Service';
 
 const router = express.Router();
@@ -41,14 +41,14 @@ router.post(
 /**
  * ヒストリ更新APIのエンドポイント
  * PUT /histories/:userNumber
- * Request Body: { updateHistoryContent: HistoryContainer, old_image_object_key: string }
+ * Request Body: { updateHistoryContent: HistoryContainer, image_url: string }
  */
 router.put(
   '/updatehistories/:user_number',
   async (req: Request, res: Response) => {
     try {
       const user_number = parseInt(req.params.user_number, 10);
-      const { updateHistoryContent, old_object_key } = req.body;
+      const { updateHistoryContent, image_url } = req.body;
 
       if (!user_number || !updateHistoryContent) {
         console.log('koko');
@@ -59,7 +59,7 @@ router.put(
 
       await historyService.updateHistory(user_number, updateHistoryContent);
       // 旧R2データを削除
-      if (old_object_key) deleteFromR2(old_object_key);
+      if (image_url) deleteFromR2(image_url);
 
       res.status(200).json({ message: 'History updated successfully' });
     } catch (error) {
@@ -80,7 +80,7 @@ router.put(
     try {
       const userNumber = parseInt(req.params.userNumber, 10);
       const historyId = req.params.historyId;
-      const { newblocks, deleteblocks, old_object_keys } = req.body;
+      const { newblocks, deleteblocks, old_image_urls } = req.body;
 
       if (!userNumber || !newblocks) {
         return res
@@ -89,8 +89,13 @@ router.put(
       }
 
       // 削除画像の処理
-      if (deleteblocks) deleteBlocksImages(deleteblocks);
-      if (old_object_keys) oldFilesDeleteFromR2(old_object_keys);
+      if (deleteblocks || old_image_urls) {
+        const deleteKeys = await getdeleteBlocksImageKeys(
+          deleteblocks,
+          old_image_urls
+        );
+        deleteMultipleFromR2(deleteKeys);
+      }
 
       await historyService.updateHistoryProfile(
         userNumber,
@@ -109,7 +114,7 @@ router.put(
  * 卓歴削除APIのエンドポイント
  * DELETE /histories/:user_number/:historyId
  * URL Params: user_number, historyId
- * body:data: { delete_image_object_key }
+ * body:data: { delete_imageURL }
  */
 router.delete(
   '/histories/:userNumber/:historyId',
@@ -117,7 +122,7 @@ router.delete(
     try {
       const userNumber = parseInt(req.params.userNumber, 10);
       const historyId = req.params.historyId;
-      const { delete_image_object_key } = req.body;
+      const { delete_imageURL } = req.body;
 
       if (!userNumber || !historyId) {
         return res
@@ -126,7 +131,7 @@ router.delete(
       }
 
       // ストレージサービスから画像削除の処理
-      if (delete_image_object_key) deleteFromR2(delete_image_object_key);
+      if (delete_imageURL) deleteFromR2(delete_imageURL);
 
       await historyService.deleteHistory(userNumber, historyId);
       res.status(200).json({ message: 'History deleted successfully' });

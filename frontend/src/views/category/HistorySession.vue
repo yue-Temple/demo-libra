@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <TopBar />
-    <MenuBar :menu="userStore.features" />
+    <MenuBar />
     <!-- 追加画面 -->
     <Historyaddpopup
       v-if="isEditPopupVisible"
@@ -147,21 +147,23 @@ const sortBy = ref(); // 'ASC' | 'DESC'
 const serchdate = ref<string | null>(null);
 const serchtitle = ref<string | null>(null);
 
-onMounted(() => {
-  // 初期データ取得
-  sortedHistories.value = [...historyStore.getHistories];
-  // コンポーネントがマウントされたときにスクロール位置を復元
-  restoreScrollPosition();
-  // スクロールイベントのリスナーを追加
-  window.addEventListener('scroll', saveScrollPosition);
-  // モバイル判定
-  checkIfMobile();
-  window.addEventListener('resize', checkIfMobile); // リサイズ時の監視
-});
-
 onMounted(async () => {
   // メニュー取得確認
   await userStore.fetchFeatures(Number(route.params.userNumber));
+
+  // 非公開ページ検証
+  if (
+    userStore.features[1].value.toString().startsWith('9') &&
+    (userStore.useuserNumber != route.params.userNumber)
+  ) {
+    router.push({
+      path: '/not-found',
+      query: { message: '非公開のページです。' },
+    });
+  }else{
+    // 初期データ取得
+    sortedHistories.value = [...historyStore.getHistories];
+  }
 
   // 無限スクロールのトリガー
   const observer = new IntersectionObserver((entries) => {
@@ -179,6 +181,14 @@ onMounted(async () => {
   if (loader.value) {
     observer.observe(loader.value);
   }
+
+  // コンポーネントがマウントされたときにスクロール位置を復元
+  restoreScrollPosition();
+  // スクロールイベントのリスナーを追加
+  window.addEventListener('scroll', saveScrollPosition);
+  // モバイル判定
+  checkIfMobile();
+  window.addEventListener('resize', checkIfMobile); // リサイズ時の監視
 });
 
 // ストアの histories が変更されたら sortedHistories を更新
@@ -225,9 +235,9 @@ router.beforeEach((to, from, next) => {
 });
 
 // ヒストリーブロック削除
-const handleDelete = async (historyId: string, image_object_key: string) => {
+const handleDelete = async (historyId: string, imageURL: string) => {
   try {
-    await historyStore.deleteHistory(historyId, image_object_key); // ストアの histories を更新
+    await historyStore.deleteHistory(historyId, imageURL); // ストアの histories を更新
     sortedHistories.value = sortedHistories.value.filter(
       (history) => history.id !== historyId
     ); // 表示用のデータも更新
@@ -246,7 +256,6 @@ const openPopup = () => {
     system: '',
     report: '',
     imgURL: '',
-    image_object_key: '',
     private: false,
     childblock: [],
   };
@@ -493,7 +502,7 @@ h1 {
   margin-left: 0.8rem;
   padding-top: 0;
   padding-bottom: 0.3rem;
-  width: 85dvw;
+  width: 90%;
   max-height: 30dvh;
 }
 .imgbox img {

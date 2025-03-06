@@ -1,17 +1,38 @@
 <template>
   <h2>メニューバー設定</h2>
+  <!-- Features Guide -->
+  <div class="features-guide">
+    左から1~9の番号順に並びます。<br />
+    1に設定したページがあなたのメインページになります。<br />
+    0に設定したページはメニューバーに追加されません。<br />
+
+  </div>
+  <br />
+  ページ｜自分用｜他ユーザー｜タイトル｜アクセス
   <div class="features-settings" v-if="featuresFromDB.length > 0">
     <div v-for="(label, index) in labels" :key="index" class="feature">
-      <span>{{ label }}</span>
+      <span class="pagetitle">{{ label }}</span>
+      <!-- 自分視点の入力（10の位） -->
       <input
         type="number"
         min="0"
-        v-model="featuresFromDB[index].value"
+        max="9"
+        v-model="selfViewValues[index]"
         :disabled="isDisabled(featuresFromDB[index].name)"
         class="value-input"
-        @input="handleChange"
+        @input="handleChange(index)"
       />
-
+      <!-- 他ユーザー視点の入力（1の位） -->
+      <input
+        type="number"
+        min="0"
+        max="9"
+        v-model="otherViewValues[index]"
+        :disabled="isDisabled(featuresFromDB[index].name)"
+        class="value-input"
+        @input="handleChange(index)"
+      />
+      <!-- タイトル入力 -->
       <input
         type="text"
         v-model="featuresFromDB[index].title"
@@ -20,32 +41,48 @@
         class="title-input"
         @input="handleTitleChange(index, $event)"
       />
-    </div>
-    <span v-if="error" class="error">{{ error }}</span>
-
-    <!-- Features Guide -->
-    <div class="features-guide">
-      0　……利用しない(アクセス可)<br />
-      99 ……非公開(アクセス不可)<br />
-      1~ ……メニューバーに追加(1=メインページ)<br />
+      <!-- アクセス許可/不可ボタン（百の位） -->
+      <button
+        :class="{ active: accessValues[index] === 1 }"
+        @click="toggleAccess(index)"
+        :disabled="
+          isDisabled(featuresFromDB[index].name) || otherViewValues[index] >= 1
+        "
+      >
+        {{ accessValues[index] === 1 ? '許可' : '不可' }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { Features } from '@sharetypes';
 
 // Props の定義
 const props = defineProps<{
   featuresFromDB: Features[];
-  error?: string;
 }>();
 
 // Emit の定義
 const emit = defineEmits<{
   (e: 'change-menu', features: Features[]): void;
 }>();
+
+// 自分視点の値（10の位）
+const selfViewValues = ref<number[]>(
+  props.featuresFromDB.map((f) => Math.floor((f.value % 100) / 10))
+);
+
+// 他ユーザー視点の値（1の位）
+const otherViewValues = ref<number[]>(
+  props.featuresFromDB.map((f) => f.value % 10)
+);
+
+// アクセス許可/不可の値（百の位）
+const accessValues = ref<number[]>(
+  props.featuresFromDB.map((f) => Math.floor(f.value / 100))
+);
 
 // 無効化する条件をチェックする関数 name準拠
 const isDisabled = (name: string) => {
@@ -56,14 +93,33 @@ const isDisabled = (name: string) => {
 watch(
   () => props.featuresFromDB,
   (newFeatures) => {
+    console.log(newFeatures);
     emit('change-menu', newFeatures);
   },
   { deep: true }
 );
 
 // 入力時に変更を通知する
-const handleChange = () => {
+const handleChange = (index: number) => {
+  // 他ユーザー視点の値が1以上の場合、アクセス許可/不可の値を強制的に1（許可）に設定
+  if (otherViewValues.value[index] >= 1) {
+    accessValues.value[index] = 1;
+  }
+
+  // 3桁の数字を結合してvalueを更新 (百の位)+(10の位)+(1の位)
+  props.featuresFromDB[index].value = Number(
+    `${accessValues.value[index]}${selfViewValues.value[index]}${otherViewValues.value[index]}`
+  );
   emit('change-menu', props.featuresFromDB);
+};
+
+// アクセス許可/不可をトグルする
+const toggleAccess = (index: number) => {
+  // 他ユーザー視点の値が1以上の場合、変更を許可しない
+  if (otherViewValues.value[index] >= 1) return;
+
+  accessValues.value[index] = accessValues.value[index] === 1 ? 9 : 1;
+  handleChange(index);
 };
 
 // タイトル入力時の文字数制限を適用する
@@ -97,13 +153,7 @@ const handleTitleChange = (index: number, event: Event) => {
 };
 
 // ※ラベル（※featuresFromDB配列と同じ長さにすること）
-const labels = [
-  'プロフィール',
-  'ヒストリー',
-  '未実装機能',
-  '未実装機能',
-  '未実装機能',
-];
+const labels = ['プロフィール', 'ヒストリー', '未実装', '未実装', '未実装'];
 </script>
 
 <style scoped>
@@ -118,6 +168,7 @@ h2 {
 
 .features-settings {
   margin-top: 10px;
+  width: 100%;
 }
 
 .feature {
@@ -127,7 +178,9 @@ h2 {
 }
 
 .feature span {
-  width: 200px;
+  width: 100px;
+  height: 30px;
+  font-size: 0.8rem;
   font-weight: bold;
 }
 
@@ -136,8 +189,7 @@ h2 {
 }
 
 .title-input {
-  width: 90px;
-  margin-left: 1.5rem;
+  width: 70px;
 }
 
 .feature input:disabled {
@@ -145,7 +197,21 @@ h2 {
   color: #888;
 }
 
-.error {
-  color: red;
+button {
+  margin-left: 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--page-buttontext);
+  background-color: var(--page-button);
+}
+
+button.active {
+  color: var(--page-buttontext);
+  background-color: var(--page-button);
+}
+
+button:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
 }
 </style>

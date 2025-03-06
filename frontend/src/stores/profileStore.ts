@@ -49,7 +49,7 @@ export const useProfileStore = defineStore('profile', {
     async saveProfile(
       newblocks: InfoBlock[],
       deleteblocks: InfoBlock[],
-      old_object_keys: string[]
+      old_image_urls: string[]
     ): Promise<void> {
       const userNumber = getuseUserNumber();
       const kind = 'profile';
@@ -66,7 +66,7 @@ export const useProfileStore = defineStore('profile', {
           userNumber,
           newblocks: processedAddBlocks,
           deleteblocks: deleteblocks,
-          old_object_keys: old_object_keys,
+          old_image_urls: old_image_urls,
         });
 
         // 保存が成功したら、state.profileBlocksを更新

@@ -1,6 +1,6 @@
-// src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwt'; // トークン検証用の関数
+import jwt from 'jsonwebtoken';
+import { secretKey } from '../app'; // secretKey は環境変数などで管理
 
 export const authenticateToken = async (
   req: Request,
@@ -13,18 +13,22 @@ export const authenticateToken = async (
   }
 
   try {
-    const user_id = verifyToken(token); // トークン検証
-    if (!user_id) {
-      return res
-        .status(401)
-        .json({ message: 'Invalid token: Token is expired or malformed' });
-    }
-    req.body.user_id = user_id; // 検証済みのユーザー ID をリクエストオブジェクトに追加
+    // トークンを検証してデコードする
+    const decoded = jwt.verify(token, secretKey) as { user_id: string };
+
+    // トークンに含まれている user_id をリクエストオブジェクトに追加
+    req.body.user_id = decoded.user_id;
+
     next(); // 次のミドルウェアまたはルートハンドラに進む
   } catch (error) {
     console.error('Token verification failed:', error);
-    return res
-      .status(401)
-      .json({ message: 'Invalid token: Token is expired or malformed' });
+
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ message: 'Token has expired' });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: 'Invalid token format or signature' });
+    }
+
+    return res.status(401).json({ message: 'Invalid token: Token is expired or malformed' });
   }
 };

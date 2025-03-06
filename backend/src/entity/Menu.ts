@@ -23,11 +23,11 @@ export class Menu {
   constructor(
     user_number: number = 0,
     feature_value: Features[] = [
-      { name: 'profile', value: 1, title: 'Profile' },
-      { name: 'history', value: 2, title: 'History' },
-      { name: 'chara', value: 0, title: 'Chara' },
-      { name: 'data', value: 0, title: 'Gallery' },
-      { name: 'relation', value: 0, title: 'Relation' },
+      { name: 'profile', value: 111, title: 'Profile' },
+      { name: 'history', value: 122, title: 'History' },
+      { name: 'chara', value: 900, title: 'Chara' },
+      { name: 'data', value: 900, title: 'Gallery' },
+      { name: 'relation', value: 900, title: 'Relation' },
     ],
     layout: string = 'layout1'
   ) {

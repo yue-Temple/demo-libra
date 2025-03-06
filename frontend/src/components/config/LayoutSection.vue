@@ -1,7 +1,7 @@
 <!-- LayoutSelect.vue -->
 <template>
   <div class="selectbuttons">
-    <h2>ページレイアウト選択</h2>
+    <h2>ページレイアウトの変更</h2>
     <!-- ※keyはオブジェクトプロパティ名 -->
     <div
       v-for="(layout, key, index) in themes"

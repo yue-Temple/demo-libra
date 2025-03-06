@@ -60,7 +60,7 @@ import { InfoBlock, HistoryContainer } from '@sharetypes';
 // 子コンポーネント
 import TopBar from '@/components/standard/topbar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
-import { getOldObjectKeys } from '@/rogics/getOldObjectKey';
+import { getOldImageurls } from '@/rogics/getOldImageurls';
 
 // 遷移URLパラメーター
 defineProps({
@@ -125,8 +125,8 @@ const savehprofile = async () => {
       return;
     }
 
-    // old_object_key 配列を作成
-    const old_object_keys = getOldObjectKeys(
+    // old_image_url 配列を作成
+    const old_image_urls = getOldImageurls(
       childInfoBlock.value,
       oldchildInfoBlock.value
     );
@@ -136,7 +136,7 @@ const savehprofile = async () => {
       historyId,
       childInfoBlock.value,
       deleteBlocks.value,
-      old_object_keys
+      old_image_urls
     );
     toast.success('保存しました');
     // 保存後にoldInfoBlockを更新

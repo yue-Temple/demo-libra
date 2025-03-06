@@ -1,15 +1,13 @@
 <template>
   <div class="user-config">
     <Topbar />
-
-    <h1>設定</h1>
-
     <!-- タブ表示 -->
     <Tabs value="0">
       <TabList>
-        <Tab value="0">ユーザー情報</Tab>
-        <Tab value="1">メニューバー</Tab>
+        <Tab value="0">ユーザー設定</Tab>
+        <Tab value="1">メニュー設定</Tab>
         <Tab value="2">レイアウト</Tab>
+        <Tab value="3">ログ出力</Tab>
       </TabList>
       <TabPanels>
         <!-- ユーザー設定タブ -->
@@ -27,7 +25,6 @@
         <TabPanel value="1">
           <FeaturesSettingsSection
             :featuresFromDB="featuresFromDB"
-            :error="error"
             @change-menu="handleMenuChange"
           />
         </TabPanel>
@@ -39,19 +36,28 @@
             @change-layout="handleLayoutChange"
           />
         </TabPanel>
+
+        <!-- ログ出力タブ -->
+        <TabPanel value="3">
+          <h2>未実装</h2>
+          ・ヒストリーデータのExcelデータ出力
+        </TabPanel>
       </TabPanels>
     </Tabs>
+  </div>
 
-    <!-- Save Settings Button -->
-    <button @click="saveSettings">設定を保存</button>
-
-    <!-- Main Page Button -->
-    <MainPageButton />
+  <!-- Save Settings Button -->
+  <div class="save-gotomain-button">
+    <p v-if="error" class="error">{{ error }}</p>
+    <button @click="saveSettings"><i class="pi pi-save">変更を保存</i></button>
+    <button @click="handleGoToMainPage">
+      <i class="pi pi-home">メインページへ</i>
+    </button>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { onBeforeRouteLeave } from 'vue-router';
+import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useUserStore } from '@/stores/userStore';
 import { useLayoutStore } from '@/stores/layoutStore';
@@ -62,7 +68,6 @@ import Topbar from '@/components/standard/topbar.vue';
 import UserSection from '@/components/config/UserSection.vue';
 import FeaturesSettingsSection from '@/components/config/FeaturesSettingsSection.vue';
 import LayoutSection from '@/components/config/LayoutSection.vue';
-import MainPageButton from '@/components/config/MainPageButton.vue';
 
 // タブコンポーネント
 import Tabs from 'primevue/tabs';
@@ -70,11 +75,13 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
+import { goToMainPage } from '@/components/standard/gotomainpage';
 
 const toast = useToast();
 // ストアの利用
 const userStore = useUserStore();
 const layoutStore = useLayoutStore();
+const router = useRouter();
 const useuserNumber = Number(userStore.useuserNumber);
 
 // 描写データ
@@ -91,6 +98,8 @@ const oldName = ref(userStore.useuserName);
 const oldIcon = ref(userStore.useuseruserIcon);
 const oldFeatures = ref<Features[]>();
 const oldLayout = ref(layoutStore.currentLayout);
+
+defineProps<{ userId: string }>(); // userId を受け取る
 
 onMounted(async () => {
   // メニューデータ取得
@@ -158,22 +167,29 @@ const saveSettings = async () => {
   }
 
   // メニュー設定のバリデーション
-  const mainPageCount = featuresFromDB.value.filter(
-    (feature) => feature.value === 1
-  ).length;
-  const hasNoMainPage = mainPageCount === 0;
+  const tensPlaceValues = featuresFromDB.value.map((feature) =>
+    Math.floor((feature.value % 100) / 10)
+  ); // 10の位の値を取得
+  const onesPlaceValues = featuresFromDB.value.map(
+    (feature) => feature.value % 10
+  ); // 1の位の値を取得
 
-  // 番号の重複がある場合
-  const hasDuplicates =
-    new Set(
-      featuresFromDB.value.filter((f) => f.value !== 0).map((f) => f.value)
-    ).size !== featuresFromDB.value.filter((f) => f.value !== 0).length;
-
-  if (hasNoMainPage) {
-    error.value = ' 1 (メインページ)が設定されていません';
+  // 10の位に1が含まれているかチェック
+  const hasMainPage = tensPlaceValues.includes(1);
+  if (!hasMainPage) {
+    error.value = '1 (メインページ)が設定されていません';
     return;
   }
-  if (hasDuplicates) {
+
+  // 10の位と1の位の重複チェック
+  const hasDuplicatesInTensPlace =
+    new Set(tensPlaceValues.filter((value) => value !== 0)).size !==
+    tensPlaceValues.filter((value) => value !== 0).length;
+  const hasDuplicatesInOnesPlace =
+    new Set(onesPlaceValues.filter((value) => value !== 0)).size !==
+    onesPlaceValues.filter((value) => value !== 0).length;
+
+  if (hasDuplicatesInTensPlace || hasDuplicatesInOnesPlace) {
     error.value = '番号の重複は避けてください';
     return;
   }
@@ -209,6 +225,10 @@ const saveSettings = async () => {
     console.error('設定の保存に失敗しました', error);
     toast.error('設定の保存に失敗しました');
   }
+};
+
+const handleGoToMainPage = () => {
+  goToMainPage(router, null);
 };
 
 // 変更前に戻す処理
@@ -248,17 +268,23 @@ h1 {
 .user-config {
   max-width: 600px;
   margin: auto;
+  margin-top: 60px; /* ヘッダーの高さを避けるために調整 */
   padding: 20px;
+  padding-bottom: 200px;
 }
 
 /* タブのスタイル */
 
 :deep(.p-tabs p-component) {
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 :deep(.p-tab:hover) {
   border-color: #000000 !important;
+}
+:deep(.p-tablist) {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 :deep(.p-tablist-tab-list) {
   position: relative;
@@ -266,7 +292,9 @@ h1 {
   color: var(--page-text);
   border-color: var(--page-text);
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 :deep(.p-tablist-tab-list button) {
   border-color: var(--page-text);
@@ -288,5 +316,22 @@ h1 {
 :deep(.p-tab[aria-selected='true']) {
   background-color: var(--page-button); /* アクティブなタブの背景色 */
   color: var(--page-buttontext); /* アクティブなタブの文字色 */
+}
+
+.save-gotomain-button {
+  position: fixed;
+  right: 8%;
+  bottom: 2%;
+}
+.save-gotomain-button button {
+  margin-left: 10px;
+  padding: 5px;
+  color: var(--page-buttontext);
+  background-color: var(--page-button);
+}
+
+.error {
+  color: red;
+  font-size: 0.8rem;
 }
 </style>

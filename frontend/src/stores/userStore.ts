@@ -3,7 +3,6 @@ import { defineStore } from 'pinia';
 import { jwtDecode } from 'jwt-decode';
 import { useLayoutStore } from './layoutStore';
 import { Features } from '@sharetypes';
-import { tokenandmess } from '@/fronttype';
 import { apiClient } from './apiClient';
 import { convertToURL } from '@/rogics/imageProcess';
 import { getDeviceId } from '@/rogics/uuid';
@@ -195,9 +194,9 @@ export const useUserStore = defineStore('user', {
      * @param userNumber
      */
     async fetchFeatures(userNumber: number): Promise<void> {
-      if (this.menuFetched) {
-        return;
-      }
+      // キャッシュがあれば終了
+      if (this.menuFetched) return;
+
       try {
         const response = await apiClient.get<{
           features: Features[];
@@ -225,6 +224,7 @@ export const useUserStore = defineStore('user', {
       newFeatures: Features[],
       newLayout: string
     ): Promise<void> {
+      console.log(newFeatures);
       try {
         const response = await apiClient.post<{
           newFeatures: Features[];
@@ -280,7 +280,10 @@ export const useUserStore = defineStore('user', {
       }
 
       try {
-        const response = await apiClient.post<tokenandmess>(
+        const response = await apiClient.post<{
+          newtoken: string;
+          messege: string;
+        }>(
           `${apiBaseUrl}/Auth/user-save`,
           {
             user_id: id,
@@ -297,13 +300,32 @@ export const useUserStore = defineStore('user', {
         );
 
         // トークンを更新
-        this.token = response.data.token;
-        localStorage.setItem('accessToken', response.data.token);
-        this.setToken(response.data.token);
+        this.token = response.data.newtoken;
+        localStorage.setItem('accessToken', response.data.newtoken);
+        this.setToken(response.data.newtoken);
 
-        console.log('設定が保存されました', response.data);
+        console.log('設定が保存されました');
       } catch (error) {
         console.error('設定の保存に失敗しました', error);
+        throw error;
+      }
+    },
+
+    /**
+     * アカウント削除
+     */
+    async deleteAccount(): Promise<void> {
+      try {
+        await apiClient.delete<void>(`${apiBaseUrl}/auth/user-delete`, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            'Content-Type': 'application/json', // JSON形式で送信
+          },
+        });
+
+        console.log('アカウント削除完了');
+      } catch (error) {
+        console.error('アカウントの削除に失敗しました', error);
         throw error;
       }
     },

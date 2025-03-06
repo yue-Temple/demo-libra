@@ -38,6 +38,7 @@ import { goToMainPage } from '@/components/standard/gotomainpage'; // 関数を�
 const router = useRouter();
 const userStore = useUserStore();
 
+window.scrollTo(0, 0);
 // 「始める」ボタンを押したときの遷移処理
 const handleGoToMainPage = () => {
   checkLogin();
@@ -56,7 +57,6 @@ const checkLogin = () => {
 </script>
 
 <style scoped>
-
 /* トップ画面＋フッター */
 .container {
   position: relative; /* 相対位置を設定 */

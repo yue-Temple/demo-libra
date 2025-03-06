@@ -1,15 +1,29 @@
 <template>
   <Topbar />
-  <div class="horizontal-divider"></div>
 
   <div class="home">
-    <span class="nopage">存在しないページです。</span>
+    <span v-if="message" class="mess">{{ message }}</span>
+
+    <!-- 戻るボタン -->
+    <button @click="goBack" class="back-btn"><i class="pi pi-arrow-left"></i>　前のページに戻る</button>
   </div>
 </template>
 
 <script setup lang="ts">
 // 子コンポーネント
 import Topbar from '@/components/standard/topbar.vue';
+import router from '@/router/router';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const message = route.query.message;
+
+// 戻るボタンの処理
+const goBack = () => {
+  if (message == '非公開のページです。') {
+    router.go(-2); //2つ前のページに戻る
+  }
+};
 </script>
 
 <style scoped>
@@ -18,37 +32,30 @@ import Topbar from '@/components/standard/topbar.vue';
   display: flex;
   flex-direction: column;
 }
-.horizontal-divider {
-  position: fixed;
-  top: 32px;
-  margin-left: -100%;
-  width: 250%;
-  position: fixed;
-  height: 10px; /* 線の太さ */
-  background-color: var(--page-accent); /* 線の色 */
-}
 
-.horizontal-divider::before {
-  content: ''; /* 必須: 疑似要素を表示 */
-  position: absolute; /* 親要素内に固定配置 */
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-}
-
-.nopage {
+.mess {
   font-size: 2rem;
   font-weight: bold;
   padding: 20px;
 }
-.go-mainpage button {
-  background-color: var(--page-button);
-  color: var(--page-buttontext);
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
+
+button {
+  width: 75%;
+  max-width: 300px;
+  padding: .5rem;
+  margin: 1.5rem;
   cursor: pointer;
-  margin-left: 30px;
+  font-size: 1rem;
+  color: var(--page-buttontext);
+  background-color: var(--page-button);
 }
+button:hover {
+  background-color: var(--page-button-sub);
+}
+.back-btn {
+  display: flex;
+  align-items: center; /* 垂直中央 */
+  justify-content: center; /* 水平中央 */
+}
+
 </style>

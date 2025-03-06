@@ -1,7 +1,7 @@
 <template>
   <div class="history-controls">
     <div class="search">
-      条件検索
+      <p>条件検索</p>
       <div class="searchof">
         ▾日付指定<br />
         <input
@@ -18,7 +18,8 @@
         <input type="text" placeholder="部分一致検索" v-model="serchtitle" />
       </div>
       <!-- ソートボックス -->
-      <div class="searchof" for="sort-order">▾並び順
+      <div class="searchof" for="sort-order">
+        ▾並び順
         <select id="sort-order" v-model="sortOrder">
           <option value="date-new">日付順 / 新⇀旧</option>
           <option value="date-old">日付順 / 旧⇀新</option>
@@ -26,13 +27,17 @@
           <option value="id-old">作成順 / 旧⇀新</option>
         </select>
       </div>
-      <button class="serchbutton" @click="handleSerch">🔍検索</button>
+      <div class="reset-serch-button">
+        <button class="reset-button" @click="resetSearch">リセット</button>
+        <button class="serchbutton" @click="handleSerch">再表示</button>
+      </div>
     </div>
 
-    <div type="dashed" class="divider" />
-    <div class="control-type">
+    <div class="divider" />
+
+    <div class="searchof">
       <!-- レポート表示/非表示トグルボタン -->
-      <label class="repotitle">レポート</label>
+      <label class="repotitle">レポート表示：</label>
       <button
         class="toggle-button"
         :class="{ 'hidden-state': reportVisibility === 'hidden' }"
@@ -64,6 +69,12 @@ const handleSerch = () => {
   });
 };
 
+// 入力リセット処理
+const resetSearch = () => {
+  serchdate.value = null; // 日付指定をリセット
+  serchtitle.value = null; // タイトル名指定をリセット
+};
+
 // 表示/非表示をトグルする関数
 const toggleVisibility = () => {
   reportVisibility.value =
@@ -78,6 +89,8 @@ const toggleVisibility = () => {
   width: 100%;
   border-top: #ccc solid 1px;
   color: transparent;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 /* 空間確保用 */
 .history-controls-sub {
@@ -99,7 +112,6 @@ const toggleVisibility = () => {
   align-items: flex-start;
   width: 25dvw;
   max-width: 230px;
-  height: 330px;
   padding: 1rem;
   margin: 1rem;
   margin-right: 2rem;
@@ -113,10 +125,6 @@ const toggleVisibility = () => {
 }
 
 .history-controls select {
-  width: 100%;
-}
-
-.control-type {
   width: 100%;
 }
 
@@ -152,14 +160,11 @@ const toggleVisibility = () => {
   justify-content: flex-start;
   width: 100%;
 }
-.search input {
-  margin-bottom: 0.5rem;
-  width: 100%;
-}
+.search input,
 .search select {
   margin-bottom: 0.5rem;
   padding: 1px;
-  width: 98%;
+  width: 100%;
 }
 .search button {
   width: 70px;
@@ -170,8 +175,24 @@ const toggleVisibility = () => {
 .searchof {
   font-size: 0.9rem !important;
 }
+.search p {
+  font-size: 1.2rem !important;
+  margin-top: 0.5rem;
+}
+
+.reset-serch-button {
+  display: flex;
+}
+.reset-serch-button .serchbutton {
+  margin-left: 0.5rem;
+}
+
 /* メディアクエリ: 600px以下の場合 */
 @media (max-width: 600px) {
+  .search input,
+  .search select {
+    padding: 5px;
+  }
   .history-controls-sub {
     height: 0;
     width: 0;
@@ -186,7 +207,6 @@ const toggleVisibility = () => {
     align-items: flex-start;
     width: 95dvw;
     max-width: 100%;
-    height: 360px;
     padding: 1rem;
     margin: 0;
     margin-right: 0rem;
@@ -197,10 +217,6 @@ const toggleVisibility = () => {
     border: 4px double #ccc;
     border-radius: 4px;
     z-index: 10;
-  }
-  .search,
-  .search input {
-    width: 98%;
   }
 }
 </style>

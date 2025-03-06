@@ -15,7 +15,7 @@ export const convertToURL = async (
   file: File,
   userNumber: number,
   kind: string
-): Promise<{ objectKey: string; cdnUrl: string }> => {
+): Promise<{ cdnUrl: string }> => {
   try {
     // Step 1: WebP形式に変換・圧縮
     const webpFile = await convertToWebP(file);
@@ -57,7 +57,6 @@ export const convertToURL = async (
 
     // オブジェクトキーとCDNのURLを返す
     return {
-      objectKey: fileName, // R2のオブジェクトキー
       cdnUrl: cdnUrl, // CDN経由のURL
     };
   } catch (error) {

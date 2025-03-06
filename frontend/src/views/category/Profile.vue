@@ -23,8 +23,9 @@ import TopBar from '@/components/standard/topbar.vue';
 import MenuBar from '@/components/standard/menubar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
 import { InfoBlock } from '@sharetypes';
-import { getOldObjectKeys } from '@/rogics/getOldObjectKey';
+import { getOldImageurls } from '@/rogics/getOldImageurls';
 import { useUserStore } from '@/stores/userStore';
+import router from '@/router/router';
 
 const route = useRoute();
 const toast = useToast();
@@ -38,7 +39,16 @@ const deleteBlocks = ref<InfoBlock[]>([]);
 
 onMounted(async () => {
   await userStore.fetchFeatures(Number(route.params.userNumber));
-  if (userStore.menuFetched) {
+  // 非公開ページ検証
+  if (
+    userStore.features[0].value.toString().startsWith('9') &&
+    userStore.useuserNumber != route.params.userNumber
+  ) {
+    router.push({
+      path: '/not-found',
+      query: { message: '非公開のページです。' },
+    });
+  } else if (userStore.menuFetched) {
     profileStore
       .fetchProfileBlocks(Number(route.params.userNumber))
       .then(() => {
@@ -66,17 +76,14 @@ const saveprofile = async () => {
       return;
     }
 
-    // old_object_key 配列を作成
-    const old_object_keys = getOldObjectKeys(
-      InfoBlock.value,
-      oldInfoBlock.value
-    );
+    // old_image_urls 配列を作成
+    const old_image_urls = getOldImageurls(InfoBlock.value, oldInfoBlock.value);
 
     // 変更がある場合、保存処理を実行
     await profileStore.saveProfile(
       InfoBlock.value,
       deleteBlocks.value,
-      old_object_keys
+      old_image_urls
     );
     toast.success('保存しました');
     // 保存後にoldInfoBlockを更新

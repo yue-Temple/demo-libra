@@ -111,7 +111,7 @@ export function generateAccessToken(user: {
   user_id: string;
   user_number: number;
   user_name: string | null;
-  user_icon: string;
+  user_icon: string | null;
   user_role: string | null;
   user_email: string | null;
   google_user_id: string | null;
@@ -149,6 +149,7 @@ export async function logout(refreshToken: string): Promise<void> {
     throw new Error('リフレッシュトークンがありません');
   }
 
+  console.log(refreshToken)
   try {
     // データベースからリフレッシュトークンを削除
     const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);

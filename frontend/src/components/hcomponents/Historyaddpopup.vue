@@ -150,7 +150,7 @@ const selectedDates = ref<string[]>([]); // 日付は文字列配列と明示
 const title = ref('');
 const system = ref('');
 const report = ref('');
-const imgURL = ref('');
+const imgURL = ref<string | File>('');
 const isPrivate = ref(false);
 
 // トリミング,画像処理
@@ -232,7 +232,6 @@ const oldHistory =
         system: props.container.system || '',
         report: props.container.report || '',
         imgURL: props.container.imgURL || '',
-        image_object_key: props.container.image_object_key || '',
         private: props.container.private || false,
         childblock: props.container.childblock || [],
       }
@@ -248,7 +247,6 @@ const submitForm = async () => {
     system: system.value,
     report: report.value,
     imgURL: imgURL.value, // 画像を変更した場合ここが変わる
-    image_object_key: props.container.image_object_key,
     private: isPrivate.value,
     childblock: props.container?.childblock || [], // 既存のchildblockを使用または空の配列を設定
   };
@@ -277,7 +275,7 @@ const submitForm = async () => {
         await historyStore.updateHistory(
           newHistory,
           uploadFile.value,
-          props.container.image_object_key
+          props.container.imgURL
         ); // 更新APIを呼び出す
         emit('close');
       } catch (error) {
@@ -308,7 +306,7 @@ const deletehistory = async () => {
   const isConfirmed = confirm('記録を削除します。本当によろしいですか？');
   if (isConfirmed) {
     try {
-      emit('delete', props.container.id, props.container.image_object_key); // 親コンポーネントに削除を通知
+      emit('delete', props.container.id, props.container.imgURL); // 親コンポーネントに削除を通知
       emit('close'); // ポップアップを閉じる
     } catch (error) {
       console.error('削除に失敗しました', error);

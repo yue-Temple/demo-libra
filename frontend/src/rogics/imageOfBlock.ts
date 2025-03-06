@@ -51,14 +51,13 @@ async function buttonsImageFunc(
     block.buttons.map(async (button) => {
       // image_urlがFile型の場合、convertToURL関数でURLに変換
       if (button.image_url instanceof File) {
-        const { objectKey, cdnUrl } = await convertToURL(
+        const { cdnUrl } = await convertToURL(
           button.image_url,
           userNumber,
           kind
         );
 
         // 変換結果をbuttonに格納
-        button.image_object_key = objectKey;
         button.image_url = cdnUrl;
       }
       return button;
@@ -87,14 +86,13 @@ async function textbuttonImageFunc(
 
   // buttonのimage_urlがFile型の場合、convertToURL関数でURLに変換
   if (block.button.image_url instanceof File) {
-    const { objectKey, cdnUrl } = await convertToURL(
+    const { cdnUrl } = await convertToURL(
       block.button.image_url,
       userNumber,
       kind
     );
 
     // 変換結果をbuttonに格納
-    block.button.image_object_key = objectKey;
     block.button.image_url = cdnUrl;
   }
 

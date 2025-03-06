@@ -25,9 +25,6 @@ export class HistoryItem {
   @Column({ type: 'varchar', length: 255, nullable: true })
   imgURL: string | null;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  image_object_key: string | null;
-
   @Column({ default: false })
   private: boolean;
 
@@ -47,7 +44,6 @@ export class HistoryItem {
     system: string | null = null,
     report: string | null = null,
     imgURL: string | null = null,
-    image_object_key: string | null = null,
     privateFlag: boolean = false,
     childblock: InfoBlock[] | [] = []
   ) {
@@ -58,7 +54,6 @@ export class HistoryItem {
     this.system = system;
     this.report = report;
     this.imgURL = imgURL;
-    this.image_object_key = image_object_key;
     this.private = privateFlag;
     this.childblock = childblock;
   }

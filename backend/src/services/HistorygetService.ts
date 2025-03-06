@@ -119,7 +119,6 @@ export class HistorygetService {
       system: item.system,
       report: item.report,
       imgURL: item.imgURL,
-      image_object_key: item.image_object_key,
       private: item.private,
       childblock: item.childblock,
     }));
@@ -169,7 +168,6 @@ export class HistorygetService {
       system: historyItem.system,
       report: historyItem.report,
       imgURL: historyItem.imgURL,
-      image_object_key: historyItem.image_object_key,
       private: historyItem.private,
       childblock: historyItem.childblock,
     };

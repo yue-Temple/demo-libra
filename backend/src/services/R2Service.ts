@@ -3,6 +3,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ButtonBlock, InfoBlock, TextButton } from '../../../sharetypes';
@@ -43,71 +44,106 @@ export const generateSignedUrl = async (fileName: string): Promise<string> => {
   return signedUrl;
 };
 
+/**
+ * CDNURLからオブジェクトキーを抽出するヘルパー関数
+ * @param url
+ * @returns オブジェクトキー
+ */
+export function getObjectKey(url: string): string {
+  const object_Key = url.replace(`${process.env.CDN_DOMAIN}`, '');
+  return object_Key;
+}
+/**
+ * CDN URL 配列からオブジェクトキーを抽出するヘルパー関数
+ * @param urls - 画像の CDN URL の配列
+ * @returns オブジェクトキーの配列
+ */
+function getObjectKeys(urls: string[]): string[] {
+  return urls.map((url) => url.replace(`${process.env.CDN_DOMAIN}/`, ''));
+}
+
 // 以下、削除ロジック
 /**
- * deleteBlocks配列を検証し、typeに応じて画像データを削除する
+ * プロフ系画像データ削除
+ * deleteBlocks配列を検証し、typeに応じて画像データの削除キーを収集し、最後にまとめて削除する
  * @param deleteBlocks - 削除されたブロックの配列
+ * @param old_image_urls - 上書きされた画像のURL配列
+ *  @returns 削除すべきオブジェクト配列
  */
-export async function deleteBlocksImages(
-  deleteblocks: InfoBlock[]
-): Promise<void> {
+export async function getdeleteBlocksImageKeys(
+  deleteblocks: InfoBlock[],
+  old_image_urls: string[]
+): Promise<string[]> {
+  const deleteKeys: string[] = []; // 削除対象のオブジェクトキーを保持する配列
+
+  // old_image_urls から削除キーを取得して追加
+  if (old_image_urls.length > 0) {
+    deleteKeys.push(...getObjectKeys(old_image_urls));
+  }
+
+  // 各ブロックをループして削除キーを収集
   await Promise.all(
     deleteblocks.map(async (block) => {
       switch (block.type) {
         case 'button':
-          await buttonsImagedelete(block as ButtonBlock);
+          collectButtonKeys(block as ButtonBlock, deleteKeys);
           break;
         case 'textbutton':
-          await textbuttonImagedelete(block as TextButton);
+          collectTextButtonKeys(block as TextButton, deleteKeys);
           break;
-        // 他のタイプはそのまま返す
         default:
           break;
       }
     })
   );
+
+  return deleteKeys;
 }
 
 /**
- * ButtonBlockのbuttons配列内の画像をR2から削除する関数
+ * ButtonBlockのbuttons配列内の画像キーを収集する関数
  * @param block - ButtonBlock型のデータ
+ * @param deleteKeys - 削除対象のキーを保持する配列
  */
-async function buttonsImagedelete(block: ButtonBlock): Promise<void> {
+function collectButtonKeys(block: ButtonBlock, deleteKeys: string[]): void {
   if (!block.buttons || block.buttons.length === 0) {
     return; // buttonsが空の場合
   }
 
-  // buttons配列をループして画像をR2から削除
-  await Promise.all(
-    block.buttons.map(async (button) => {
-      if (button.image_object_key) {
-        console.log('消すオブキー', button.image_object_key);
-        await deleteFromR2(button.image_object_key);
+  // buttons配列をループして画像キーを収集
+  block.buttons.forEach((button) => {
+    if (button.image_url) {
+      if (typeof button.image_url === 'string') {
+        deleteKeys.push(getObjectKey(button.image_url));
       }
-    })
-  );
+    }
+  });
 }
-
 /**
- * TextButtonのbutton内の画像をR2から削除する関数
+ * TextButtonのbutton内の画像キーを収集する関数
  * @param block - TextButton型のデータ
+ * @param deleteKeys - 削除対象のキーを保持する配列
  */
-async function textbuttonImagedelete(block: TextButton): Promise<void> {
+function collectTextButtonKeys(block: TextButton, deleteKeys: string[]): void {
   if (!block.button) {
-    return; // buttonsが空の場合
+    return; // buttonが空の場合
   }
 
-  // buttonのimage_urlがFile型の場合、convertToURL関数でURLに変換
-  if (block.button.image_object_key) {
-    await deleteFromR2(block.button.image_object_key);
+  // buttonの画像キーを収集
+  if (block.button.image_url) {
+    if (typeof block.button.image_url === 'string') {
+      deleteKeys.push(getObjectKey(block.button.image_url));
+    }
   }
 }
 
 /**
- * R2から指定されたファイル(1件)を削除する関数
- * @param fileName - 削除するファイルのファイル名（オブジェクトキー）
+ * ★R2から指定されたファイル(1件)を削除する関数
+ * @param imageURL - 削除するファイルのURL
  */
-export const deleteFromR2 = async (fileName: string): Promise<void> => {
+export const deleteFromR2 = async (imageURL: string): Promise<void> => {
+  const fileName = getObjectKey(imageURL); // オブジェクトキー抽出
+
   const command = new DeleteObjectCommand({
     Bucket: R2_BUCKET_NAME, // R2のバケット名
     Key: fileName, // 削除対象のファイル名（オブジェクトキー）
@@ -123,18 +159,22 @@ export const deleteFromR2 = async (fileName: string): Promise<void> => {
 };
 
 /**
- * 更新で不要になった画像データ（複数件）をR2から削除
- * @param keys
+ * ★R2から複数のファイルを一括削除
+ * @param keys - 削除するファイルのオブジェクトキー配列
  */
-export const oldFilesDeleteFromR2 = async (keys: string[]): Promise<void> => {
-  try {
-    // 各キーに対して deleteFromR2 を呼び出し、Promise を生成
-    const deletePromises = keys.map((key) => deleteFromR2(key));
+export const deleteMultipleFromR2 = async (keys: string[]): Promise<void> => {
+  if (keys.length === 0) return;
 
-    // すべての削除処理が完了するまで待機
-    await Promise.all(deletePromises);
+  const command = new DeleteObjectsCommand({
+    Bucket: R2_BUCKET_NAME,
+    Delete: { Objects: keys.map((key) => ({ Key: key })) },
+  });
+
+  try {
+    const response = await s3Client.send(command);
+    console.log('削除成功:', response);
   } catch (error) {
-    console.error('Error occurred while deleting files:', error);
-    throw error; // 必要に応じてエラーを再スロー
+    console.error('削除失敗:', error);
+    throw error;
   }
 };

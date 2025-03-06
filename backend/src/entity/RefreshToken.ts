@@ -6,7 +6,7 @@ export class RefreshToken {
   @PrimaryGeneratedColumn('uuid')
   id!: string; // UUIDを使用（PostgreSQLのネイティブサポート）
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, unique: true })
   token: string;
 
   @Column({ type: 'timestamp' }) // TIMESTAMP型を使用

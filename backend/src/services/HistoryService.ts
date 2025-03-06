@@ -32,7 +32,6 @@ export class HistoryService {
       newHistory.system,
       newHistory.report,
       newHistory.imgURL,
-      newHistory.image_object_key,
       newHistory.private,
       newHistory.childblock
     );
