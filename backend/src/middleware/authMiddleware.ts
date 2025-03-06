@@ -26,9 +26,13 @@ export const authenticateToken = async (
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ message: 'Token has expired' });
     } else if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ message: 'Invalid token format or signature' });
+      return res
+        .status(401)
+        .json({ message: 'Invalid token format or signature' });
     }
 
-    return res.status(401).json({ message: 'Invalid token: Token is expired or malformed' });
+    return res
+      .status(401)
+      .json({ message: 'Invalid token: Token is expired or malformed' });
   }
 };

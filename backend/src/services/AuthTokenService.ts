@@ -149,7 +149,7 @@ export async function logout(refreshToken: string): Promise<void> {
     throw new Error('リフレッシュトークンがありません');
   }
 
-  console.log(refreshToken)
+  console.log(refreshToken);
   try {
     // データベースからリフレッシュトークンを削除
     const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);

@@ -224,10 +224,10 @@ export class AuthMailService {
 
       // リフレッシュトークンをクッキーに保存
       res.cookie('refreshToken', refreshToken, {
-        httpOnly: true, // JavaScriptからアクセス不可
-        secure: true,
-        sameSite: 'lax',
-        path: '/', // すべてのパスで有効
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
+        path: '/',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
       });
 

@@ -54,10 +54,8 @@ export const useUserStore = defineStore('user', {
       this.useuserEmail = null;
       this.useuserGoogle = null;
 
-      // ストレージとクッキーをクリア
-      localStorage.removeItem('accessToken');
-      document.cookie =
-        'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      // ローカルストレージをクリア
+      localStorage.clear();
     },
 
     /**
@@ -323,6 +321,7 @@ export const useUserStore = defineStore('user', {
           },
         });
 
+        this.clearToken(); // ローカルストレージクリア
         console.log('アカウント削除完了');
       } catch (error) {
         console.error('アカウントの削除に失敗しました', error);

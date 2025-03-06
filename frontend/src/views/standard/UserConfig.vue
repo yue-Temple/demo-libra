@@ -6,7 +6,7 @@
       <TabList>
         <Tab value="0">ユーザー設定</Tab>
         <Tab value="1">メニュー設定</Tab>
-        <Tab value="2">レイアウト</Tab>
+        <Tab value="2">レイアウト変更</Tab>
         <Tab value="3">ログ出力</Tab>
       </TabList>
       <TabPanels>
@@ -102,6 +102,7 @@ const oldLayout = ref(layoutStore.currentLayout);
 defineProps<{ userId: string }>(); // userId を受け取る
 
 onMounted(async () => {
+  window.scrollTo(0, 0);
   // メニューデータ取得
   if (useuserNumber) {
     await userStore.fetchFeatures(useuserNumber);
