@@ -154,13 +154,13 @@ onMounted(async () => {
   // 非公開ページ検証
   if (
     userStore.features[1].value.toString().startsWith('9') &&
-    (userStore.useuserNumber != route.params.userNumber)
+    userStore.useuserNumber != route.params.userNumber
   ) {
     router.push({
       path: '/not-found',
       query: { message: '非公開のページです。' },
     });
-  }else{
+  } else {
     // 初期データ取得
     sortedHistories.value = [...historyStore.getHistories];
   }
@@ -503,13 +503,13 @@ h1 {
   padding-top: 0;
   padding-bottom: 0.3rem;
   width: 90%;
-  max-height: 30dvh;
+  max-height: 30%;
 }
 .imgbox img {
   /* .imgbox内のimg要素を対象 */
   border-radius: 8px; /* 角を丸く */
   max-width: 100%; /* 親要素の幅に合わせる */
-  max-height: 30dvh; /* 親要素の高さに合わせる */
+  max-height: 30%; /* 親要素の高さに合わせる */
   object-fit: contain; /* 元画像全体を表示し、アスペクト比を維持 */
   cursor: pointer;
 }
@@ -550,7 +550,6 @@ h1 {
   .imgbox {
     margin-left: 0.5rem;
     max-width: 500px;
-    max-height: 30dvh;
   }
   .text {
     max-width: 350px;

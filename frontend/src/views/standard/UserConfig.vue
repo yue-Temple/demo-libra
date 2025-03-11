@@ -24,7 +24,7 @@
         <!-- メニュー設定タブ -->
         <TabPanel value="1">
           <FeaturesSettingsSection
-            :featuresFromDB="featuresFromDB"
+            v-if="featuresFromDB.length > 0"
             @change-menu="handleMenuChange"
           />
         </TabPanel>
@@ -56,8 +56,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { onBeforeRouteLeave, useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useUserStore } from '@/stores/userStore';
 import { useLayoutStore } from '@/stores/layoutStore';
@@ -81,13 +81,15 @@ const toast = useToast();
 // ストアの利用
 const userStore = useUserStore();
 const layoutStore = useLayoutStore();
+const route = useRoute();
 const router = useRouter();
 const useuserNumber = Number(userStore.useuserNumber);
 
 // 描写データ
+const beforerouteNumber = ref();
 const userName = ref(userStore.useuserName);
 const userIcon = ref(userStore.useuseruserIcon);
-const featuresFromDB = ref<Features[]>([...userStore.features]);
+const featuresFromDB = ref<Features[]>([]);
 const layout = ref(layoutStore.currentLayout);
 const isEditing = ref(true);
 const error = ref('');
@@ -103,14 +105,27 @@ defineProps<{ userId: string }>(); // userId を受け取る
 
 onMounted(async () => {
   window.scrollTo(0, 0);
-  // メニューデータ取得
+  beforerouteNumber.value = route.query.userNumber;
+  // ログインユーザー
   if (useuserNumber) {
-    await userStore.fetchFeatures(useuserNumber);
+    // 他ユーザーの画面から遷移した場合、メニュー再取得
+    if (
+      route.query.userNumber != String(useuserNumber) ||
+      userStore.features.length == 0
+    ) {
+      userStore.menuFetched = false;
+      await userStore.fetchFeatures(useuserNumber);
+    }
     // ストアの値が更新されたら、初期値を再設定
-    featuresFromDB.value = [...userStore.features];
+    featuresFromDB.value = userStore.features;
     oldFeatures.value = JSON.parse(JSON.stringify(userStore.features)); // (ディープコピー)
   }
 });
+// onUnmounted(() => {
+//   if(beforerouteNumber.value != String(useuserNumber)){
+//     userStore.menuFetched = false;
+//   }
+// });
 
 // アイコンアップロードをリッスン
 const uploadUserIcon = (file: File) => {
@@ -178,7 +193,7 @@ const saveSettings = async () => {
   // 10の位に1が含まれているかチェック
   const hasMainPage = tensPlaceValues.includes(1);
   if (!hasMainPage) {
-    error.value = '1 (メインページ)が設定されていません';
+    error.value = 'メニュー設定：1 (メインページ)が設定されていません';
     return;
   }
 
@@ -191,7 +206,7 @@ const saveSettings = async () => {
     onesPlaceValues.filter((value) => value !== 0).length;
 
   if (hasDuplicatesInTensPlace || hasDuplicatesInOnesPlace) {
-    error.value = '番号の重複は避けてください';
+    error.value = 'メニュー設定：番号の重複は避けてください';
     return;
   }
 
@@ -229,7 +244,7 @@ const saveSettings = async () => {
 };
 
 const handleGoToMainPage = () => {
-  goToMainPage(router, null);
+  goToMainPage(router, beforerouteNumber.value);
 };
 
 // 変更前に戻す処理
@@ -295,8 +310,19 @@ h1 {
   max-width: 100%;
   overflow-x: scroll;
   overflow-y: hidden;
-  scrollbar-width: none;
 }
+/* スクロールバー */
+:deep(.p-tablist-tab-list)::-webkit-scrollbar {
+  height: 2px; /* スクロールバーの高さ（横スクロールの場合） */
+}
+:deep(.p-tablist-tab-list)::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.5); /* スクロールバーの色 */
+  border-radius: 10px; /* 角を丸くする */
+}
+:deep(.p-tablist-tab-list)::-webkit-scrollbar-track {
+  background: transparent; /* スクロールバーの背景を透明に */
+}
+
 :deep(.p-tablist-tab-list button) {
   border-color: var(--page-text);
   font-size: 0.8rem;

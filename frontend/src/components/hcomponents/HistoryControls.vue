@@ -29,7 +29,7 @@
       </div>
       <div class="reset-serch-button">
         <button class="reset-button" @click="resetSearch">リセット</button>
-        <button class="serchbutton" @click="handleSerch">再表示</button>
+        <button class="serchbutton" @click="handleSerch">検索</button>
       </div>
     </div>
 

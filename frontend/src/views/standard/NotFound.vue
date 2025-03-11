@@ -5,7 +5,9 @@
     <span v-if="message" class="mess">{{ message }}</span>
 
     <!-- 戻るボタン -->
-    <button @click="goBack" class="back-btn"><i class="pi pi-arrow-left"></i>　前のページに戻る</button>
+    <button @click="goBack" class="back-btn">
+      <i class="pi pi-arrow-left"></i>　前のページに戻る
+    </button>
   </div>
 </template>
 
@@ -20,9 +22,7 @@ const message = route.query.message;
 
 // 戻るボタンの処理
 const goBack = () => {
-  if (message == '非公開のページです。') {
-    router.go(-2); //2つ前のページに戻る
-  }
+  router.go(-2); //2つ前のページに戻る
 };
 </script>
 
@@ -42,7 +42,7 @@ const goBack = () => {
 button {
   width: 75%;
   max-width: 300px;
-  padding: .5rem;
+  padding: 0.5rem;
   margin: 1.5rem;
   cursor: pointer;
   font-size: 1rem;
@@ -57,5 +57,4 @@ button:hover {
   align-items: center; /* 垂直中央 */
   justify-content: center; /* 水平中央 */
 }
-
 </style>

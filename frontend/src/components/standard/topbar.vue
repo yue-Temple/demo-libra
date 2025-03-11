@@ -94,7 +94,8 @@ const goToUserConfig = (): void => {
       router.push(`/sign-in`);
     }
   } else {
-    router.push(`/${userId}/user-config`);
+    const userNumber = route.params.userNumber;
+    router.push({ path: `/${userId}/user-config`, query: { userNumber } });
   }
 };
 const logout = (): void => {

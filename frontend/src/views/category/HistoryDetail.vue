@@ -9,12 +9,24 @@
       <!-- データがある場合 -->
       <div v-if="history" class="main-history">
         <div class="topinfo">
-          <div class="back">✍基本情報の編集 / 記録の共有</div>
           <!-- システムを表示 -->
           <div class="system">
             <span v-if="history.system">〈</span>
             {{ history.system }}
             <span v-if="history.system">〉</span>
+          </div>
+          <div class="back">
+            <!-- オーナー用 -->
+            <div class="forowner">
+              <div class="editblock" @click="">
+                <i class="pi pi-pen-to-square" style="font-size: 0.8rem"
+                  >編集</i
+                >
+              </div>
+              <div class="editblock2" @click="">
+                <i class="pi pi-share-alt" style="font-size: 0.8rem">共有</i>
+              </div>
+            </div>
           </div>
         </div>
         <!-- タイトルを表示 -->
@@ -247,17 +259,52 @@ const formatDate = (dateArray: string[] | null): string => {
 .topinfo {
   display: flex;
 }
+
+.forowner {
+  display: flex;
+  justify-content: space-around;
+  margin: 2px;
+  margin-left: 1rem;
+  width: 130px;
+  border: var(--page-button) solid 1px;
+  color: var(--page-buttontext);
+}
+.editblock,
+.editblock2 {
+  width: 65px;
+  display: flex;
+  justify-content: center;
+  padding: 5px;
+  padding-bottom: 6px;
+  background-color: var(--page-button);
+  cursor: pointer;
+}
+.editblock2 {
+  border-left: var(--page-buttontext) solid 1px;
+}
+.editblock:hover,
+.editblock2:hover {
+  background-color: var(--page-button-sub);
+}
+
+:deep(.pi.pi-share-alt)::before,
+:deep(.pi.pi-pen-to-square)::before {
+  font-size: 12px !important;
+  margin-right: 4px;
+}
+
 /* 一覧へ戻るボタン */
 .back {
   font-size: 0.6rem;
-  display: flex;
+  margin-left: auto;
   padding-top: 5px;
 }
 /* サブタイトル */
 .system {
   font-size: 0.8em;
+  display: flex;
   font-family: 'Oswald', sans-serif;
-  margin-left: auto;
+  align-items: center;
 }
 .title {
   font-family: 'Oswald', sans-serif;

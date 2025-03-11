@@ -13,19 +13,18 @@ export const goToMainPage = async (
   const historyStore = useHistoryStore();
 
   // 現在のユーザーナンバーをストアから取得
-  const userNumber = Number(userStore.useuserNumber);
-
+  const userNumber = userStore.useuserNumber;
   if (userNumber) {
     try {
-      // 他人ページORコンフィグから遷移時、初期化
-      if (Number(routeuserNumber) != userNumber || routeuserNumber == null) {
+      // 他人ページから遷移時、初期化
+      if (routeuserNumber != userNumber || routeuserNumber == null) {
         userStore.menuFetched = false;
         profileStore.profileBlocksFetched = false;
         historyStore.reset();
       }
 
       //メニュー設定をストアから取得
-      await userStore.fetchFeatures(userNumber);
+      await userStore.fetchFeatures(Number(userNumber));
 
       // ストアからメニューデータを取得
       const menuSettings: Features[] = userStore.features;

@@ -67,7 +67,10 @@ apiClient.interceptors.response.use(
 
     // 404エラーの場合、NotFoundページに遷移
     if (error.response?.status === 404) {
-      router.push('/not-found'); // NotFoundページへのリダイレクト
+      router.push({
+        path: '/not-found',
+        query: { message: '存在しないページです。' },
+      });
       return Promise.reject(error); // 必要に応じてエラーハンドリングを続ける
     }
 

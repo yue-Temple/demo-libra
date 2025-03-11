@@ -2,13 +2,13 @@
   <h2>メニューバー設定</h2>
   <!-- Features Guide -->
   <div class="features-guide">
-    左から1~9の番号順に並びます。<br />
-    1に設定したページがあなたのメインページになります。<br />
-    0に設定したページはメニューバーに追加されません。<br />
-
+    <span class="g1">機能</span>
+    <span class="g2">自分用</span>
+    <span class="g3">外部用</span>
+    <span class="g4">メニュー<br />タイトル</span>
+    <span class="g5">アクセス可否</span>
   </div>
-  <br />
-  ページ｜自分用｜他ユーザー｜タイトル｜アクセス
+
   <div class="features-settings" v-if="featuresFromDB.length > 0">
     <div v-for="(label, index) in labels" :key="index" class="feature">
       <span class="pagetitle">{{ label }}</span>
@@ -53,16 +53,38 @@
       </button>
     </div>
   </div>
+  <br />
+  <Fieldset legend="ヘルプ">
+    <p class="m-0">
+      ・「自分/外部用」 それぞれメニューバーの並び順を設定できます。
+      <br /><br />
+      ・並び順"0"のページはメニューバーに含まれません。
+      <br /><br />
+      ・自分用"1"のページがあなたの「メインページ」になります。
+      <br /><br />
+      ・外部用"0"のページは「アクセス可否」を追加で設定可能。
+      不可に設定されると、URLを共有しても相手はそのページを閲覧できません。
+    </p>
+  </Fieldset>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { Features } from '@sharetypes';
+import Fieldset from 'primevue/fieldset';
+import { useUserStore } from '@/stores/userStore';
 
-// Props の定義
-const props = defineProps<{
-  featuresFromDB: Features[];
-}>();
+const userStore = useUserStore();
+const featuresFromDB = [...userStore.features];
+
+// 変更を監視する
+watch(
+  () => featuresFromDB,
+  (newFeatures) => {
+    emit('change-menu', newFeatures);
+  },
+  { deep: true }
+);
 
 // Emit の定義
 const emit = defineEmits<{
@@ -71,33 +93,21 @@ const emit = defineEmits<{
 
 // 自分視点の値（10の位）
 const selfViewValues = ref<number[]>(
-  props.featuresFromDB.map((f) => Math.floor((f.value % 100) / 10))
+  featuresFromDB.map((f) => Math.floor((f.value % 100) / 10))
 );
 
 // 他ユーザー視点の値（1の位）
-const otherViewValues = ref<number[]>(
-  props.featuresFromDB.map((f) => f.value % 10)
-);
+const otherViewValues = ref<number[]>(featuresFromDB.map((f) => f.value % 10));
 
 // アクセス許可/不可の値（百の位）
 const accessValues = ref<number[]>(
-  props.featuresFromDB.map((f) => Math.floor(f.value / 100))
+  featuresFromDB.map((f) => Math.floor(f.value / 100))
 );
 
 // 無効化する条件をチェックする関数 name準拠
 const isDisabled = (name: string) => {
   return ['data', 'relation', 'chara'].includes(name);
 };
-
-// 変更を監視する
-watch(
-  () => props.featuresFromDB,
-  (newFeatures) => {
-    console.log(newFeatures);
-    emit('change-menu', newFeatures);
-  },
-  { deep: true }
-);
 
 // 入力時に変更を通知する
 const handleChange = (index: number) => {
@@ -107,10 +117,10 @@ const handleChange = (index: number) => {
   }
 
   // 3桁の数字を結合してvalueを更新 (百の位)+(10の位)+(1の位)
-  props.featuresFromDB[index].value = Number(
+  featuresFromDB[index].value = Number(
     `${accessValues.value[index]}${selfViewValues.value[index]}${otherViewValues.value[index]}`
   );
-  emit('change-menu', props.featuresFromDB);
+  emit('change-menu', featuresFromDB);
 };
 
 // アクセス許可/不可をトグルする
@@ -145,11 +155,11 @@ const handleTitleChange = (index: number, event: Event) => {
       currentLength += charLength;
     }
     input.value = truncatedValue;
-    props.featuresFromDB[index].title = truncatedValue;
+    featuresFromDB[index].title = truncatedValue;
   }
 
   // 変更を通知
-  emit('change-menu', props.featuresFromDB);
+  emit('change-menu', featuresFromDB);
 };
 
 // ※ラベル（※featuresFromDB配列と同じ長さにすること）
@@ -162,13 +172,64 @@ h2 {
 }
 
 .features-guide {
-  font-size: 11px;
-  margin-top: 0.5rem;
+  display: flex;
+  font-size: 0.6rem;
+}
+.features-guide span {
+  display: flex;
+  align-items: center; /* 縦方向の中央揃え */
+  justify-content: center; /* 横方向の中央揃え（必要なら） */
+}
+.g1 {
+  width: 35%;
+  max-width: 100px;
+}
+.g2,
+.g3 {
+  width: 40px;
+}
+.g4 {
+  width: 70px;
+}
+.g5 {
+  width: 25%;
+  max-width: 60px;
+}
+/* モバイル */
+@media (max-width: 600px) {
+  .g2,
+  .g3 {
+    writing-mode: vertical-rl; /* 縦書き（右から左） */
+    width: 20px;
+  }
+  .g5 {
+    width: 40px;
+    margin-left: 15px;
+  }
 }
 
 .features-settings {
   margin-top: 10px;
+  margin-bottom: 1.5rem;
   width: 100%;
+}
+
+/* PC表示 */
+@media (min-width: 600px) {
+  .features-guide,
+  .features-settings {
+    transform: scale(1.2);
+    transform-origin: top left; /* 位置を調整 */
+  }
+  .value-input {
+    width: 40px !important;
+  }
+}
+
+.pagetitle {
+  display: flex;
+  align-items: center;
+  width: 50px;
 }
 
 .feature {
@@ -184,10 +245,17 @@ h2 {
   font-weight: bold;
 }
 
-.value-input {
-  width: 30px;
+/* モバイルすぴなーOFF */
+@media (max-width: 600px) {
+  .value-input::-webkit-outer-spin-button,
+  .value-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
-
+.value-input {
+  width: 20px;
+}
 .title-input {
   width: 70px;
 }
@@ -196,22 +264,24 @@ h2 {
   background-color: #e0e0e0;
   color: #888;
 }
-
+/* アクセス可否ボタン */
 button {
   margin-left: 10px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--page-buttontext);
   background-color: var(--page-button);
 }
-
 button.active {
   color: var(--page-buttontext);
   background-color: var(--page-button);
 }
-
 button:disabled {
   background-color: #e0e0e0;
   cursor: not-allowed;
+}
+
+.m-0 {
+  font-size: 0.8rem;
 }
 </style>
