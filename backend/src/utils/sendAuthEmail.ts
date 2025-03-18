@@ -10,19 +10,20 @@ export async function sendVerificationEmail(
   verificationCode: string
 ): Promise<void> {
   try {
+    // SendGridのSMTPサーバー設定
     const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      host: 'smtp.gmail.com', // GmailのSMTPサーバー
+      service: 'SendGrid', // SendGridを指定
+      host: 'smtp.sendgrid.net', // SendGridのSMTPサーバー
       port: 587, // TLS用のポート
       secure: false, // true for 465 (SSL), false for other ports
       auth: {
-        user: process.env.EMAIL_USER, // 環境変数から取得
-        pass: process.env.EMAIL_PASS, // 環境変数から取得
+        user: 'apikey', // SendGrid APIキー用のユーザー名
+        pass: process.env.SENDGRID_API_KEY, // SendGrid APIキーを環境変数から取得
       },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_FROM, // 実際の送信元メールアドレス
       to: email,
       subject: '認証コードのご案内',
       text: `認証コードは ${verificationCode} です。15分以内に入力してください。`,

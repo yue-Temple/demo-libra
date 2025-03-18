@@ -83,7 +83,7 @@ export interface Button {
   title_color: string | null;
   link_url: string | null;
   image_url: string  | File | null;
-  icon_url: string | null;
+  icon_url: { iconClass: string; iconStyle: string; } | null | undefined;
 }
 
 // ブロック｜テキストブロックデザイン
@@ -91,7 +91,8 @@ export enum StyleType {
   None = "none",
   Solid = "solid",
   Dashed = "dashed",
-  Double = "double"
+  Double = "double",
+  Shadow = "shadow",
   // ★ここに新しい値を追加
 }
 // ブロック｜ボタンブロックデザイン

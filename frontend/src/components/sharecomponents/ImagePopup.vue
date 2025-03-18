@@ -166,6 +166,7 @@ export default {
   cursor: pointer;
   z-index: 1001;
   padding: 0; /* padding を 0 に */
+  margin: 0.5rem;
   width: 35px; /* 幅を指定 */
   height: 35px; /* 高さを指定 */
   display: flex; /* アイコンを中央揃えにする */

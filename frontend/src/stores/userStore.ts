@@ -80,7 +80,7 @@ export const useUserStore = defineStore('user', {
     async registerWithEmail(email: string): Promise<string | void> {
       try {
         // 仮登録APIにリクエストを送信
-        await apiClient.post(`${apiBaseUrl}/auth/register-with-email`, {
+        await apiClient.post(`${apiBaseUrl}/register/register-with-email`, {
           email,
         });
 
@@ -123,7 +123,7 @@ export const useUserStore = defineStore('user', {
         const response = await apiClient.post<{
           accessToken: string;
           refreshToken: string;
-        }>(`${apiBaseUrl}/auth/verify-and-complete-registration`, {
+        }>(`${apiBaseUrl}/register/verify-and-complete-registration`, {
           email,
           password,
           code: authCode,
@@ -155,7 +155,7 @@ export const useUserStore = defineStore('user', {
       const deviceId = getDeviceId();
       try {
         const response = await apiClient.post(
-          `${apiBaseUrl}/auth/login-with-email`,
+          `${apiBaseUrl}/login/login-with-email`,
           {
             email,
             password,
@@ -222,7 +222,6 @@ export const useUserStore = defineStore('user', {
       newFeatures: Features[],
       newLayout: string
     ): Promise<void> {
-      console.log(newFeatures);
       try {
         const response = await apiClient.post<{
           newFeatures: Features[];
@@ -282,7 +281,7 @@ export const useUserStore = defineStore('user', {
           newtoken: string;
           messege: string;
         }>(
-          `${apiBaseUrl}/Auth/user-save`,
+          `${apiBaseUrl}/auth/user-save`,
           {
             user_id: id,
             user_name: name,

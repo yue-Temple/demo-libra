@@ -2,18 +2,12 @@
   <button @click="emitAddContainer">+</button>
 </template>
 
-<script>
-export default {
-  emits: ['add-container'], // 明示的にイベントを定義
-  setup(props, { emit }) {
-    const emitAddContainer = () => {
-      emit('add-container');
-    };
+<script setup lang="ts">
+// イベントを定義
+const emit = defineEmits(['add-container']);
 
-    return {
-      emitAddContainer,
-    };
-  },
+const emitAddContainer = () => {
+  emit('add-container');
 };
 </script>
 
@@ -21,7 +15,7 @@ export default {
 button {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  right: 15px;
   width: 50px;
   height: 50px;
   background-color: var(--page-button);

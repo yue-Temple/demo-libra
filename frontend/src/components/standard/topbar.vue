@@ -1,6 +1,6 @@
 <template>
   <div class="fixed-top-bar">
-    <div class="logo" @click="gototoppage">🌟ロゴ</div>
+    <img src="../../assets/logo_longw.png" class="logo" @click="gototoppage" />
 
     <!-- userIconが存在する場合 -->
     <div
@@ -84,7 +84,7 @@ const goToMypage = (): void => {
   goToMainPage(router, route.params.userNumber);
 };
 const goToHelp = (): void => {
-  alert('デモ版では使えません。');
+  alert('準備中');
   return;
   router.push(`/${userId}/help`); //◆
 };
@@ -124,10 +124,10 @@ const logout = (): void => {
 }
 
 .logo {
+  width: 150px;
   padding-left: 1rem;
   display: flex;
   margin-right: auto;
-  color: #ccc;
   cursor: pointer;
 }
 

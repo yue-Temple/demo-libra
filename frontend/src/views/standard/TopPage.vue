@@ -4,8 +4,8 @@
     <div class="topbody">
       <div class="topimage">
         <!-- 画像の挿入 -->
-        <!-- <img src="../../assets/kari.jpg" /> -->
-        <img src="" />
+        <img src="../../assets/kaban.png" />
+        <!-- <img src="" /> -->
       </div>
       <div class="content">
         <div class="header">
@@ -15,7 +15,7 @@
           </div>
         </div>
         <div class="login">
-          <div class="catchphrase">プロフ作成＆思い出記録アプリ</div>
+          <div class="catchphrase">プロフ作成＆思い出記録</div>
           <!-- 始めるボタン -->
           <button class="login-submit" @click="handleGoToMainPage">
             はじめる
@@ -65,6 +65,7 @@ const checkLogin = () => {
   overflow-x: hidden;
   background-color: #ffffff;
   z-index: 1; /* 他の要素の背面に配置 */
+  min-height: 100vh;
 }
 .texture {
   content: '';
@@ -97,6 +98,7 @@ const checkLogin = () => {
   width: 100vw;
   height: 300px;
   background-color: #221406;
+  z-index: 20;
 }
 
 /* アニメーション */
@@ -127,12 +129,10 @@ const checkLogin = () => {
 }
 .topimage img {
   position: absolute;
-  left: -200px;
-  right: 0;
-  bottom: 0;
+  left: -7rem;
+  bottom: -70px;
   height: 100%;
   background-size: cover;
-  filter: blur(0px);
   opacity: 0.4;
   z-index: 0;
   animation: fadeInFromBottom 1s ease-out forwards; /* アニメーションを適用 */
@@ -145,6 +145,8 @@ const checkLogin = () => {
   height: 100%; /* 親要素の高さに合わせる */
   padding: 20px; /* 内側の余白を追加 */
   position: relative;
+  display: flex;
+  flex-direction: column;
   animation: slideInFromRight 1s ease-out forwards;
   animation-delay: 0.1s; /* オプション */
   z-index: 0;
@@ -152,9 +154,6 @@ const checkLogin = () => {
 
 /* タイトル */
 .header {
-  position: absolute;
-  top: 40px;
-  left: 0;
   z-index: 2;
 }
 .header div {
@@ -174,16 +173,14 @@ const checkLogin = () => {
   font-size: 1.5rem;
   color: #221406;
   font-family: 'Zen Kurenaido', serif;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
   text-shadow: 1px 1px 0.9px rgba(255, 255, 255, 0.4);
 }
 
 /* 始めるボタン */
 .login {
-  position: absolute;
-  top: 48%;
-  width: 500px;
-  padding: 10px;
+  margin-top: 3rem;
+  width: 100%;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -217,22 +214,22 @@ const checkLogin = () => {
     height: 100%;
   }
   .topimage img {
+    transform: scale(0.9) !important; /* 50% に縮小 */
     position: absolute;
     left: -200px;
     right: 0;
-    bottom: 0;
+    bottom: -80px;
     height: 100%;
     background-size: cover;
-    filter: blur(0px);
     opacity: 0.4;
     z-index: 0;
     animation: fadeInFromBottom 1s ease-out forwards; /* アニメーションを適用 */
   }
 
   .header {
-    position: absolute;
-    top: 20px;
-    left: 0.5rem;
+    transform: scale(0.8) !important;
+    margin-left: -30px;
+    margin-top: -30px;
     z-index: 2;
   }
   .header div {
@@ -245,22 +242,17 @@ const checkLogin = () => {
 
   /* 始めるボタン */
   .login {
-    position: absolute;
-    top: 52%;
-    left: 0%;
-    width: 100dvw;
-    padding: 0px;
+    margin-top: auto;
+    margin-bottom: 20rem;
+    margin-left: 3rem;
     z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
   }
   /* キャッチフレーズ */
   .catchphrase {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: #221406;
     font-family: 'Zen Kurenaido', serif;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
   /* はじめるボタン */
   .login button {
@@ -274,7 +266,7 @@ const checkLogin = () => {
     font-size: 1.7rem;
     font-weight: 400;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 0px;
     transition: background 0.3s;
     box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.2);
   }

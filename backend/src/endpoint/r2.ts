@@ -1,25 +1,34 @@
-import express from 'express';
-import { Request, Response } from 'express';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { generateSignedUrl } from '../services/R2Service';
 
-const router = express.Router();
-
-// 署名付きURLを生成するエンドポイント
-router.get('/get-r2signed-url', async (req: Request, res: Response) => {
+/**
+ * 署名付きURLを生成するエンドポイント
+ * GET /get-r2signed-url
+ * Query Params: fileName
+ */
+const getR2SignedUrlHandler = async (
+  req: FastifyRequest<{ Querystring: { fileName: string } }>,
+  reply: FastifyReply
+) => {
   try {
-    const fileName = req.query.fileName as string; // 明示的に string 型にキャスト
+    const { fileName } = req.query;
 
+    // ファイル名が存在しない場合
     if (!fileName) {
-      return res.status(400).json({ error: 'File name is required' });
+      return reply.status(400).send({ error: 'File name is required' });
     }
 
     // 署名付きURLを生成
     const signedUrl = await generateSignedUrl(fileName);
 
-    res.status(200).json({ signedUrl });
+    reply.status(200).send({ signedUrl });
   } catch (error) {
     console.error('Error generating signed URL:', error);
-    res.status(500).json({ error: 'Failed to generate signed URL' });
+    reply.status(500).send({ error: 'Failed to generate signed URL' });
   }
-});
-export default router;
+};
+
+// Fastifyプラグインとしてエクスポート
+export default async function (app: FastifyInstance) {
+  app.get('/get-r2signed-url', getR2SignedUrlHandler); // 署名付きURL生成API
+}

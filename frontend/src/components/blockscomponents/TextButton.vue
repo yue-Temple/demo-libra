@@ -13,6 +13,17 @@
               class="button-image"
             />
           </div>
+          <!-- アイコン画像 -->
+          <div class="image-container">
+            <i
+              :class="geticon(button.icon_url)"
+              :style="{
+                color: geticoncolor(button.icon_url),
+                fontSize: 'clamp(30px, 8.5vw, 80px)',
+              }"
+            >
+            </i>
+          </div>
         </button>
         <!-- text編集中OFF -->
         <div class="title-and-content" v-if="isEditing && !editNow">
@@ -54,16 +65,29 @@
             alt="Button Image"
             class="button-image"
           />
+          <!-- アイコン画像 -->
+          <div class="image-container">
+            <i
+              :class="geticon(button.icon_url)"
+              :style="{
+                color: geticoncolor(button.icon_url),
+                fontSize: 'clamp(30px, 8.5vw, 80px)',
+              }"
+            >
+            </i>
+          </div>
         </div>
       </button>
       <div class="title-and-content">
-        <h3 class="textbutton-title">{{ button.title }}</h3>
-        <div
+          <h3 class="textbutton-title">{{ button.title }}</h3>
+          <div class="moov">
+            <div
           @click="startEditing"
           v-html="formatContent2(content)"
           class="content"
         ></div>
-      </div>
+          </div>
+        </div>
     </template>
   </div>
 
@@ -144,6 +168,33 @@ const validateTitleColor = (color: string | null): TitleColor => {
   return color && validTitleColors.includes(color) ? color : 'main'; // デフォルト値は 'main'
 };
 
+// geticon関数: アイコンのクラス名を取得する
+const geticon = (
+  iconUrl: { iconClass: string; iconStyle: string } | null | undefined
+): string => {
+  if (!iconUrl || !iconUrl.iconClass) {
+    return ''; // アイコンが未設定の場合は空文字を返す
+  }
+  return iconUrl.iconClass; // アイコンのクラス名を返す
+};
+
+// geticoncolor関数: アイコンの色を取得する
+const geticoncolor = (
+  iconUrl: { iconClass: string; iconStyle: string } | null | undefined
+): string => {
+  if (!iconUrl || !iconUrl.iconStyle) {
+    return ''; // スタイルが未設定の場合は空文字を返す
+  }
+
+  // iconStyleから色を抽出する
+  const colorMatch = iconUrl.iconStyle.match(/color:\s*([^;]+)/);
+  if (colorMatch && colorMatch[1]) {
+    return colorMatch[1].trim(); // 色の値を返す
+  }
+
+  return ''; // 色が見つからない場合は空文字を返す
+};
+
 // ドロップダウンの表示・非表示を切り替える
 const toggleDropdown = () => {
   activeDropdown.value = !activeDropdown.value;
@@ -171,7 +222,9 @@ const updateButtonProperty = <K extends keyof Button>(
 const updateCover = (newImageUrl: File) => {
   updateButtonProperty('image_url', newImageUrl);
 };
-const updateIcon = (newIcon: string) => {
+const updateIcon = (
+  newIcon: { iconClass: string; iconStyle: string } | null | undefined
+) => {
   updateButtonProperty('icon_url', newIcon);
 };
 const updateTitleColor = (newTitleColor: TitleColor) => {
@@ -313,6 +366,13 @@ onBeforeUnmount(() => {
 .double {
   border: 4px double var(--page-text);
 }
+.shadow{
+  box-shadow: 0 4px 8px var(--shadow), 
+            0 -2px 4px var(--shadow),
+            0 2px 4px var(--shadow);
+
+  border-radius: 8px;
+}
 
 ::v-deep h1,
 ::v-deep h2,
@@ -403,6 +463,10 @@ onBeforeUnmount(() => {
   height: 100%;
   overflow: hidden;
   border-radius: 10px; /* ボタンの角丸に合わせる */
+  display: flex; /* フレックスボックスを適用 */
+  align-items: center; /* 垂直中央 */
+  justify-content: center; /* 水平中央 */
+  font-size: 3rem;
 }
 
 /* ボタンとテキスト */
@@ -445,6 +509,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
   box-sizing: border-box;
   margin-left: 0.4rem;
+}
+.content{
   margin-right: 0.4rem;
 }
 
@@ -472,12 +538,12 @@ onBeforeUnmount(() => {
   .textbutton-title,
   .title-and-content input {
     margin-bottom: 0;
-    font-size: clamp(15px, 2vw, 20px);
+    font-size: clamp(18px, 2vw, 24px);
   }
 
   .moov .content,
   .moov textarea {
-    font-size: clamp(10px, 2vw, 18px);
+    font-size: clamp(11px, 2vw, 18px);
     min-height: 35px;
   }
 }

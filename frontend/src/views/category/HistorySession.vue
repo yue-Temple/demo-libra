@@ -12,6 +12,14 @@
       @close="closePopup"
       @delete="handleDelete"
     />
+    <!-- シェア画面 -->
+    <Sharepopup
+    :cover="selectedContainer?.imgURL"
+    :report="selectedContainer?.report"
+    :page-url="openUrl"
+    @share-popup-close="sharepopuphundler"
+    v-if="isshare"
+    />
     <!-- サムネ画像拡大表示 -->
     <ImagePopup
       :is-visible="isImagePopupVisible"
@@ -27,19 +35,21 @@
         />
       </div>
 
+      <div class="back-controls" v-if="isMobile && isMobileSorton"></div>
       <div class="field">
         <!-- コントローラー（モバイル） -->
         <div class="mobile-only" v-if="isMobile">
           <HistoryControls
             @serch-change="handleSerchChange"
             @visibility-change="handleVisibilityChange"
+            v-if="isMobileSorton"
+          />
+          <MobileSortButton
+            :is-mobile-sorton="isMobileSorton"
+            @update:mobile-sort-on="handleMobileSortToggle"
           />
         </div>
-        <AddConteinerButton
-          class="addcontainer"
-          @add-container="openPopup"
-          v-if="isOwner"
-        />
+        <AddConteinerButton @add-container="openPopup" v-if="isOwner" />
 
         <div
           v-for="(container, index) in sortedHistories"
@@ -113,14 +123,17 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { HistoryContainer } from '@sharetypes';
-//コンポーネント
+import { formatContent4 } from '@/rogics/textformat';
+// 子コンポーネント
 import TopBar from '@/components/standard/topbar.vue';
 import MenuBar from '@/components/standard/menubar.vue';
 import HistoryControls from '@/components/hcomponents/HistoryControls.vue';
 import AddConteinerButton from '@/components/hcomponents/AddContainerButton.vue';
-import Historyaddpopup from '@/components/hcomponents/Historyaddpopup.vue';
 import ImagePopup from '@/components/sharecomponents/ImagePopup.vue';
-import { formatContent4 } from '@/rogics/textformat';
+import MobileSortButton from '@/components/hcomponents/MobileSortButton.vue';
+import Historyaddpopup from '@/components/hcomponents/Historyaddpopup.vue';
+import Sharepopup from '@/components/hcomponents/Sharepopup.vue';
+
 
 const router = useRouter();
 const route = useRoute();
@@ -131,7 +144,9 @@ const isEditPopupVisible = ref(false);
 const isImagePopupVisible = ref(false);
 const updateHistory = ref(false);
 const reportVisibility = ref('repovisible');
+const isshare = ref(false);
 const isMobile = ref(false);
+const isMobileSorton = ref(false);
 // 管理者管理
 const routeuserNumber = Number(route.params.userNumber);
 const isOwner = userStore.checkOwner(route.params.userNumber);
@@ -142,10 +157,11 @@ const selectedContainer = ref<HistoryContainer | null>(null);
 const selectedImageSrc = ref('');
 const sortedHistories = ref<HistoryContainer[]>([]); // 表示用の並び替え結果を保持する
 //検索条件
-const sort = ref(); //id or date
-const sortBy = ref(); // 'ASC' | 'DESC'
+const sort = ref('date'); //id or date
+const sortBy = ref<'ASC' | 'DESC'>('DESC'); // 'ASC' | 'DESC'
 const serchdate = ref<string | null>(null);
 const serchtitle = ref<string | null>(null);
+const openUrl = ref();
 
 onMounted(async () => {
   // メニュー取得確認
@@ -182,13 +198,19 @@ onMounted(async () => {
     observer.observe(loader.value);
   }
 
-  // コンポーネントがマウントされたときにスクロール位置を復元
+  // スクロール位置を復元
   restoreScrollPosition();
-  // スクロールイベントのリスナーを追加
-  window.addEventListener('scroll', saveScrollPosition);
-  // モバイル判定
+  window.addEventListener('scroll', saveScrollPosition); // スクロールイベントのリスナーを追加
+
+  // モバイルかどうか判定
   checkIfMobile();
   window.addEventListener('resize', checkIfMobile); // リサイズ時の監視
+});
+
+// イベントのリスナーを削除
+onUnmounted(() => {
+  window.removeEventListener('scroll', saveScrollPosition);
+  window.removeEventListener('resize', checkIfMobile);
 });
 
 // ストアの histories が変更されたら sortedHistories を更新
@@ -200,23 +222,20 @@ watch(
   { deep: true }
 );
 
-// コンポーネントがアンマウントされる前にスクロールイベントのリスナーを削除
-onUnmounted(() => {
-  window.removeEventListener('scroll', saveScrollPosition);
-  window.removeEventListener('resize', checkIfMobile);
-});
-
-// モバイル判定用の関数
+// モバイル判定
 const checkIfMobile = () => {
   const mediaQuery = window.matchMedia('(max-width: 600px)');
   isMobile.value = mediaQuery.matches;
+};
+// モバイル：ソートウィンドウオープン・クローズ
+const handleMobileSortToggle = (newValue: boolean) => {
+  isMobileSorton.value = newValue;
 };
 
 // スクロール位置を保存する関数
 const saveScrollPosition = () => {
   historyStore.saveScrollPosition(window.scrollY);
 };
-
 // スクロール位置を復元する関数
 const restoreScrollPosition = () => {
   nextTick(() => {
@@ -246,7 +265,12 @@ const handleDelete = async (historyId: string, imageURL: string) => {
   }
 };
 
-// 追加モードポップアップ
+// ポップアップ：共有
+const sharepopuphundler = async () => {
+  isshare.value = !isshare.value;
+};
+
+// ポップアップ：追加モード
 const openPopup = () => {
   selectedContainer.value = {
     id: '', // 新しいIDは後で生成
@@ -262,7 +286,7 @@ const openPopup = () => {
   isEditPopupVisible.value = true; // ポップアップを開く
   updateHistory.value = false;
 };
-// 編集モードポップアップ
+// ポップアップ：編集モード
 const openEditPopup = (container: HistoryContainer) => {
   const rawContainer = historyStore.getHistories.find(
     (c) => c.id === container.id
@@ -276,20 +300,21 @@ const openEditPopup = (container: HistoryContainer) => {
     // 必要に応じてエラーハンドリングを行う
   }
 };
-// シェアポップアップ
+
+// ポップアップ：シェアボタン
 const opensharePopup = (container: HistoryContainer) => {
   const rawContainer = historyStore.getHistories.find(
     (c) => c.id === container.id
   );
-  alert('まだ実装してないよ');
   if (rawContainer) {
     selectedContainer.value = rawContainer; // 生データを渡す
-    // ポップアップを開くフラグ
+    openUrl.value = `/${routeuserNumber}/history/${container.id}`; // URLを更新
+    isshare.value = true; // シェアポップアップを開く
   } else {
     console.error('該当するコンテナが見つかりませんでした');
-    // 必要に応じてエラーハンドリングを行う
   }
 };
+
 // ポップアップを閉じる
 const closePopup = () => {
   isEditPopupVisible.value = false;
@@ -321,6 +346,7 @@ const handleSerchChange = async (searchData: {
   title: string;
   sortOrder: string;
 }) => {
+  isMobileSorton.value = false;
   const { date, title, sortOrder } = searchData; // オブジェクトを分割代入
   historyStore.reset();
   serchdate.value = date;
@@ -356,7 +382,7 @@ const handleSerchChange = async (searchData: {
   sortedHistories.value = [...historyStore.getHistories];
 };
 
-// 表示フォーマット制御群
+// 表示調整群
 const formatDateDisplay = (dateArray: string[] | null) => {
   if (!dateArray || dateArray.length === 0) {
     return '';
@@ -427,6 +453,24 @@ watch(
     width: 90dvw;
     margin-left: 1rem;
   }
+  .mobile-only {
+    position: fixed;
+    top: 200px;
+    margin-left: -0.5rem;
+    z-index: 110;
+  }
+  .back-controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
 }
 
 h1,
@@ -453,10 +497,6 @@ h1 {
 :deep(h5),
 :deep(h6) {
   margin-top: 0px;
-}
-
-.f1 {
-  font-size: 3rem;
 }
 
 /* 日付・サブタイトル・編集ボタン・鍵マーク */
@@ -514,6 +554,7 @@ h1 {
   cursor: pointer;
 }
 
+/* レポート */
 .text {
   margin-left: 1rem;
   max-width: 80dvw;
@@ -570,6 +611,7 @@ h1 {
   border: var(--page-button) solid 1px;
   color: var(--page-buttontext);
 }
+/* 編集・共有ボタン */
 .editblock,
 .editblock2 {
   width: 65px;
@@ -592,10 +634,6 @@ h1 {
 :deep(.pi.pi-pen-to-square)::before {
   font-size: 12px !important;
   margin-right: 4px;
-}
-
-.addcontainer {
-  margin-left: -3%;
 }
 
 /* 時系列の棒 */

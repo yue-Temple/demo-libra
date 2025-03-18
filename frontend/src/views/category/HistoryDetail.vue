@@ -1,6 +1,13 @@
 <template>
-  <!-- <MenuBar /> -->
   <TopBar />
+  <Sharepopup
+    :cover="history?.imgURL"
+    :report="history?.report"
+    :page-url="currentUrl"
+    @share-popup-close="sharepopuphundler"
+    v-if="isshare"
+  />
+
   <div class="home">
     <div class="field">
       <!-- データがない場合 -->
@@ -18,12 +25,7 @@
           <div class="back">
             <!-- オーナー用 -->
             <div class="forowner">
-              <div class="editblock" @click="">
-                <i class="pi pi-pen-to-square" style="font-size: 0.8rem"
-                  >編集</i
-                >
-              </div>
-              <div class="editblock2" @click="">
+              <div class="editblock2" @click="sharepopuphundler">
                 <i class="pi pi-share-alt" style="font-size: 0.8rem">共有</i>
               </div>
             </div>
@@ -67,11 +69,13 @@ import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useUserStore } from '@/stores/userStore';
 import { useHistoryStore } from '@/stores/historyStore';
+import { useHead } from '@vueuse/head';
 // 型定義
 import { InfoBlock, HistoryContainer } from '@sharetypes';
 // 子コンポーネント
 import TopBar from '@/components/standard/topbar.vue';
 import InfoBlockManager from '@/components/blockscomponents/InfoBlockManager.vue';
+import Sharepopup from '@/components/hcomponents/Sharepopup.vue';
 import { getOldImageurls } from '@/rogics/getOldImageurls';
 
 // 遷移URLパラメーター
@@ -87,12 +91,60 @@ const route = useRoute();
 // ルート
 const routeuserNumber = Number(route.params.userNumber); // ルートパラメータから userNumber を取得
 const historyId = String(route.params.id); // ルートパラメータから id を取得
+const currentUrl = ref(window.location.href); // 現在のURL
 // リアクティブ変数
 const history = ref<HistoryContainer | null>(null); // 表示する履歴データを格納
 const childInfoBlock = ref<InfoBlock[]>([]);
 const oldchildInfoBlock = ref<InfoBlock[]>([]);
 const addBlocks = ref<InfoBlock[]>([]);
 const deleteBlocks = ref<InfoBlock[]>([]);
+// フラグ
+const isshare = ref(false);
+
+// メタタグを動的に設定
+useHead(() => ({
+  title: history.value?.title || 'New History',
+  meta: [
+    {
+      name: 'description',
+      content: history.value?.report || 'No description available',
+    },
+    {
+      property: 'og:title',
+      content: history.value?.title || 'New History',
+    },
+    {
+      property: 'og:description',
+      content: '',
+    },
+    {
+      property: 'og:image',
+      content:
+        typeof history.value?.imgURL === 'string' ? history.value?.imgURL : '', // 画像URLが文字列であることを確認
+    },
+    {
+      property: 'og:type',
+      content: 'profile',
+    },
+    {
+      name: 'twitter:card',
+      content: 'summary_large_image',
+    },
+    {
+      name: 'twitter:title',
+      content: history.value?.title || 'New History',
+    },
+    {
+      name: 'twitter:description',
+      content: '',
+    },
+    {
+      name: 'twitter:image',
+      content:
+        typeof history.value?.imgURL === 'string' ? history.value?.imgURL : '', // 画像URLが文字列であることを確認
+    },
+  ],
+}));
 
 onMounted(async () => {
   // 既にデータ取得済みの場合
@@ -123,6 +175,11 @@ onMounted(async () => {
   // ページのスクロール位置をトップに戻す
   window.scrollTo(0, 0);
 });
+
+// 共有POPUPオープン
+const sharepopuphundler = async () => {
+  isshare.value = !isshare.value;
+};
 
 // 保存
 const savehprofile = async () => {
@@ -221,7 +278,7 @@ const formatDate = (dateArray: string[] | null): string => {
 @import url('https://fonts.googleapis.com/css?family=Oswald|Roboto:400,700');
 
 .home {
-  margin-top: 30px;
+  margin-top: 10px;
   position: relative;
   padding-bottom: 80px;
   display: flex;
@@ -245,7 +302,7 @@ const formatDate = (dateArray: string[] | null): string => {
   padding: 10px;
 }
 .prof-field {
-  padding-top: 45px;
+  padding-top: 25px;
   width: 100%;
   padding: 0 auto;
 }
@@ -265,11 +322,10 @@ const formatDate = (dateArray: string[] | null): string => {
   justify-content: space-around;
   margin: 2px;
   margin-left: 1rem;
-  width: 130px;
+
   border: var(--page-button) solid 1px;
   color: var(--page-buttontext);
 }
-.editblock,
 .editblock2 {
   width: 65px;
   display: flex;
@@ -279,9 +335,7 @@ const formatDate = (dateArray: string[] | null): string => {
   background-color: var(--page-button);
   cursor: pointer;
 }
-.editblock2 {
-  border-left: var(--page-buttontext) solid 1px;
-}
+
 .editblock:hover,
 .editblock2:hover {
   background-color: var(--page-button-sub);

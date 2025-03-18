@@ -2,7 +2,7 @@ import { AppDataSource } from '../data-source';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
-import { Response } from 'express';
+import { FastifyReply } from 'fastify';
 // エンティティ
 import { User } from '../entity/User';
 import { Menu } from '../entity/Menu';
@@ -21,13 +21,13 @@ export class AuthGoogleService {
    * API: Google アカウントでの登録
    * @param authCode - 認可コード
    * @param deviceId - デバイスID
-   * @param res
+   * @param reply - FastifyReply
    * @returns { accessToken }
    */
   async registerWithGoogle(
     authCode: string,
     deviceId: string,
-    res: Response
+    reply: FastifyReply
   ): Promise<{ accessToken: string }> {
     try {
       // 環境変数の検証
@@ -90,7 +90,7 @@ export class AuthGoogleService {
       });
 
       // リフレッシュトークンをクッキーに保存
-      res.cookie('refreshToken', refreshToken, {
+      reply.setCookie('refreshToken', refreshToken, {
         httpOnly: true, // JavaScriptからアクセス不可
         secure: true, // HTTPSのみ
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none', // 開発環境ではクロスサイトを許可
@@ -109,13 +109,13 @@ export class AuthGoogleService {
    * API: Google アカウントでのログイン
    * @param authCode - 認可コード
    * @param deviceId - デバイスID
-   * @param res
+   * @param reply - FastifyReply
    * @returns { accessToken }
    */
   async loginWithGoogle(
     authCode: string,
     deviceId: string,
-    res: Response // レスポンスオブジェクトを引数に追加
+    reply: FastifyReply
   ): Promise<{ accessToken: string }> {
     // レスポンスからrefreshTokenを削除
     try {
@@ -177,7 +177,7 @@ export class AuthGoogleService {
         await refreshTokenRepository.save(newRefreshToken);
 
         // リフレッシュトークンをクッキーに保存
-        res.cookie('refreshToken', refreshToken, {
+        reply.setCookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
@@ -195,7 +195,7 @@ export class AuthGoogleService {
           await tokenService.refreshAccessToken(existingToken.token); //期限検証,必要に応じて更新
 
         // 新しいリフレッシュトークンをクッキーに保存
-        res.cookie('refreshToken', refreshToken, {
+        reply.setCookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure: true,
           sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',

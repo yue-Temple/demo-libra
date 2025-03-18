@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { HistoryService } from '../services/HistoryService';
 import { HistorygetService } from '../services/HistorygetService';
 import {
@@ -7,161 +7,189 @@ import {
   deleteMultipleFromR2,
 } from '../services/R2Service';
 
-const router = express.Router();
 const historyService = new HistoryService();
 const historygetService = new HistorygetService();
 
 /**
  * ヒストリ追加APIのエンドポイント
- * POST /histories
- * Request Body: { user_number: number, newHistory: HistoryContainer }
+ * POST /histories/addhistories/:user_number
+ * Request Body: { newHistory: HistoryContainer }
  */
-router.post(
-  '/addhistories/:user_number',
-  async (req: Request, res: Response) => {
-    try {
-      const user_number = parseInt(req.params.user_number, 10);
-      const { newHistory } = req.body;
+const addHistoryHandler = async (
+  req: FastifyRequest<{
+    Params: { user_number: string };
+    Body: { newHistory: any };
+  }>,
+  reply: FastifyReply
+) => {
+  try {
+    const user_number = parseInt(req.params.user_number, 10);
+    const { newHistory } = req.body;
 
-      if (!user_number || !newHistory) {
-        return res
-          .status(400)
-          .json({ message: 'user_number and newHistory are required' });
-      }
-
-      await historyService.addHistory(user_number, newHistory);
-      res.status(201).json({ message: 'History added successfully' });
-    } catch (error) {
-      console.error('Error adding history:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    if (!user_number || !newHistory) {
+      return reply
+        .status(400)
+        .send({ message: 'user_number and newHistory are required' });
     }
+
+    await historyService.addHistory(user_number, newHistory);
+    reply.status(201).send({ message: 'History added successfully' });
+  } catch (error) {
+    console.error('Error adding history:', error);
+    reply.status(500).send({ message: 'Internal server error' });
   }
-);
+};
 
 /**
  * ヒストリ更新APIのエンドポイント
- * PUT /histories/:userNumber
+ * PUT /histories/updatehistories/:user_number
  * Request Body: { updateHistoryContent: HistoryContainer, image_url: string }
  */
-router.put(
-  '/updatehistories/:user_number',
-  async (req: Request, res: Response) => {
-    try {
-      const user_number = parseInt(req.params.user_number, 10);
-      const { updateHistoryContent, image_url } = req.body;
+const updateHistoryHandler = async (
+  req: FastifyRequest<{
+    Params: { user_number: string };
+    Body: { updateHistoryContent: any; image_url?: string };
+  }>,
+  reply: FastifyReply
+) => {
+  try {
+    const user_number = parseInt(req.params.user_number, 10);
+    const { updateHistoryContent, image_url } = req.body;
 
-      if (!user_number || !updateHistoryContent) {
-        console.log('koko');
-        return res
-          .status(400)
-          .json({ message: 'Invalid user_number or updateHistoryContent' });
-      }
-
-      await historyService.updateHistory(user_number, updateHistoryContent);
-      // 旧R2データを削除
-      if (image_url) deleteFromR2(image_url);
-
-      res.status(200).json({ message: 'History updated successfully' });
-    } catch (error) {
-      console.error('Error updating history:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    if (!user_number || !updateHistoryContent) {
+      return reply
+        .status(400)
+        .send({ message: 'Invalid user_number or updateHistoryContent' });
     }
+
+    await historyService.updateHistory(user_number, updateHistoryContent);
+    // 旧R2データを削除
+    if (image_url) deleteFromR2(image_url);
+
+    reply.status(200).send({ message: 'History updated successfully' });
+  } catch (error) {
+    console.error('Error updating history:', error);
+    reply.status(500).send({ message: 'Internal server error' });
   }
-);
+};
 
 /**
  * ヒストリプロフ更新APIのエンドポイント
- * PUT /histories/:userNumber
- * Request Body: { blocks: Infoblock[] }
+ * PUT /histories/historyprofile/:userNumber/:historyId
+ * Request Body: { newblocks: Infoblock[], deleteblocks?: any, old_image_urls?: string[] }
  */
-router.put(
-  '/historyprofile/:userNumber/:historyId',
-  async (req: Request, res: Response) => {
-    try {
-      const userNumber = parseInt(req.params.userNumber, 10);
-      const historyId = req.params.historyId;
-      const { newblocks, deleteblocks, old_image_urls } = req.body;
+const updateHistoryProfileHandler = async (
+  req: FastifyRequest<{
+    Params: { userNumber: string; historyId: string };
+    Body: { newblocks: any; deleteblocks?: any; old_image_urls?: string[] };
+  }>,
+  reply: FastifyReply
+) => {
+  try {
+    const userNumber = parseInt(req.params.userNumber, 10);
+    const historyId = req.params.historyId;
+    const { newblocks, deleteblocks, old_image_urls } = req.body;
 
-      if (!userNumber || !newblocks) {
-        return res
-          .status(400)
-          .json({ message: 'Invalid user_number or updateHistoryContent' });
-      }
-
-      // 削除画像の処理
-      if (deleteblocks || old_image_urls) {
-        const deleteKeys = await getdeleteBlocksImageKeys(
-          deleteblocks,
-          old_image_urls
-        );
-        deleteMultipleFromR2(deleteKeys);
-      }
-
-      await historyService.updateHistoryProfile(
-        userNumber,
-        historyId,
-        newblocks
-      );
-      res.status(200).json({ message: 'History updated successfully' });
-    } catch (error) {
-      console.error('Error updating history:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    if (!userNumber || !newblocks) {
+      return reply
+        .status(400)
+        .send({ message: 'Invalid user_number or updateHistoryContent' });
     }
+
+    // 削除画像の処理
+    if (deleteblocks || old_image_urls?.length) {
+      const deleteKeys = await getdeleteBlocksImageKeys(
+        deleteblocks,
+        old_image_urls || [] // `undefined`の場合、空配列に代入
+      );
+      deleteMultipleFromR2(deleteKeys);
+    }
+
+    await historyService.updateHistoryProfile(userNumber, historyId, newblocks);
+    reply.status(200).send({ message: 'History updated successfully' });
+  } catch (error) {
+    console.error('Error updating history:', error);
+    reply.status(500).send({ message: 'Internal server error' });
   }
-);
+};
 
 /**
  * 卓歴削除APIのエンドポイント
- * DELETE /histories/:user_number/:historyId
- * URL Params: user_number, historyId
- * body:data: { delete_imageURL }
+ * DELETE /histories/:userNumber/:historyId
+ * Request Body: { delete_imageURL?: string }
  */
-router.delete(
-  '/histories/:userNumber/:historyId',
-  async (req: Request, res: Response) => {
-    try {
-      const userNumber = parseInt(req.params.userNumber, 10);
-      const historyId = req.params.historyId;
-      const { delete_imageURL } = req.body;
+const deleteHistoryHandler = async (
+  req: FastifyRequest<{
+    Params: { userNumber: string; historyId: string };
+    Body: { delete_imageURL?: string };
+  }>,
+  reply: FastifyReply
+) => {
+  try {
+    const userNumber = parseInt(req.params.userNumber, 10);
+    const historyId = req.params.historyId;
+    const { delete_imageURL } = req.body;
 
-      if (!userNumber || !historyId) {
-        return res
-          .status(400)
-          .json({ message: 'Invalid user_number or historyId' });
-      }
-
-      // ストレージサービスから画像削除の処理
-      if (delete_imageURL) deleteFromR2(delete_imageURL);
-
-      await historyService.deleteHistory(userNumber, historyId);
-      res.status(200).json({ message: 'History deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting history:', error);
-      res.status(500).json({ message: 'Internal server error' });
+    if (!userNumber || !historyId) {
+      return reply
+        .status(400)
+        .send({ message: 'Invalid user_number or historyId' });
     }
+
+    // ストレージサービスから画像削除の処理
+    if (delete_imageURL) deleteFromR2(delete_imageURL);
+
+    await historyService.deleteHistory(userNumber, historyId);
+    reply.status(200).send({ message: 'History deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting history:', error);
+    reply.status(500).send({ message: 'Internal server error' });
   }
-);
+};
 
 /**
  * 取得APIのエンドポイント
- * GET /histories/:user_number
- * URL Params: user_number
- * Query Params: page, limit, sortBy, sortOrder,serchdate,serchtitle
+ * GET /histories/:userNumber
+ * Query Params: page, limit, sortBy, sortOrder, serchdate, serchtitle
  */
-router.get('/histories/:userNumber', async (req, res) => {
-  const userNumber = parseInt(req.params.userNumber);
+type SortBy = 'date' | 'id';
+type SortOrder = 'ASC' | 'DESC';
+const getHistoriesHandler = async (
+  req: FastifyRequest<{
+    Params: { userNumber: string };
+    Querystring: {
+      page?: string;
+      limit?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      serchdate?: string;
+      serchtitle?: string;
+    };
+  }>,
+  reply: FastifyReply
+) => {
+  const userNumber = parseInt(req.params.userNumber, 10);
   if (!userNumber) {
-    return res.status(400).json({ message: 'Invalid usernumber' });
+    return reply.status(400).send({ message: 'Invalid usernumber' });
   }
 
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 20;
-  const sortBy = (req.query.sortBy as 'id' | 'date') || 'historyid';
-  const sortOrder = (req.query.sortOrder as 'ASC' | 'DESC') || 'ASC';
-  const serchdate: string | null =
-    (req.query.serchdate as string | undefined) ?? null;
-  const serchtitle: string | null =
-    (req.query.serchtitle as string | undefined) ?? null;
+  const page = parseInt(req.query.page || '1', 10);
+  const limit = parseInt(req.query.limit || '20', 10);
+
+  // sortByを適切な型にキャストする
+  const sortBy: SortBy =
+    req.query.sortBy === 'date' || req.query.sortBy === 'id'
+      ? (req.query.sortBy as SortBy)
+      : 'id'; // デフォルトを'id'に設定
+
+  // sortOrderを適切な型にキャストする
+  const sortOrder: SortOrder =
+    req.query.sortOrder === 'ASC' || req.query.sortOrder === 'DESC'
+      ? (req.query.sortOrder as SortOrder)
+      : 'ASC'; // デフォルトを'ASC'に設定
+
+  const serchdate = req.query.serchdate || null;
+  const serchtitle = req.query.serchtitle || null;
 
   try {
     const result = await historygetService.getHistories(
@@ -173,25 +201,27 @@ router.get('/histories/:userNumber', async (req, res) => {
       serchdate,
       serchtitle
     );
-    res.json(result);
+    reply.send(result);
   } catch (error) {
     console.error('Error fetching histories:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    reply.status(500).send({ message: 'Internal server error' });
   }
-});
+};
 
 /**
  * ヒストリ詳細一件取得APIのエンドポイント
- * GET /historydetail/:user_number/:history_id
- * URL Params: user_number,history_id
+ * GET /historydetail/:userNumber/:historyId
  */
-router.get('/historydetail/:userNumber/:historyId', async (req, res) => {
-  const userNumber = parseInt(req.params.userNumber);
+const getHistoryDetailHandler = async (
+  req: FastifyRequest<{ Params: { userNumber: string; historyId: string } }>,
+  reply: FastifyReply
+) => {
+  const userNumber = parseInt(req.params.userNumber, 10);
   const historyId = req.params.historyId;
 
   // パラメータのバリデーション
   if (!userNumber || !historyId) {
-    return res.status(400).json({ message: '不正なアクセスです' });
+    return reply.status(400).send({ message: '不正なアクセスです' });
   }
 
   try {
@@ -199,18 +229,53 @@ router.get('/historydetail/:userNumber/:historyId', async (req, res) => {
       userNumber,
       historyId
     );
-    res.json(result);
+    reply.send(result);
   } catch (error) {
     // 該当するデータがない場合
-    if (error instanceof Error) {
-      if (error.message === '404') {
-        return res.status(404).json({ message: '存在しないページです' });
-      }
+    if (error instanceof Error && error.message === '404') {
+      return reply.status(404).send({ message: '存在しないページです' });
     }
 
     // その他のエラーは500エラーとして返す
-    res.status(500).json({ message: 'Internal server error' });
+    reply.status(500).send({ message: 'Internal server error' });
   }
-});
+};
 
-export default router;
+// Fastifyプラグインとしてエクスポート
+export default async function (app: FastifyInstance) {
+  app.post<{
+    Params: { user_number: string };
+    Body: { newHistory: any };
+  }>('/addhistories/:user_number', addHistoryHandler);
+
+  app.put<{
+    Params: { user_number: string };
+    Body: { updateHistoryContent: any; image_url?: string };
+  }>('/updatehistories/:user_number', updateHistoryHandler);
+
+  app.put<{
+    Params: { userNumber: string; historyId: string };
+    Body: { newblocks: any; deleteblocks?: any; old_image_urls?: string[] };
+  }>('/historyprofile/:userNumber/:historyId', updateHistoryProfileHandler);
+
+  app.delete<{
+    Params: { userNumber: string; historyId: string };
+    Body: { delete_imageURL?: string };
+  }>('/histories/:userNumber/:historyId', deleteHistoryHandler);
+
+  app.get<{
+    Params: { userNumber: string };
+    Querystring: {
+      page?: string;
+      limit?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      serchdate?: string;
+      serchtitle?: string;
+    };
+  }>('/histories/:userNumber', getHistoriesHandler);
+
+  app.get<{
+    Params: { userNumber: string; historyId: string };
+  }>('/historydetail/:userNumber/:historyId', getHistoryDetailHandler);
+}

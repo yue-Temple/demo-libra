@@ -58,7 +58,7 @@ apiClient.interceptors.response.use(
         // リフレッシュに失敗した場合、ログアウト処理
         const userStore = useUserStore();
         userStore.clearToken();
-        router.push('/login'); // ログイン画面にリダイレクト
+        router.push('/sign-in'); // ログイン画面にリダイレクト
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

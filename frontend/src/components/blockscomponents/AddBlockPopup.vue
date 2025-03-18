@@ -30,9 +30,28 @@
               二重線枠
             </button>
           </li>
+          <li>
+            <button @click="addBlock('text', StyleType.Shadow, undefined)">
+              ぼかし枠
+            </button>
+          </li>
         </ul>
         <br />
 
+        <!-- テキストボタンセクション -->
+        <h3>▾ テキストボタン</h3>
+        <ul>
+          <li>
+            <button @click="addBlock('textbutton', StyleType.Solid, undefined)">
+              通常枠
+            </button>
+          </li>
+          <li>
+            <button @click="addBlock('textbutton', StyleType.Shadow, undefined)">
+              ぼかし枠
+            </button>
+          </li>
+        </ul><br />
         <!-- ボタンセクション -->
         <h3>▾ ボタン</h3>
         <ul>
@@ -66,17 +85,11 @@
               ボタン（大） ×3
             </button>
           </li>
-        </ul>
-        <br />
-
+        </ul><br />
+        
         <!-- その他セクション -->
         <h3>▾ その他</h3>
         <ul>
-          <li>
-            <button @click="addBlock('textbutton', StyleType.Solid, undefined)">
-              テキストボタン
-            </button>
-          </li>
           <li>
             <button @click="">未実装:ギャラリーブロック</button>
           </li>
@@ -135,7 +148,7 @@ const closePopup = () => {
   background-color: var(--page-background);
   padding: 20px;
   border-radius: 5px;
-  max-height: 90vh; /* 画面の高さの90%に制限 */
+  max-height: 75vh; /* 画面の高さの90%に制限 */
   width: 50dvw; /* ポップアップの幅を設定 */
   display: flex;
   flex-direction: column;

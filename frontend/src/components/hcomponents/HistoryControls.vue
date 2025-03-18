@@ -123,6 +123,10 @@ const toggleVisibility = () => {
   border-radius: 4px;
   z-index: 10;
 }
+/* モバイル表示 */
+@media (max-width: 600px) {
+
+}
 
 .history-controls select {
   width: 100%;
@@ -145,7 +149,7 @@ const toggleVisibility = () => {
 }
 .toggle-button.hidden-state {
   border: 2px solid #ccc; /* ボーダーのサイズ変更 */
-  padding: calc(0.25rem - 2px) calc(0.5rem - 2px); /* ボーダー分を引く */
+  padding: calc(0.25rem - 2px) calc(0.25rem - 2px); /* ボーダー分を引く */
   width: 3.5rem; /* 固定幅を設定 */
   height: 1.5rem;
   background-color: var(--page-accent);
@@ -183,6 +187,11 @@ const toggleVisibility = () => {
 .reset-serch-button {
   display: flex;
 }
+.reset-serch-button button {
+  background-color: var(--page-button);
+  color: var(--page-buttontext);
+  border: var(--page-buttontext);
+}
 .reset-serch-button .serchbutton {
   margin-left: 0.5rem;
 }
@@ -200,20 +209,21 @@ const toggleVisibility = () => {
     margin: 0;
   }
   .history-controls {
+    background-color: var(--page-background);
+    color: var(--page-text);
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    align-items: flex-start;
-    width: 95dvw;
+    width: 90dvw;
     max-width: 100%;
     padding: 1rem;
     margin: 0;
     margin-right: 0rem;
     margin-left: 0rem;
+
     font-size: 1rem;
     font-weight: bold;
-    background-color: var(--top-bar-menu-background-10);
     border: 4px double #ccc;
     border-radius: 4px;
     z-index: 10;

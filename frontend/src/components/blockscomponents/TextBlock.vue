@@ -135,6 +135,13 @@ onMounted(() => {
 .double {
   border: 4px double var(--page-text);
 }
+.shadow{
+  box-shadow: 0 4px 8px var(--shadow), 
+            0 -2px 4px var(--shadow),
+            0 2px 4px var(--shadow);
+
+  border-radius: 8px;
+}
 
 ::v-deep h1,
 ::v-deep h2,

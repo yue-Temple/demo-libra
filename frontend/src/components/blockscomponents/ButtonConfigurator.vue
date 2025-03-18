@@ -18,15 +18,22 @@
       </div>
 
       <div class="scrollable-content">
-        <!-- タイトルの色選択 -->
+        <!-- タイトルカラー選択 -->
         <div class="form-group">
-          <div class="title-coolorselect">
-            <label>▾ タイトルの文字色</label>
-            <select v-model="selectedTitleColor" class="color-selector">
-              <option value="black">黒</option>
-              <option value="white">白</option>
-              <option value="main">メインカラー</option>
-            </select>
+          <label>▾ タイトルカラー選択</label><br />
+          <div class="color-panel">
+            <div
+              v-for="color in colorList"
+              :key="color.value"
+              :class="[
+                'color-item',
+                { active: selectedTitleColor === color.value },
+              ]"
+              @click="selectTitleColor(color.value)"
+            >
+              <div :style="{ backgroundColor: color.style }"></div>
+              <span>{{ color.label }}</span>
+            </div>
           </div>
         </div>
         <!-- 画像選択 -->
@@ -51,30 +58,42 @@
 
         <!-- アイコン画像 -->
         <div class="form-group">
+          <label>▾ アイコンカラー選択</label><br />
+          <div class="color-panel">
+            <div
+              v-for="color in colorList"
+              :key="color.value"
+              :class="[
+                'color-item',
+                { active: selectedIconColor === color.value },
+              ]"
+              @click="selectIconColor(color.value)"
+            >
+              <div :style="{ backgroundColor: color.style }"></div>
+              <span>{{ color.label }}</span>
+            </div>
+          </div>
+          <br />
           <label>▾ アイコン画像選択</label><br />
-          まだ用意してないよ～<br /><br />
-          <hr />
-          <!-- <select v-model="selectedIcon" class="icon-selector">
-                <option
-                  v-for="icon in iconList"
-                  :key="icon.value"
-                  :value="icon.value"
-                >
-                  {{ icon.label }}
-                </option>
-              </select> -->
-          <div class="icon-container" v-if="selectedIcon">
-            <img :src="selectedIcon" alt="Selected Icon" class="icon-image" />
+          <div class="icon-panel">
+            <div
+              v-for="icon in iconList"
+              :key="icon.value"
+              :class="['icon-item', { active: selectedIcon === icon.value }]"
+              @click="selectIcon(icon.value)"
+            >
+              <i :class="`pi ${icon.value}`"></i>
+            </div>
           </div>
+          <br />
         </div>
-
-        <!-- 保存ボタン -->
-        <div class="form-bottom">
-          <div class="form-actions">
-            <button type="submit" class="ok" @click="saveConfig">
-              <b>決定</b>
-            </button>
-          </div>
+      </div>
+      <!-- 保存ボタン -->
+      <div class="form-bottom">
+        <div class="form-actions">
+          <button type="submit" class="ok" @click="saveConfig">
+            <b>決定</b>
+          </button>
         </div>
       </div>
     </div>
@@ -82,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, PropType } from 'vue';
+import { ref, PropType, onMounted } from 'vue';
 import ImageCropper from '../sharecomponents/ImageCropper.vue';
 import Fileupload from '../sharecomponents/Fileupload.vue';
 
@@ -93,14 +112,13 @@ const props = defineProps({
     default: null,
   },
   icon: {
-    type: String as () => string | null,
+    type: Object as () => { iconClass: string; iconStyle: string } | null,
     required: false,
     default: null,
   },
   titlecolor: {
     type: String as () => string,
     required: false,
-    default: 'black',
   },
 });
 
@@ -111,8 +129,7 @@ const emit = defineEmits([
   'close',
 ]);
 
-const selectedTitleColor = ref(props.titlecolor || 'black');
-const selectedIcon = ref(props.icon);
+const selectedTitleColor = ref(props.titlecolor || 'main');
 
 // トリミング関連の状態
 const pictureOption = ref('upload'); // アップロードOR貼り付け
@@ -120,6 +137,24 @@ const isCropping = ref(false); // トリミング中かどうかのフラグ
 const originalImage = ref(''); // オリジナルの画像を保持（再トリミング用）
 const previewImage = ref(''); //トリミング後、プレビューURL
 const uploadcoverFile = ref<File | null>(null); //トリミング後、画像データ
+
+// 選択されたアイコンと色
+const selectedIcon = ref<string | null>(null);
+const selectedIconColor = ref<string>('main');
+
+// iconプロパティから初期値を設定
+onMounted(() => {
+  if (props.icon) {
+    // selectedIconの初期値設定
+    selectedIcon.value = props.icon.iconClass.replace('pi ', '');
+
+    // selectedIconColorの初期値設定
+    const colorMatch = props.icon.iconStyle.match(/color:\s*([^;]+)/);
+    if (colorMatch && colorMatch[1]) {
+      selectedIconColor.value = colorMatch[1].trim();
+    }
+  }
+});
 
 // 画像選択/貼り付け時
 const imageSet = (image: string, selct: string) => {
@@ -139,12 +174,115 @@ if (props.cover instanceof File) {
   previewImage.value = props.cover;
 }
 
+// タイトルカラーを選択
+const selectTitleColor = (color: string) => {
+  selectedTitleColor.value = color;
+  emit('update:titlecolor', color);
+};
+
 // アイコンリスト
-const iconList = ref([
-  { value: '/icons/icon1.png', label: 'アイコン1' },
-  { value: '/icons/icon2.png', label: 'アイコン2' },
-  { value: '/icons/icon3.png', label: 'アイコン3' },
-]);
+const iconList = [
+  // 一般的なアイコン
+  { value: '', label: 'なし' },
+  { value: 'pi-envelope', label: 'メール' },
+  { value: 'pi-send', label: '送信' },
+  { value: 'pi-share-alt', label: '共有' },
+
+  { value: 'pi-heart', label: 'ハート' },
+  { value: 'pi-heart-fill', label: 'ハート（塗りつぶし）' },
+  { value: 'pi-star', label: '星' },
+  { value: 'pi-star-fill', label: '星（塗りつぶし）' },
+
+  { value: 'pi-phone', label: '電話' },
+  { value: 'pi-camera', label: 'カメラ' },
+  { value: 'pi-video', label: '動画' },
+  { value: 'pi-palette', label: 'パレット' },
+
+  { value: 'pi-address-book', label: 'アドレス帳' },
+  { value: 'pi-book', label: '本' },
+  { value: 'pi-bookmark', label: 'ブックマーク' },
+  { value: 'pi-tag', label: 'タグ' },
+
+  { value: 'pi-map-marker', label: '位置情報' },
+  { value: 'pi-cog', label: '設定' },
+  { value: 'pi-comment', label: 'コメント' },
+  { value: 'pi-search', label: '検索' },
+
+  { value: 'pi-user', label: 'ユーザー' },
+  { value: 'pi-calendar', label: 'カレンダー' },
+  { value: 'pi-cart-minus', label: 'カート' },
+  { value: 'pi-chart-bar', label: 'チャート' },
+
+  { value: 'pi-globe', label: '地球' },
+  { value: 'pi-moon', label: '月' },
+  { value: 'pi-sun', label: '太陽' },
+  { value: 'pi-bolt', label: '稲妻' },
+
+  { value: 'pi-exclamation-triangle', label: '注意' },
+  { value: 'pi-crown', label: '王冠' },
+  { value: 'pi-trophy', label: 'トロフィー' },
+  { value: 'pi-key', label: '鍵' },
+  { value: 'pi-lightbulb', label: '電球' },
+  { value: 'pi-clock', label: '時計' },
+  { value: 'pi-compass', label: 'コンパス' },
+
+  { value: 'pi-face-smile', label: '笑顔' },
+  { value: 'pi-copy', label: 'コピー' },
+  { value: 'pi-pencil', label: 'ペン' },
+  { value: 'pi-home', label: '家' },
+  { value: 'pi-building', label: 'ビル' },
+  { value: 'pi-building-columns', label: '銀行' },
+  { value: 'pi-briefcase', label: 'ブリーフケース' },
+  { value: 'pi-flag', label: '旗' },
+  { value: 'pi-bell', label: 'ベル' },
+  { value: 'pi-hammer', label: 'ハンマー' },
+
+  { value: 'pi-car', label: '車' },
+  { value: 'pi-truck', label: 'トラック' },
+  { value: 'pi-gift', label: 'ギフト' },
+  { value: 'pi-box', label: '箱' },
+
+  { value: 'pi-graduation-cap', label: '卒業帽' },
+  { value: 'pi-shield', label: '盾' },
+  { value: 'pi-headphones', label: 'ヘッドフォン' },
+
+  // SNS・外部サービス
+  { value: 'pi-twitter', label: 'Twitter' },
+  { value: 'pi-facebook', label: 'Facebook' },
+  { value: 'pi-instagram', label: 'Instagram' },
+  { value: 'pi-tiktok', label: 'TikTok' },
+  { value: 'pi-discord', label: 'Discord' },
+  { value: 'pi-youtube', label: 'YouTube' },
+  { value: 'pi-google', label: 'Google' },
+  { value: 'pi-amazon', label: 'Amazon' },
+  { value: 'pi-pinterest', label: 'Pinterest' },
+  { value: 'pi-github', label: 'GitHub' },
+  { value: 'pi-vimeo', label: 'Vimeo' },
+  { value: 'pi-telegram', label: 'Telegram' },
+  { value: 'pi-android', label: 'Android' },
+  { value: 'pi-apple', label: 'Apple' },
+  { value: 'pi-microsoft', label: 'Microsoft' },
+  { value: 'pi-slack', label: 'Slack' },
+  { value: 'pi-linkedin', label: 'LinkedIn' },
+  { value: 'pi-paypal', label: 'PayPal' },
+];
+
+// カラーリスト
+const colorList = [
+  { value: 'black', label: '黒', style: 'black' },
+  { value: 'white', label: '白', style: 'white' },
+  { value: 'main', label: 'テーマ', style: 'var(--page-text)' },
+];
+
+// アイコンを選択
+const selectIcon = (icon: string) => {
+  selectedIcon.value = icon;
+};
+
+// 色を選択
+const selectIconColor = (color: string) => {
+  selectedIconColor.value = color;
+};
 
 // トリミング開始　発火メソッド
 const startCropping = () => {
@@ -168,10 +306,21 @@ const fileReset = async () => {
 // 編集を決定
 const saveConfig = async () => {
   try {
-    // アップロード：親にファイルを渡す
+    // アップロード：親にカバー画像ファイルとタイトルカラーを渡す
     emit('update:cover', uploadcoverFile.value);
-    emit('update:icon', selectedIcon.value);
     emit('update:titlecolor', selectedTitleColor.value);
+
+    // アイコンと色を親に伝える
+    if (selectedIcon.value) {
+      // アイコンが選択されている場合
+      const iconClass = `pi ${selectedIcon.value}`;
+      const iconStyle = `color: ${selectedIconColor.value === 'main' ? 'var(--page-text)' : selectedIconColor.value}`;
+      emit('update:icon', { iconClass, iconStyle });
+    } else {
+      // アイコンが「なし」の場合
+      emit('update:icon', null); // アイコンをクリア
+    }
+
     emit('close');
   } catch (error) {
     alert('設定の保存に失敗しました');
@@ -204,8 +353,8 @@ const closePopup = () => {
   border-radius: 5px;
   width: 500px; /* ポップアップの幅を設定 */
   max-width: 65dvw;
-  height: 600px;
-  max-height: 70vh;
+  height: 620px;
+  max-height: 75vh;
   display: flex;
   flex-direction: column;
   box-shadow:
@@ -217,8 +366,8 @@ const closePopup = () => {
 @media (max-width: 600px) {
   .popup-content {
     margin-top: 40px;
-    width: 80dvw;
-    max-width: 80dvw;
+    width: 90dvw;
+    max-width: 90dvw;
     max-height: 75vh;
   }
 }
@@ -231,7 +380,12 @@ const closePopup = () => {
 }
 /* スクロールバーのスタイル */
 .scrollable-content::-webkit-scrollbar {
-  width: 0px; /* スクロールバーの幅 */
+  width: 2px; /* スクロールバーの幅 */
+}
+/* スクロールバーそのものの色 */
+.scrollable-content::-webkit-scrollbar-thumb {
+  background-color: var(--page-text-sub);
+  border-radius: 10px; /* つまみの角を丸くする */
 }
 
 /* 見出し */
@@ -273,21 +427,14 @@ h2 {
 }
 .form-actions button {
   padding: 8px 16px;
+  margin-top: 2rem;
+  margin-right: 1rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
-/* カラー選択 */
-.title-coolorselect {
-  display: flex;
-  flex-direction: column;
-}
-.color-selector {
-  margin-left: 1rem;
-  width: 100px;
-  padding: 2px;
-}
+/* 画像リセット */
 .file-reset {
   color: #ccc;
   font-size: 0.7rem;
@@ -324,5 +471,75 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* アイコンパネルのスタイル */
+.icon-panel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4列のグリッド */
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.icon-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.icon-item.active {
+  border-color: #007bff;
+  background-color: rgba(0, 123, 255, 0.1); /* 薄い青色 */
+}
+
+.icon-item i {
+  font-size: 24px;
+}
+
+/* カラーパネルのスタイル */
+.color-panel {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.color-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.color-item div {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+}
+
+.color-item.active div {
+  border: #007bff solid 2px;
+}
+
+.color-item span {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+/* 選択されたアイコンのプレビュー */
+.selected-icon-preview {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.selected-icon-preview i {
+  font-size: 48px;
 }
 </style>

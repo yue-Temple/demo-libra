@@ -1,6 +1,6 @@
 import { AppDataSource } from '../data-source';
 import bcrypt from 'bcryptjs';
-import { Response } from 'express';
+import { FastifyReply } from 'fastify';
 // エンティティ
 import { User } from '../entity/User';
 import { Menu } from '../entity/Menu';
@@ -83,8 +83,7 @@ export class AuthMailService {
     email: string,
     password: string,
     code: string,
-    deviceId: string,
-    res: Response
+    deviceId: string
   ): Promise<{ accessToken: string }> {
     try {
       const temporaryUserRepository =
@@ -142,18 +141,7 @@ export class AuthMailService {
       });
 
       // リフレッシュトークンをクッキーに保存
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30日間有効
-      });
-
-      // 仮登録レコードを削除
-      await temporaryUserRepository.delete({ id: temporaryUser.id });
-
-      console.log('本登録が完了しました。');
+      // Fastify では、`res` ではなく `reply` を使って処理
       return { accessToken };
     } catch (error) {
       console.error('本登録に失敗しました:', error);
@@ -173,7 +161,7 @@ export class AuthMailService {
     email: string,
     password: string,
     deviceId: string,
-    res: Response
+    reply: FastifyReply
   ): Promise<{ accessToken: string }> {
     const userRepository = AppDataSource.getRepository(User);
     const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
@@ -223,7 +211,7 @@ export class AuthMailService {
       await refreshTokenRepository.save(newRefreshToken);
 
       // リフレッシュトークンをクッキーに保存
-      res.cookie('refreshToken', refreshToken, {
+      reply.setCookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
@@ -242,7 +230,7 @@ export class AuthMailService {
 
       console.log('koko');
       // 新しいリフレッシュトークンをクッキーに保存
-      res.cookie('refreshToken', refreshToken, {
+      reply.setCookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
@@ -255,9 +243,5 @@ export class AuthMailService {
 
     // ここには到達しないが、型チェックのためにデフォルトの戻り値を設定
     throw new Error('予期せぬエラーが発生しました');
-  }
-  catch(error: any) {
-    console.error('ログインに失敗しました:', error);
-    throw error;
   }
 }

@@ -1,24 +1,39 @@
-import express from 'express';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { saveProfile, getProfileBlocks } from '../services/ProfileService';
 import {
   getdeleteBlocksImageKeys,
   deleteMultipleFromR2,
 } from '../services/R2Service';
 
-const router = express.Router();
-
-// プロフィールの保存エンドポイント
-router.post('/saveprofile', async (req, res) => {
-  const { userNumber, newblocks, deleteblocks, old_image_urls } = req.body;
+/**
+ * プロフィールの保存エンドポイント
+ * POST /saveprofile
+ * Request Body: { userNumber: number, newblocks: any[], deleteblocks?: any, old_image_urls?: string[] }
+ */
+const saveProfileHandler = async (
+  req: FastifyRequest<{
+    Body: {
+      userNumber: number;
+      newblocks: any[];
+      deleteblocks?: any;
+      old_image_urls?: string[];
+    };
+  }>,
+  reply: FastifyReply
+) => {
+  const { userNumber, newblocks, deleteblocks, old_image_urls = [] } = req.body; // old_image_urls にデフォルト値を設定
 
   // 入力データのバリデーション
   if (!userNumber || !newblocks || !Array.isArray(newblocks)) {
-    return res.status(400).json({ error: 'Invalid userNumber or blocks data' });
+    return reply
+      .status(400)
+      .send({ error: 'Invalid userNumber or blocks data' });
   }
 
   try {
     // ストレージサービスから画像削除の処理
-    if (deleteblocks || old_image_urls) {
+    if (deleteblocks || old_image_urls.length > 0) {
+      // old_image_urls が空でない場合のみ処理
       const deleteKeys = await getdeleteBlocksImageKeys(
         deleteblocks,
         old_image_urls
@@ -29,49 +44,38 @@ router.post('/saveprofile', async (req, res) => {
     // 他、保存
     const result = await saveProfile(userNumber, newblocks);
     if (result.success) {
-      return res.status(200).json(result);
+      return reply.status(200).send(result);
     } else {
-      return res.status(404).json(result);
+      return reply.status(404).send(result);
     }
   } catch (error) {
     console.error('Error saving profile:', error);
-    return res.status(500).json({ error: 'Failed to save profile' });
+    return reply.status(500).send({ error: 'Failed to save profile' });
   }
-});
+};
 
-// プロフィールブロックの取得エンドポイント
-router.get('/profiles/:userNumber/blocks', async (req, res) => {
+/**
+ * プロフィールブロックの取得エンドポイント
+ * GET /profiles/:userNumber/blocks
+ * URL Params: userNumber
+ */
+const getProfileBlocksHandler = async (
+  req: FastifyRequest<{ Params: { userNumber: string } }>,
+  reply: FastifyReply
+) => {
   const userNumber = parseInt(req.params.userNumber, 10);
 
   try {
     const blocks = await getProfileBlocks(userNumber);
-    return res.status(200).json(blocks);
+    return reply.status(200).send(blocks);
   } catch (error) {
     console.error('Error fetching profile blocks:', error);
-    return res.status(500).json({ error: 'Failed to fetch profile blocks' });
+    return reply.status(500).send({ error: 'Failed to fetch profile blocks' });
   }
-});
+};
 
-// ブロックの削除エンドポイント ※未使用
-// router.delete('/profiles/:userNumber/blocks/:blockId', async (req, res) => {
-//   const userNumber = parseInt(req.params.userNumber, 10);
-//   const blockId = req.params.blockId;
-
-//   if (!blockId) {
-//     return res.status(400).json({ error: 'Invalid block ID' });
-//   }
-
-//   try {
-//     const result = await removeBlock(userNumber, blockId);
-//     if (result.success) {
-//       return res.status(200).json(result);
-//     } else {
-//       return res.status(404).json(result);
-//     }
-//   } catch (error) {
-//     console.error('Error removing block:', error);
-//     return res.status(500).json({ error: 'Failed to remove block' });
-//   }
-// });
-
-export default router;
+// Fastifyプラグインとしてエクスポート
+export default async function (app: FastifyInstance) {
+  app.post('/saveprofile', saveProfileHandler); // プロフィール保存API
+  app.get('/profiles/:userNumber/blocks', getProfileBlocksHandler); // プロフィールブロック取得API
+}

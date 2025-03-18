@@ -32,8 +32,8 @@ const startGoogleAuth = async () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const redirectUri = encodeURIComponent(
     props.isLoginFlow
-      ? `${apiBaseUrl}/auth/google/login/callback`
-      : `${apiBaseUrl}/auth/google/register/callback`
+      ? `${apiBaseUrl}/login/google/login/callback`
+      : `${apiBaseUrl}/register/google/register/callback`
   );
   const scope = encodeURIComponent('openid email profile');
   // stateを生成（ランダム文字列 + デバイスID）
